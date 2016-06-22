@@ -68,9 +68,9 @@ var _tiny = (function () {
 		'format.number': 0
 	};
 	_each(CONSOLE_TAG, function (value, label) {
-		CONSOLE_TAG[label] = '<_tiny.' + label + '()>';
+		CONSOLE_TAG[label] = '_tiny.' + label + '() ->';
 	});
-	CONSOLE_TAG['base'] = '<_tiny>';
+	CONSOLE_TAG['base'] = '_tiny ->';
 
 
 	/**
@@ -389,8 +389,11 @@ var _tiny = (function () {
 		if (typeof route == 'string') {
 			rule = prepare_route(route);
 		} else if (route instanceof RegExp) {
-			var flag = route.flags.replace('g', ''); // the global flag should not be used
-			route = new RegExp(route.source, flag);
+			// remove the 'g' flag - it should not be used here
+			var flags = route.toString();
+			flags = flags.slice(flags.lastIndexOf('/') + 1);
+			flags = flags.replace('g', '');
+			route = new RegExp(route.source, flags);
 			rule = { re: route };
 		} else {
 			_error(CONSOLE_TAG['route.watch'], 'Expect string or RegExp :', route);
@@ -405,7 +408,7 @@ var _tiny = (function () {
 
 		_route_handlers[route].push(handler);
 
-		_log(CONSOLE_TAG['route.watch'], 'Watch route: "' + route + '"');
+		_log(CONSOLE_TAG['route.watch'], 'Watch route: "' + route + '"', rule);
 
 	}
 

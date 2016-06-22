@@ -1,0 +1,1 @@
+_tiny.outputLog(true);
