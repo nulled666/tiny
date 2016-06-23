@@ -1,8 +1,10 @@
 _tiny.showLog(true);
 
+
+
 function start() {
 
-	run_all_code();
+    run_all_code();
 
 }
 
@@ -10,23 +12,35 @@ $(start)
 
 function run_all_code() {
 
-	$('code.run').each(function (index, elem) {
-		run_code(elem)
-	})
+    $('.run-code').each(function (index, elem) {
+        run_code(elem);
+    });
 
 }
 
 function run_code(elem) {
 
-	var code = elem.innerText;
+    var code = $(elem).text();
 
-	var expected_result = $(elem).parent().next().text()
+    code = 'var result = [];\n' + code + ';\nresult;';
+    code = code.replace(/\/\/\s+ASSERT/g, 'result.push');
 
-	var result = eval(code)
+    var result = eval(code);
 
-	if (expected_result.indexOf('!'))
-		result = '=' + typeof result
+    var text = [];
+    _each(result, function (value, index) {
+        if (value !== true) text.push('ASSERT #' + (index + 1) + ' FAILED');
+    });
+    var tag = $('<div class="result"></div>');
+    if (text.length == 0) {
+        // -> All OK
+        text = 'ASSERT PASSED';
+    } else {
+        text = text.join('<br/>');
+        tag.addClass('failed');
+    }
+    tag.text(text);
 
-	console.log(expected_result, result)
+    $(elem).parent().append(tag);
 
 }

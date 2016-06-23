@@ -14,24 +14,32 @@
     <div class="sidebar">
     </div>
     <div id="content-block" class="content">
-        <div class="panel">
-            <h2>Overview</h2>
-        </div>
-        <div class="panel">
-            <h2>Base Functions</h2>
-            <p>Console Shorthands <code>_log()</code>, <code>_info()</code>, <code>_warn()</code>, <code>_error()</code>
-            and helper function <code>_xObj()</code>.</p>
-            <pre><code class="run language-javascript">
-                // by default _log() is turned off
-                // you should not let users in production environment read those logs
-                // you need this call to enable it:
-                _tiny.showLog(true)
+
+        <h1>The Tiny Function Library</h1>
+
+        <h2>Overview</h2>
+        <p>This small library is meant to provide some handy functions which are missing in DOM manipulating frameworks like
+            jQuery or others.</p>
+        <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
+        <p>So its design goal has been set to providing a minimalist building block for modern App like web pages.</p>
+
+        <hr/>
+
+        <h2>Base Functions</h2>
+
+        <h3>Console Shorthands</h3>
+        <p>Meet the <code>_log()</code>, <code>_info()</code>, <code>_warn()</code>, <code>_error()</code> and helper function
+            <code>_xObj()</code>.</p>
+        <p>By default <code>_log()</code> is turned off, you should not output everything in production environment.</p>
+        <pre><code class="run-code language-javascript">
+                // enable _log() output when you need them
+                _tiny.showLog(true);
 
                 // use them as you would like the console.xxx equivalents
-                _log('----------------------------')
-                _info('Object created:', {title: 'Untitled', id: 1, author: 'me'})
-                _warn('Don\'t do it', 'or nothing would happen')
-                _error('An error happened')
+                _log('----------------------------');
+                _info('Object created:', {title: 'Untitled', id: 1, author: 'me'});
+                _warn('Don\'t do it', 'or nothing would happen');
+                _error('An error happened');
 
                 // And if you want a flatten view of an object
                 // try the _xObj() helper function
@@ -40,12 +48,64 @@
                     view: { loaded: true,
                             date: new Date() },
                     method: function(){}
-                }) )
+                }) );
 
                 // check your browser's console for the output of above statements
+                // ASSERT( true )
             </code></pre>
-            <div class="result">=undefined</div>
-        </div>
+
+        <hr/>
+
+        <h3>_each()</h3>
+        <p>A replacement to <code>for(;;)</code> and <code>for...in</code> loop.</p>
+        <pre><code class="language-javascript">
+            _each(array_or_object, function(value, index, array) {
+                // your statements
+                return;           // continue to next item in array_or_object
+                return any_value; // break out, and _each() will return any_value except undefined
+            }, this_arg)          // set 'this' keyword to this_arg if given
+            </code></pre>
+        <pre><code class="run-code language-javascript ">
+            //==== Use on Array ================
+            var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            _each(numbers, function (value, index, array) {
+                if (value < 4) return;       // continue
+                if (value > 6) return true;  // break
+                array[index] = value * 10;
+            });
+            // ASSERT( numbers.join() === '1,2,3,40,50,60,7,8,9' )
+
+            // you can get returned value like this
+            var big = _each(numbers, function (value, index, array) {
+                if (value > 10)
+                    return value;  // return first number bigger than 10
+            });
+            // ASSERT( big === 40 )
+
+            //==== Use on Object ================
+            var list = { book: 'book', pen: 'pen' };
+            var my_string = '';
+            _each(list, function (value, label) {
+                my_string += 'It\'s my ' + value + '. ';
+            });
+            // ASSERT( my_string === 'It\'s my book. It\'s my pen. ' )
+
+            //==== Invalid Parameters ================
+            // An TypeError will be thrown on invalid parameter types
+            // detailed information will be output to console
+            try{
+                _each('string', 123);
+            }catch(err){
+                // ASSERT( err instanceof TypeError )
+            }
+
+            try{
+                _each([1, 2, 3], 'string');
+            }catch(err){
+                // ASSERT( err instanceof TypeError )
+            }
+            </code></pre>
+    </div>
     </div>
 </body>
 

@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////
 //
-//   A Tiny (Mostly No-DOM-related) Function Library
+//   The Tiny (Mostly Non-DOM-related) Function Library
 //
 //   Supported Browsers:
 //     IE 8+, Firefox 45+, Chrome 29+, Safari 9.1+
@@ -13,30 +13,30 @@
 
 var _tiny = (function () {
 
-    var _config = {
+    var config_ = {
         registerGlobals: true,
         showLog: false
-    }
+    };
 
-    var _tiny_definition = {}
-    var _global_prototype = []
-    var _skip_global = ',showMe,showLog,'
+    var _tiny_definition = {};
+    var _global_prototype = [];
+    var _skip_global = ',showMe,showLog,';
 
-    var TAG_T = '{_tiny}'
-    var TAG_SUFFIX = ' -> '
-    var SEE_ABOVE = '^^^ See Above for Details'
+    var TAG_T = '{_tiny}';
+    var TAG_SUFFIX = ' -> ';
+    var SEE_ABOVE = '^^^ See Above for Details';
 
     /**
      * Exports methods & properties
      */
     function _exports() {
 
-        if (_config.registerGlobals) {
-            register_globals()
-            _info(TAG_T, 'Global functions rigistered.')
+        if (config_.registerGlobals) {
+            register_globals();
+            _info(TAG_T, 'Global functions rigistered.');
         }
 
-        return _tiny_definition
+        return _tiny_definition;
 
     }
 
@@ -49,13 +49,13 @@ var _tiny = (function () {
         var win = window
 
         if (!win) {
-            _error(TAG_T, 'window object is not available')
-            return
+            _error(TAG_T, 'window object is not available');
+            return;
         }
 
         _each(_tiny_definition, function (item, label) {
-            if (_skip_global.includes(label)) return
-            win['_' + label] = item
+            if (_skip_global.includes(label)) return;
+            win['_' + label] = item;
         })
 
     }
@@ -64,23 +64,23 @@ var _tiny = (function () {
      * show _tiny namespace structure
      */
     function show_tiny_definition() {
-        _warn('_tiny = ' + flatten_object(_tiny_definition))
+        _warn('_tiny = ' + flatten_object(_tiny_definition));
     }
 
-    add_to_tiny_definition({ showMe: show_tiny_definition })
+    add_to_tiny_definition({ showMe: show_tiny_definition });
 
     /**
      * Add entry to _tiny_definition
      */
     function add_to_tiny_definition(ext) {
-        _tiny_definition = _extend(_tiny_definition, ext)
+        _tiny_definition = _extend(_tiny_definition, ext);
     }
 
     /**
      * Add entry to Prototype list
      */
     function add_to_global_prototype(ext) {
-        _global_prototype = _extend(_global_prototype, ext)
+        _global_prototype = _extend(_global_prototype, ext);
     }
 
 
@@ -90,14 +90,14 @@ var _tiny = (function () {
     var _log, _info, _warn, _error
 
     function assign_console_shorthand() {
-        _info = console.info.bind(window.console)
-        _warn = console.warn.bind(window.console)
-        _error = console.error.bind(window.console)
-        show_log(_config.showLog)
+        _info = console.info.bind(window.console);
+        _warn = console.warn.bind(window.console);
+        _error = console.error.bind(window.console);
+        show_log(config_.showLog);
     }
 
     // execute immediately - following function might need them
-    assign_console_shorthand()
+    assign_console_shorthand();
 
     // append to definition
     add_to_tiny_definition({
@@ -107,7 +107,7 @@ var _tiny = (function () {
         error: _error,
         showLog: show_log,
         xObj: flatten_object
-    })
+    });
 
     /**
      * Console.log wrapper for fast enable/disable console output
@@ -119,15 +119,15 @@ var _tiny = (function () {
     function show_log(on) {
 
         if (on) {
-            _log = console.log.bind(window.console)
-            _warn('{_tiny}', '_log() output is enabled')
+            _log = console.log.bind(window.console);
+            _warn('{_tiny}', '_log() output is enabled');
         } else {
             _log = function () { }
-            _info('{_tiny}', '_log() output is disabled')
+            _info('{_tiny}', '_log() output is disabled');
         }
 
-        if (_config.registerGlobals) {
-            window._log = _log
+        if (config_.registerGlobals) {
+            window._log = _log;
         }
 
     }
@@ -148,11 +148,11 @@ var _tiny = (function () {
         return JSON.stringify(obj, function (name, value) {
             switch (typeof value) {
                 case 'function':
-                    return '[Function]'
+                    return '[Function]';
                 case 'undefined':
-                    return '[undefined]'
+                    return '[undefined]';
                 default:
-                    return value
+                    return value;
             }
         }, 4)
 
@@ -200,7 +200,7 @@ var _tiny = (function () {
             return Array(count + 1).join(this);
         }
 
-    }, true)
+    }, true);
 
     // Array.prototype
     //  .isArray()
@@ -208,7 +208,7 @@ var _tiny = (function () {
         isArray: function (obj) {
             return Object.prototype.toString.call(obj) == '[object Array]';
         }
-    }, true)
+    }, true);
 
     //////////////////////////////////////////////////////////
     // BASE FUNCTIONS
@@ -237,33 +237,33 @@ var _tiny = (function () {
     function _each(obj, func, this_arg) {
 
         if (typeof obj !== 'object') {
-            _error(TAG_EACH, 'Only Array and Object can be iterated\n > Got "' + typeof obj + '"\n > ', obj)
-            throw new TypeError(SEE_ABOVE)
+            _error(TAG_EACH, 'Only Array and Object can be iterated\n > Got "' + typeof obj + '"\n > ', obj);
+            throw new TypeError(SEE_ABOVE);
         }
         if (typeof func !== 'function') {
-            _error(TAG_EACH, 'Iteration callback function required\n > Got "' + typeof func + '"\n > ', func)
-            throw new TypeError(SEE_ABOVE)
+            _error(TAG_EACH, 'Iteration callback function required\n > Got "' + typeof func + '"\n > ', func);
+            throw new TypeError(SEE_ABOVE);
         }
 
-        var result
+        var result;
 
         if (Array.isArray(obj)) {
             // -> Array
             for (var i = 0, len = obj.length; i < len; i++) {
-                result = func.call(this_arg, obj[i], i, obj)
-                if (result !== undefined) return result
+                result = func.call(this_arg, obj[i], i, obj);
+                if (result !== undefined) return result;
             }
         } else {
             // -> Object
             for (var label in obj) {
-                result = func.call(this_arg, obj[label], label, obj)
-                if (result !== undefined) return result
+                result = func.call(this_arg, obj[label], label, obj);
+                if (result !== undefined) return result;
             }
         }
 
     }
 
-    var TAG_EXTEND = '_extend()' + TAG_SUFFIX
+    var TAG_EXTEND = '_extend()' + TAG_SUFFIX;
     /**
      * Extends an object
      * ```
@@ -280,30 +280,30 @@ var _tiny = (function () {
     function _extend(target, extensions, prevent_overwrite) {
 
         // Don't extend non-objects
-        var type = typeof target
+        var type = typeof target;
         if (type !== 'object' && type !== 'function') {
-            _error(TAG_EXTEND, 'Only Object & Function can be extended\n > Got "' + type + '"\n > ', target)
-            throw new TypeError(SEE_ABOVE)
+            _error(TAG_EXTEND, 'Only Object & Function can be extended\n > Got "' + type + '"\n > ', target);
+            throw new TypeError(SEE_ABOVE);
         }
         if (typeof extensions !== 'object') {
-            _error(TAG_EXTEND, 'Extension should be an Object\n > Got "' + typeof extensions + '"\n > ', extensions)
-            throw new TypeError(SEE_ABOVE)
+            _error(TAG_EXTEND, 'Extension should be an Object\n > Got "' + typeof extensions + '"\n > ', extensions);
+            throw new TypeError(SEE_ABOVE);
         }
 
         _each(extensions, function (item, name) {
             // no self reference - continue
-            if (target === item) return
+            if (target === item) return;
             // exists and no overwrite - continue
-            if (prevent_overwrite && (typeof target[name] !== 'undefined')) return
+            if (prevent_overwrite && (typeof target[name] !== 'undefined')) return;
             // set extension
-            target[name] = item
+            target[name] = item;
         })
 
-        return target
+        return target;
 
     }
 
-    var TAG_NS = '_namespace()' + TAG_SUFFIX
+    var TAG_NS = '_namespace()' + TAG_SUFFIX;
     /**
      * Create and bind a namespace
      * ```

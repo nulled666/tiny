@@ -9,16 +9,40 @@ body{
 	top: 0;
 	left: 0;
 	bottom: 0;
-	width: 300px;
-	background: #fff;
+	width: 280px;
+	background: #fcfcfc;
 	box-shadow: 3px 0 5px rgba(0,0,0,0.3);
 }
 
 .content{
 	margin-left: 300px;
 	padding: 20px;
+	width: 800px;
 }
 
 :not(pre) > code{
-	color: #c30;
+	color: #03c;
+}
+pre{
+	position: relative;
+}
+.result {
+	display: inline-block;
+	position: absolute;
+	top: 1em;
+	right: 0;
+	padding: 4px 10px;
+	color: #fff;
+	background: #9d9;
+	border-radius: 4px 0 0 4px;
+}
+.result.failed{
+	background: #c66;
+}
+
+hr{
+	margin: 40px 0;
+	height: 1px;
+	background: #ccc;
+	border: 0;
 }
