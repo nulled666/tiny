@@ -1,10 +1,32 @@
 _tiny.showLog(true);
 
-var d = {x: 3};
-_extend(d, { x: 1 }, true);
+function start() {
 
-_log(d)
+	run_all_code();
 
-function append_test_block(){
-	body.append
+}
+
+$(start)
+
+function run_all_code() {
+
+	$('code.run').each(function (index, elem) {
+		run_code(elem)
+	})
+
+}
+
+function run_code(elem) {
+
+	var code = elem.innerText;
+
+	var expected_result = $(elem).parent().next().text()
+
+	var result = eval(code)
+
+	if (expected_result.indexOf('!'))
+		result = '=' + typeof result
+
+	console.log(expected_result, result)
+
 }

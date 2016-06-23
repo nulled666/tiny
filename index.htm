@@ -1,18 +1,52 @@
 <html>
 
 <head>
-  <title>The Tiny Library</title>
-  <link href="index.css" rel="stylesheet">
-  <script type="text/javascript" src="lib/jquery-3.0.0.min.js"></script>
-  <script type="text/javascript" src="tiny.js"></script>
-  <script type="text/javascript" src="index.js"></script>
+    <title>The Tiny Library</title>
+    <link href="lib/prism.css" rel="stylesheet">
+    <link href="index.css" rel="stylesheet">
+    <script type="text/javascript" src="lib/jquery-3.0.0.min.js"></script>
+    <script type="text/javascript" src="lib/prism.js"></script>
+    <script type="text/javascript" src="tiny.js"></script>
+    <script type="text/javascript" src="index.js"></script>
 </head>
 
 <body>
-  <div class="sidebar">
-  </div>
-  <div class="content">
-  </div>
+    <div class="sidebar">
+    </div>
+    <div id="content-block" class="content">
+        <div class="panel">
+            <h2>Overview</h2>
+        </div>
+        <div class="panel">
+            <h2>Base Functions</h2>
+            <p>Console Shorthands <code>_log()</code>, <code>_info()</code>, <code>_warn()</code>, <code>_error()</code>
+            and helper function <code>_xObj()</code>.</p>
+            <pre><code class="run language-javascript">
+                // by default _log() is turned off
+                // you should not let users in production environment read those logs
+                // you need this call to enable it:
+                _tiny.showLog(true)
+
+                // use them as you would like the console.xxx equivalents
+                _log('----------------------------')
+                _info('Object created:', {title: 'Untitled', id: 1, author: 'me'})
+                _warn('Don\'t do it', 'or nothing would happen')
+                _error('An error happened')
+
+                // And if you want a flatten view of an object
+                // try the _xObj() helper function
+                _log( 'Flatten Object =', _xObj( {
+                    id: 123,
+                    view: { loaded: true,
+                            date: new Date() },
+                    method: function(){}
+                }) )
+
+                // check your browser's console for the output of above statements
+            </code></pre>
+            <div class="result">=undefined</div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -1,11 +1,11 @@
 body{
 	font-size: 14px;
 	color: #333;
-	background: #ddd;
+	background: #f9f9f9;
 }
 
 .sidebar{
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0;
 	bottom: 0;
@@ -17,4 +17,8 @@ body{
 .content{
 	margin-left: 300px;
 	padding: 20px;
+}
+
+:not(pre) > code{
+	color: #c30;
 }
