@@ -18,9 +18,9 @@ function run_all_code() {
 
 }
 
-var _code_result =[];
+var _code_result = [];
 
-function ASSERT( val ){
+function ASSERT(val) {
     _code_result.push(val);
 }
 
@@ -34,16 +34,14 @@ function run_code(elem) {
     eval(code);
 
     var result_index = 0;
-    var comments = elem.find(".comment");
+    var comments = elem.find(".function");
     comments.each(function (index, item) {
         item = $(item);
         var tag_text = item.text();
-        if (tag_text == '// TEST') {
+        if (tag_text == 'ASSERT') {
             if (_code_result[result_index] === true) {
-                item.text("// PASSED");
                 item.addClass("passed");
             } else {
-                item.text("// FAILED");
                 item.addClass("failed");
             }
             result_index++;
