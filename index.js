@@ -1,7 +1,3 @@
-_tiny.showLog(true);
-
-
-
 function start() {
 
     run_all_code();

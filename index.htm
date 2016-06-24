@@ -94,18 +94,18 @@
                 my_string += 'It\'s my ' + value + '. ';
             });
             ASSERT( my_string === 'It\'s my book. It\'s my pen. ' );
-
-            //==== Invalid Parameters ================
-            // An TypeError will be thrown on invalid parameter types
-            // detailed information will be output to console
+        </code></pre>
+        <h4>ERRORS</h4>
+        <pre><code class="run-code language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
             try{
-                _each('string', 123);
+                _each('_each test 1');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
-
             try{
-                _each([1, 2, 3], 'string');
+                _each([1, 2, 3], '_each test 2');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
@@ -127,17 +127,68 @@
         <pre><code class="run-code language-javascript">
             var point = { x: 1, y: 2 };
             var point_3d = _extend(point, {z: 3});
-            ASSERT( JSON.stringify(point_3d) == '{"x":1,"y":2,"z":3}' );
+            ASSERT( JSON.stringify(point_3d) === '{"x":1,"y":2,"z":3}' );
 
             // x will be overwrite
             var point_4d = _extend(point_3d, {x: 10, t: 4});
-            ASSERT( JSON.stringify(point_4d) == '{"x":10,"y":2,"z":3,"t":41}' );
+            ASSERT( JSON.stringify(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
 
             // x & y will not be overwrite
             point_4d = _extend(point_3d, {x: 100, y: 100}, true);
-            ASSERT( JSON.stringify(point_4d) == '{"x":10,"y":2,"z":3,"t":4}' );
+            ASSERT( JSON.stringify(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
         </code></pre>
+        <h4>ERRORS</h4>
+        <pre><code class="run-code language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _extend('_extend test 1');
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+            try{
+                _extend({}, '_extend test 2');
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+            </code></pre>
+        <hr/>
 
+        <h3>_namespace()</h3>
+        <p>Create a namespace and return the object.</p>
+        <p>You can't create namespace with Javascript preserved keywords. The result might appear like nothing has happened.</p>
+        <h4>USAGE</h4>
+        <pre><code class="language-javascript">
+            _namespace(namespace, obj)
+            // namespace  - a string which represent the namespace path
+            // obj        - the object which will be bind to that namespace
+        </code></pre>
+        <h4>EXAMPLE</h4>
+        <pre><code class="run-code language-javascript">
+            // just create a blank namespace
+            _namespace('my.project');
+            ASSERT( JSON.stringify(my.project) === '{}' );
+
+            // add something to it
+            var ns_obj = _namespace('my.project.lib', { id: 1, type: 'blank' });
+            ASSERT( my.project.lib.id === 1 );
+            ASSERT( ns_obj.type === 'blank' );
+        </code></pre>
+        <h4>ERRORS</h4>
+        <pre><code class="run-code language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _namespace(['_namespace', 'test', 1]);
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+            try{
+                _namespace('_namespace.test.2', 'invalid');
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+            </code></pre>
         <hr/>
 
     </div>

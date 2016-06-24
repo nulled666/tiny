@@ -307,15 +307,15 @@ var _tiny = (function () {
     /**
      * Create and bind a namespace
      * ```
-     *    _namespace('my.project')  // just create the namesapce object
-     *    _namespace('my.project.lib', {nothing: true})
+     *    _namespace('my.project');  // just create the namespace object
+     *    _namespace('my.project.lib', {nothing: true});
      * ```
      */
     function _namespace(ns_string, ext) {
 
         if (typeof ns_string != 'string') {
-            _error(TAG_NS, 'Expect a namespace string :\n', ns_string);
-            return;
+            _error(TAG_NS, 'Expect a namespace string\n > Got "' + typeof ns_string + '"\n > ', ns_string);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var ns_parts = ns_string.split('.');
