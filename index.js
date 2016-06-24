@@ -18,27 +18,32 @@ function run_all_code() {
 
 }
 
+var _code_result =[];
+
+function ASSERT( val ){
+    _code_result.push(val);
+}
+
 function run_code(elem) {
 
     elem = $(elem);
 
     var code = elem.text();
 
-    code = 'var result = [];\n' + code + ';\nresult;';
-    code = code.replace(/\/\/\s+ASSERT/g, 'result.push');
+    _code_result = [];
+    eval(code);
 
-    var result = eval(code);
-    
-    var comments = elem.find(".comment");
     var result_index = 0;
+    var comments = elem.find(".comment");
     comments.each(function (index, item) {
         item = $(item);
-        var line = item.text();
-        if (line.search(/\/\/\s+ASSERT\(/) > -1) {
-        _log(line)
-            if (result[result_index] === true) {
+        var tag_text = item.text();
+        if (tag_text == '// TEST') {
+            if (_code_result[result_index] === true) {
+                item.text("// PASSED");
                 item.addClass("passed");
             } else {
+                item.text("// FAILED");
                 item.addClass("failed");
             }
             result_index++;

@@ -277,7 +277,7 @@ var _tiny = (function () {
      *     == {'old': 1}
      * ```
      */
-    function _extend(target, extensions, prevent_overwrite) {
+    function _extend(target, extensions, keep_old) {
 
         // Don't extend non-objects
         var type = typeof target;
@@ -294,7 +294,7 @@ var _tiny = (function () {
             // no self reference - continue
             if (target === item) return;
             // exists and no overwrite - continue
-            if (prevent_overwrite && (typeof target[name] !== 'undefined')) return;
+            if (keep_old && (typeof target[name] !== 'undefined')) return;
             // set extension
             target[name] = item;
         })
