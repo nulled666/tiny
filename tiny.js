@@ -416,7 +416,7 @@ var _tiny = (function () {
     var _route_rules = {};
     var _route_handlers = {};
 
-    var TAG_RT_WATCH = '_route.watch()' + TAG_SUFFIX;
+    var TAG_RT_WATCH = '_route.watch()' + TAG_SUFFIX
     /**
      * Set a function to watch specific route
      * This simple route system only watches window.location.hash

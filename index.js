@@ -20,27 +20,29 @@ function run_all_code() {
 
 function run_code(elem) {
 
-    var code = $(elem).text();
+    elem = $(elem);
+
+    var code = elem.text();
 
     code = 'var result = [];\n' + code + ';\nresult;';
     code = code.replace(/\/\/\s+ASSERT/g, 'result.push');
 
     var result = eval(code);
-
-    var text = [];
-    _each(result, function (value, index) {
-        if (value !== true) text.push('ASSERT #' + (index + 1) + ' FAILED');
+    
+    var comments = elem.find(".comment");
+    var result_index = 0;
+    comments.each(function (index, item) {
+        item = $(item);
+        var line = item.text();
+        if (line.search(/\/\/\s+ASSERT\(/) > -1) {
+        _log(line)
+            if (result[result_index] === true) {
+                item.addClass("passed");
+            } else {
+                item.addClass("failed");
+            }
+            result_index++;
+        }
     });
-    var tag = $('<div class="result"></div>');
-    if (text.length == 0) {
-        // -> All OK
-        text = 'ASSERT PASSED';
-    } else {
-        text = text.join('<br/>');
-        tag.addClass('failed');
-    }
-    tag.text(text);
-
-    $(elem).parent().append(tag);
 
 }
