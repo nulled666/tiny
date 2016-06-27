@@ -18,7 +18,9 @@ function run_all_code() {
 function run_code(elem) {
 
     var code = $(elem).text();
-    code = 'var elem = arguments[0]; var result=[]; var ASSERT = function(item){ result.push(item); }\n' + code;
+    code = 'var elem = arguments[0]; var result=[];\
+        var ASSERT = function(item){ result.push(item);};\
+        var FAIL_TEST = function(){ result.push(false); };\n' + code;
     if (code.indexOf('setTimeout(') > -1) {
         code += ';setTimeout(function(){\
             show_run_code_result(elem, result);\

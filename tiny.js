@@ -369,6 +369,11 @@ var _tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
+        if(typeof handler !== 'function'){
+            _error(TAG_MSG_LISTEN, 'Expect a function\n > Got "' + typeof handler + '"\n > ', handler);
+            throw new TypeError(SEE_ABOVE);
+        }
+
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
