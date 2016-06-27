@@ -39,15 +39,20 @@ h4{
 pre{
 	position: relative;
 }
+pre.usage{
+	background: #fff !important;
+	border-left: 4px solid #f3f3f3;
+	border-radius: 0;
+}
 
 .function.passed{
 	color: #3a3;
-	border-bottom: 1px solid #3a3;
+	border-bottom: 1px dotted #3a3;
 }
 .function.failed{
 	color: #c00;
 	background: #ffc;
-	border-bottom: 1px solid #c00;
+	border-bottom: 1px dotted #c00;
 }
 
 

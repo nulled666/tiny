@@ -62,15 +62,14 @@
         <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
         <p>It works like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break with a
             return value.</p>
-        <h4>USAGE</h4>
-        <pre><code class="language-javascript">
+        <pre class="usage"><code class="language-javascript">
             _each(array_or_object, function(value, index, array) {
                 return;              // continue to next item in array_or_object
                 return any_value;    // break out, and _each() will return any_value
             }, this_arg)             // set 'this' keyword inside the scope to this_arg if given
             </code></pre>
         <h4>EXAMPLE</h4>
-        <pre><code class="run-code language-javascript ">
+        <pre><code class="run-code language-javascript">
             //==== Work with Array ================
             var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
             _each(numbers, function (value, index, array) {
@@ -100,12 +99,12 @@
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
-                _each('_each test 1');
+                _each('_each error test 1');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
             try{
-                _each([1, 2, 3], '_each test 2');
+                _each([1, 2, 3], '_each error test 2');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
@@ -116,8 +115,7 @@
         <h3>_extend()</h3>
         <p>Extend an object with new properties. This function does not do deep extension.</p>
         <p>And Javscript preserved keywords can not be used or overwritten.</p>
-        <h4>USAGE</h4>
-        <pre><code class="language-javascript">
+        <pre class="usage"><code class="language-javascript">
             _extend(target, extensions, keep_old)
             // target     - the target Object or Function you want to extend
             // extensions - an Object contains extensions that will be applied to target
@@ -142,23 +140,23 @@
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
-                _extend('_extend test 1');
+                _extend('_extend error test 1');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
             try{
-                _extend({}, '_extend test 2');
+                _extend({}, '_extend error test 2');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
             </code></pre>
+
         <hr/>
 
         <h3>_namespace()</h3>
         <p>Create a namespace and return the object.</p>
         <p>You can't create namespace with Javascript preserved keywords. The result might appear like nothing has happened.</p>
-        <h4>USAGE</h4>
-        <pre><code class="language-javascript">
+        <pre class="usage"><code class="language-javascript">
             _namespace(namespace, obj)
             // namespace  - a string which represent the namespace path
             // obj        - the object which will be bind to that namespace
@@ -179,16 +177,80 @@
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
-                _namespace(['_namespace', 'test', 1]);
+                _namespace(['_namespace', 'error test', 1]);
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
             try{
-                _namespace('_namespace.test.2', 'invalid');
+                _namespace('ex.test.2', '_namespace error test 2');
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
             </code></pre>
+
+        <hr/>
+
+        <h2>Message System</h2>
+
+        <p>This tiny library includes a basic pseudo message system. Messages are more like remote function calls.</p>
+        <p>In order to distinguish from the DOM Event system, it is named _message.</p>
+        <p>Though it's not real asynchronize message delivery, it should be enough for most use cases on browser client.</p>
+
+        <h3>_message.listen()</h3>
+        <p>Register a message listener.</p>
+        <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking internal flag
+            (and you definitely will have an internal flag in such case).</p>
+        <pre class="usage"><code class="language-javascript">
+            _message.listen(message_name, function(msg_name, param_1, param_2 ...){
+                // message handler stetements
+            })
+        </code></pre>
+
+        <h3>_message.post()</h3>
+        <p>Post a message to listeners.</p>
+        <pre class="usage"><code class="language-javascript">
+            _message.post(msg_name, param_1, param_2 ...)
+        </code></pre>
+
+        <h3>_message.postDelayed()</h3>
+        <p>Post a message to listeners after a specified delay.</p>
+        <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement Type-n-Search
+            like features.</p>
+        <pre class="usage"><code class="language-javascript">
+            _message.postDelayed(delay_time, msg_name, param_1, param_2 ...)
+            // Wait for delay_time milliseconds before posting the message
+        </code></pre>
+
+        <h4>EXAMPLE</h4>
+        <pre><code class="run-code language-javascript">
+            var list = [];
+
+            // our messag handler
+            function put_in_list(){
+                var args = Array.prototype.slice.call(arguments);
+                list = list.concat(args);
+            }
+
+            // listen to the message
+            _message.listen('put_in_list', put_in_list);
+
+            // post a message
+            _message.post('put_in_list', 'me', 123);
+            // and a delayed message
+            _message.postDelayed(1000, 'put_in_list', 'you', 456);
+            
+            // check result
+            ASSERT( JSON.stringify(list) == '["me",123]' );
+
+            // check delayed result after 1 second
+            setTimeout(function(){
+                ASSERT( JSON.stringify(list) == '["me",123,"you",456]' );
+            }, 1000);
+        </code></pre>
+        <h4>ERRORS</h4>
+        <pre><code class="run-code language-javascript">
+            </code></pre>
+
         <hr/>
 
     </div>

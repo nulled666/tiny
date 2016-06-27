@@ -14,28 +14,35 @@ function run_all_code() {
 
 }
 
-var _code_result = [];
-
-function ASSERT(val) {
-    _code_result.push(val);
-}
 
 function run_code(elem) {
 
-    elem = $(elem);
+    var code = $(elem).text();
+    code = 'var elem = arguments[0]; var result=[]; var ASSERT = function(item){ result.push(item); }\n' + code;
+    if (code.indexOf('setTimeout(') > -1) {
+        code += ';setTimeout(function(){\
+            show_run_code_result(elem, result);\
+            }, 1500);';
+    } else {
+        code += ';show_run_code_result(elem, result);';
+    }
 
-    var code = elem.text();
+    var func = new Function(code);
 
-    _code_result = [];
-    eval(code);
+    func(elem);
+
+}
+
+function show_run_code_result(elem, result) {
 
     var result_index = 0;
-    var comments = elem.find(".function");
+    var comments = $(elem).find(".function");
+
     comments.each(function (index, item) {
         item = $(item);
         var tag_text = item.text();
         if (tag_text == 'ASSERT') {
-            if (_code_result[result_index] === true) {
+            if (result[result_index] === true) {
                 item.addClass("passed");
             } else {
                 item.addClass("failed");
