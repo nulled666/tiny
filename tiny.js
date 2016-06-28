@@ -634,11 +634,11 @@ var _tiny = (function () {
      * ```
      *   // filter keys by prefix, default is ''
      *   _tiny.storage.keyPrefix = 'your_prefix'
-     *   _store()           // return all values as an Object
-     *   _store(key)        // get value
-     *   _store(key, value) // set value
-     *   _store(key, null)  // delete value of given key
-     *   _store(null)       // delete all contents
+     *   _store()            // return all values as an Object
+     *   _store(key)         // get value
+     *   _store(key, value)  // set value
+     *   _store(key, null)   // delete value of given key
+     *   _store(null, null)  // delete all contents
      *   // Integer, Boolean, Array, Date & Object types will be converted automatically
      * ```
      */
@@ -658,7 +658,7 @@ var _tiny = (function () {
 
             return result;
 
-        } else if (key === null) {
+        } else if (key === null && value === null) {
 
             // delete all ----------
 
@@ -800,13 +800,13 @@ var _tiny = (function () {
      *   _cookie(key)                // get value
      *   _cookie(key, value [, ttl]) // set value
      *   _cookie(key, null)          // delete value of given key
-     *   _cookie(null)               // delete all cookies
+     *   _cookie(null, null)               // delete all cookies
      *   // Integer, Boolean, Array, Date & Object types will be converted automatically
      * ```
      */
     function _cookie(key, value, ttl) {
 
-        if (key === null) {
+        if (key === null && value === null) {
 
             // clean all cookie
             var cookieArray = document.cookie.split('; ');

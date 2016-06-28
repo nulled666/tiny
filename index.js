@@ -45,8 +45,10 @@ function show_run_code_result(elem, result) {
         var tag_text = item.text();
         if (tag_text == 'ASSERT') {
             if (result[result_index] === true) {
+                item.attr("title", "Code Test: PASSED");
                 item.addClass("passed");
             } else {
+                item.attr("title", "Code Test: FAILED");
                 item.addClass("failed");
             }
             result_index++;

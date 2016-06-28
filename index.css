@@ -46,8 +46,8 @@ pre.usage{
 }
 
 .function.passed{
-	color: #3a3;
-	border-bottom: 1px dotted #3a3;
+	color: #a83;
+	border-bottom: 1px dotted #a83;
 }
 .function.failed{
 	color: #c00;

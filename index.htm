@@ -242,12 +242,12 @@
 
             // post a message
             _message.post('put_in_list', 'me', 123);
-            // and a delayed message
-            _message.postDelayed(1000, 'put_in_list', 'you', 456);
-            
             // check result
             ASSERT( JSON.stringify(list) == '["me",123]' );
-            // check delayed result after 1 second
+
+            // post a delayed message
+            _message.postDelayed(1000, 'put_in_list', 'you', 456);
+            // check result after 1 second
             setTimeout(function(){
                 ASSERT( JSON.stringify(list) == '["me",123,"you",456]' );
             }, 1000);
@@ -274,25 +274,33 @@
 
         <h2>Router System</h2>
 
-        <p>Router is used to open a specified view based on a given URL.</p>
+        <p>Router is used to indicate a stateful view by a persistent URL.</p>
+        <p>With it you can access or share content directly with an URL, go back &amp; forth with the browser buttons.</p>
         <p>It should not be used for temporary view like a popup dialog or represent an action to execute.</p>
         <p>This is why the router system of Tiny is this simple.</p>
-        <p>And for simplicity and compatibility, this router system uses <code>window.location.hash</code> (#string) for routing, other than the History API introduced in HTML5.</p>
+        <p>And for simplicity and compatibility, this router system uses <code>window.location.hash</code> (#string) for routing,
+            other than the History API introduced in HTML5.</p>
         <p>And Tiny provides a predefined View Manager for fast implement of views.</p>
 
         <h3>_route.watch()</h3>
         <p>Watch a certain route.</p>
-        <p>There is no unwatch() method, since you can easily drop a call in your route handler by checking internal flag
-            (and you definitely will have an internal flag in such case).</p>
-        <p>No matter current route is a match or not, the callback function will be called every time the hash string is changed.</p>
-       <pre class="usage"><code class="language-javascript">
+        <p>There is no unwatch() method, since you can easily drop a call in your route handler by checking internal flag (and
+            you definitely will have an internal flag in such case).</p>
+        <p>The <code>route</code> parameter can be a string or a RegExp object.</p>
+
+        <pre class="usage"><code class="language-javascript">
             _route.watch(route, function(route, param_object){
-                // route handler stetements
+                // route handler statements
             })
         </code></pre>
-        <p>The <code>route</code> can be a string or a RegExp object.</p>
-        <p>The <code>param_object</code> will be <code>true</code> or an <code>Object</code> contains paramters in url, if current route is a match. And it will be <code>false</code> if there is no match.</p>
- 
+        <p>The callback function will be called every time the hash string is changed, no matter current route is matching or
+            not.
+        </p>
+        <p>The <code>route</code> parameter of the callback function will be current hash string.</p>
+        <p>And the <code>param_object</code> will be <code>true</code> or an <code>Object</code> contains paramters mateched
+            in URL.</p>
+        <p>If watched route is not matched, the <code>param_object</code> will be <code>false</code>.</p>
+
 
     </div>
 </body>
