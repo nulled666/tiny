@@ -12,20 +12,27 @@ body{
 	bottom: 0;
 	padding: 10px 0;
 	width: 280px;
+	background: #ddd;
+	transition: all 1s;
+}
+.sidebar:hover{
 	background: #f6f6f6;
 }
 .sidebar a{
 	display: block;
 	padding: 6px 6px 6px 32px;
 	text-decoration: none;
-	color: #333;
+	color: #666;
+	transition: color 1s;
+}
+.sidebar:hover a{
+	color: #000;
 }
 .sidebar a.header{
 	padding: 6px 16px;
 	font-weight: bold;
 }
 .sidebar a:hover{
-	color: #000;
 	background: #dee;
 }
 

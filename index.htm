@@ -23,17 +23,17 @@
         <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
         <p>Its goal is providing a minimalist building foundation for modern App-like web pages.</p>
 
-        <h3><a class="mark" name="import">_tiny.import()</a></h3>
+        <h3><a class="mark" name="import">tiny.import()</a></h3>
         <p>By default, Tiny will not inject global functions used in below examples into global namespace (<code>window</code>).</p>
-        <p>To use those short function names, pleas call <code>_tiny.import()</code> ahead of all calls.</p>
+        <p>To use those short function names, pleas call <code>tiny.import()</code> ahead of all calls.</p>
         <pre><code class="run-code language-javascript">
-           _tiny.import();  // register global function names for _tiny methods
+           tiny.import();  // register global function names for tiny methods
         </code></pre>
 
-        <h3><a class="mark" name="show-me">_tiny.me()</a></h3>
-        <p>Show a structural overview of <code>_tiny</code> namespace. This function will also show a list injected global functions.</p>
+        <h3><a class="mark" name="show-me">tiny.me()</a></h3>
+        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list injected global functions.</p>
         <pre><code class="run-code language-javascript">
-           _tiny.me();  // show _tiny definitions in console
+           tiny.me();  // show tiny definitions in console
         </code></pre>
 
         <hr/>
@@ -46,18 +46,18 @@
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
         <pre class="usage"><code class="language-javascript">
-            _tiny.showLog(true);       // enable log output
+            tiny.showLog(true);       // enable log output
 
             _log(param1, param2, ...)  // == console.log(param1, param2)
         </code></pre>
         <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose logs.</p>
-        <p>You can easily turn the console log on or off by calling <code>_tiny.showLog(true)</code> in develop or production
+        <p>You can easily turn the console log on or off by calling <code>tiny.showLog(true)</code> in develop or production
             environments.
         </p>
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             // enable _log() output when you need them
-            _tiny.showLog(true);
+            tiny.showLog(true);
 
             // use them as you would like the console.xxx equivalents
             _log('Test for _log()', '----------------------------');

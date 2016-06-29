@@ -11,7 +11,7 @@
 //
 ///////////////////////////////////////////////////////////////////
 
-var _tiny = (function () {
+var tiny = (function () {
 
     var _show_log_ = false;
     var _injected_globals = false;
@@ -20,7 +20,7 @@ var _tiny = (function () {
     var _prototype_extensions_ = [];
     var _skip_global_ = ',import,me,showLog,';
 
-    var TAG_TINY = '_tiny ::';
+    var TAG_TINY = 'tiny ::';
     var TAG_SUFFIX = ' :: ';
     var SEE_ABOVE = '^^^ See Above for Details ^^^ ';
 
@@ -85,7 +85,7 @@ var _tiny = (function () {
     function show_tiny_definition() {
 
         // show the namespace
-        _warn('_tiny = ' + inspect_object(_tiny_definition_));
+        _warn('tiny = ' + inspect_object(_tiny_definition_));
 
         // show global objects
         if (_injected_globals !== true) return;
@@ -203,7 +203,7 @@ var _tiny = (function () {
      * Enable/disable console.log & console.dir output
      * Other console output types should never be disabled
      * ```
-     *   _tiny.showLog(true);
+     *   tiny.showLog(true);
      * ```
      */
     function show_log(on) {
@@ -1913,7 +1913,7 @@ var _tiny = (function () {
         } else if (key.startsWith('$')) {
 
             // language string
-            value = _tiny(key.replace('$'), '');
+            value = tiny(key.replace('$'), '');
 
         } else {
 
@@ -2018,7 +2018,7 @@ var _tiny = (function () {
 // 	.includes()
 //	.startsWith()
 //  .repeat()
-_tiny.extend(String.prototype, {
+tiny.extend(String.prototype, {
 
     trim: function () {
         return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
@@ -2055,7 +2055,7 @@ _tiny.extend(String.prototype, {
 // Array.prototype
 //  .isArray()
 //  .includes()
-_tiny.extend(Array, {
+tiny.extend(Array, {
     isArray: function (obj) {
         return Object.prototype.toString.call(obj) == '[object Array]';
     },
