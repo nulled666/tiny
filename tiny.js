@@ -18,7 +18,7 @@ var _tiny = (function () {
 
     var _tiny_definition_ = {};
     var _prototype_extensions_ = [];
-    var _skip_global_ = ',import,list,showLog,';
+    var _skip_global_ = ',import,me,showLog,';
 
     var TAG_TINY = '_tiny ::';
     var TAG_SUFFIX = ' :: ';
@@ -118,7 +118,7 @@ var _tiny = (function () {
 
     }
 
-    add_to_tiny_definition({ list: show_tiny_definition });
+    add_to_tiny_definition({ me: show_tiny_definition });
 
     /**
      * Add entry to _tiny_definition
