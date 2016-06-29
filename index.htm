@@ -11,64 +11,105 @@
 </head>
 
 <body>
-    <div class="sidebar">
+    <div id="sidebar" class="sidebar">
     </div>
     <div id="content-block" class="content">
 
         <h1>The Tiny Function Library</h1>
 
-        <h2>Overview</h2>
+        <h2><a class="mark" name="overview">Introduction</a></h2>
         <p>This small library is meant to provide some handy functions which are missing in DOM manipulating frameworks like
             jQuery or others.</p>
         <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
         <p>Its goal is providing a minimalist building foundation for modern App-like web pages.</p>
 
-        <hr/>
-
-        <h2>Basic Functions</h2>
-
-        <h3>Console Shorthands</h3>
-        <p>Meet the <code>_log()</code>, <code>_info()</code>, <code>_warn()</code>, <code>_error()</code> and helper function
-            <code>_xObj()</code>.</p>
-        <p>You can easily turn the console log on or off by calling <code>_tiny.showLog()</code> in develop or production environments.</p>
-        <p>By default <code>_log()</code> is turned off, you don't want to show everything to the end users, do you?</p>
-        <h4>EXAMPLE</h4>
+        <h3><a class="mark" name="import">_tiny.import()</a></h3>
+        <p>By default, Tiny will not inject global functions used in below examples into global namespace (<code>window</code>).</p>
+        <p>To use those short function names, pleas call <code>_tiny.import()</code> ahead of all calls.</p>
         <pre><code class="run-code language-javascript">
-                // enable _log() output when you need them
-                _tiny.showLog(true);
+           _tiny.import();  // register global function names for _tiny methods
+        </code></pre>
 
-                // use them as you would like the console.xxx equivalents
-                _log('----------------------------');
-                _info('Object created:', {title: 'Untitled', id: 1, author: 'me'});
-                _warn('Don\'t do it', 'or nothing would happen');
-                _error('An error happened');
-
-                // And if you want a flatten view of an object
-                // try the _xObj() helper function
-                _log( 'Flatten Object =', _xObj( {
-                    id: 123,
-                    view: { loaded: true,
-                            date: new Date() },
-                    method: function(){}
-                }) );
-
-                // check your browser's console for the output of above statements
-                ASSERT( true );
-            </code></pre>
+        <h3><a class="mark" name="show-me">_tiny.list()</a></h3>
+        <p>Show a structural overview of <code>_tiny</code> namespace. This function will also show a list injected global functions.</p>
+        <pre><code class="run-code language-javascript">
+           _tiny.list();  // show _tiny definitions in console
+        </code></pre>
 
         <hr/>
 
-        <h3>_each()</h3>
+        <h2><a class="mark" name="basic-functions">Base Functions</a></h2>
+
+        <h3><a class="mark" name="console-shorthands">_log() ...</a></h3>
+        <p>Tiny provides these shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
+            <code>_warn()</code> and <code>_error()</code>.</p>
+        <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
+            and will not show the wrapper function name &amp; location in the console output.</p>
+        <pre class="usage"><code class="language-javascript">
+            _tiny.showLog(true);       // enable log output
+
+            _log(param1, param2, ...)  // == console.log(param1, param2)
+        </code></pre>
+        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose logs.</p>
+        <p>You can easily turn the console log on or off by calling <code>_tiny.showLog(true)</code> in develop or production
+            environments.
+        </p>
+        <h4>EXAMPLES</h4>
+        <pre><code class="run-code language-javascript">
+            // enable _log() output when you need them
+            _tiny.showLog(true);
+
+            // use them as you would like the console.xxx equivalents
+            _log('Test for _log()', '----------------------------');
+            _info('Test for _dir()', null);
+            _info('Test for _info()', {title: 'Untitled', id: 1, author: 'me'});
+            _warn('Test for _warn()', 'Nothing will happen');
+            _error('Test for _error()', '----------------------------');
+        </code></pre>
+
+        <h3><a class="mark" name="inspect">_inspect()</a></h3>
+        <p>The <code>_inspect</code> function is a helper function for debug purpose.</p>
+        <p>It will return a formatted JSON string version of given object for inspection.</p>
+        <p>Functions and special objects might lose in this process.</p>
+        <pre class="usage"><code class="language-javascript">
+            _inspect(obj) : string
+        </code></pre>
+        <h4>EXAMPLES</h4>
+        <pre><code class="run-code language-javascript">
+            var obj = {
+                id: 123,
+                view: { loaded: true,
+                        date: new Date(1467190047725) },
+                method: function(){}
+            };
+
+            var result = _inspect( obj );
+            var expected_result = JSON.stringify({
+                "id": 123,
+                "view": {
+                    "loaded": true,
+                    "date": "2016-06-29T08:47:27.725Z"
+                },
+                "method": "[Function]"
+            }, null, 4);
+            // the result should looks like expected_result
+            ASSERT( result == expected_result);
+        </code></pre>
+
+        <hr/>
+
+        <h3><a class="mark" name="each">_each()</a></h3>
         <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
-        <p>It works like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break with a
+        <p>Its syntax is just like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break with a
             return value.</p>
+        <p>And an method named Array.prototype._each() will be append, if you allowed global.</p>
         <pre class="usage"><code class="language-javascript">
             _each(array_or_object, function(value, index, array) {
                 return;              // continue to next item in array_or_object
                 return any_value;    // break out, and _each() will return any_value
             }, this_arg)             // set 'this' keyword inside the scope to this_arg if given
             </code></pre>
-        <h4>EXAMPLE</h4>
+        <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             //==== Work with Array ================
             var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -94,7 +135,7 @@
             });
             ASSERT( my_string === 'It\'s my book. It\'s my pen. ' );
         </code></pre>
-        <h4>ERRORS</h4>
+        <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
@@ -114,7 +155,8 @@
 
         <hr/>
 
-        <h3>_extend()</h3>
+        <h3><a class="mark" name="extend">_extend()</a></h3>
+
         <p>Extend an object with new properties. This function does not do deep extension.</p>
         <p>And Javscript preserved keywords can not be used or overwritten.</p>
         <pre class="usage"><code class="language-javascript">
@@ -123,7 +165,7 @@
             // extensions - an Object contains extensions that will be applied to target
             // keep_old   - set true to skip existing properties
         </code></pre>
-        <h4>EXAMPLE</h4>
+        <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             var point = { x: 1, y: 2 };
             var point_3d = _extend(point, {z: 3});
@@ -137,7 +179,7 @@
             point_4d = _extend(point_3d, {x: 100, y: 100}, true);
             ASSERT( JSON.stringify(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
         </code></pre>
-        <h4>ERRORS</h4>
+        <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
@@ -157,7 +199,8 @@
 
         <hr/>
 
-        <h3>_namespace()</h3>
+        <h3><a class="mark" name="namespace">_namespace()</a></h3>
+
         <p>Create a namespace and return the object.</p>
         <p>You can't create namespace with Javascript preserved keywords. The result might appear like nothing has happened.</p>
         <pre class="usage"><code class="language-javascript">
@@ -165,7 +208,7 @@
             // namespace  - a string which represent the namespace path
             // obj        - the object which will be bind to that namespace
         </code></pre>
-        <h4>EXAMPLE</h4>
+        <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             // just create a blank namespace
             _namespace('my.project');
@@ -176,7 +219,7 @@
             ASSERT( my.project.lib.id === 1 );
             ASSERT( ns_obj.type === 'blank' );
         </code></pre>
-        <h4>ERRORS</h4>
+        <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
@@ -196,13 +239,13 @@
 
         <hr/>
 
-        <h2>Message System</h2>
+        <h2><a class="mark" name="message">Message System</a></h2>
 
         <p>This tiny library includes a basic pseudo message system. Messages are more like remote function calls.</p>
         <p>In order to distinguish from the DOM Event system, it is named _message.</p>
         <p>Though it's not real asynchronize message delivery, it should be enough for most use cases on browser client.</p>
 
-        <h3>_message.listen()</h3>
+        <h3><a class="mark" name="message-listen">_message.listen()</a></h3>
         <p>Register a message listener.</p>
         <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking internal flag
             (and you definitely will have an internal flag in such case).</p>
@@ -212,13 +255,13 @@
             })
         </code></pre>
 
-        <h3>_message.post()</h3>
+        <h3><a class="mark" name="message-post">_message.post()</a></h3>
         <p>Post a message to listeners.</p>
         <pre class="usage"><code class="language-javascript">
             _message.post(msg_name, param_1, param_2 ...)
         </code></pre>
 
-        <h3>_message.postDelayed()</h3>
+        <h3><a class="mark" name="message-post-delayed">_message.postDelayed()</a></h3>
         <p>Post a message to listeners after a specified delay.</p>
         <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement Type-n-Search
             like features.</p>
@@ -227,7 +270,7 @@
             // Wait for delay_time milliseconds before posting the message
         </code></pre>
 
-        <h4>EXAMPLE</h4>
+        <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             var list = [];
 
@@ -252,7 +295,7 @@
                 ASSERT( JSON.stringify(list) == '["me",123,"you",456]' );
             }, 1000);
         </code></pre>
-        <h4>ERRORS</h4>
+        <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
@@ -268,21 +311,41 @@
             }catch(err){
                 ASSERT( err instanceof TypeError );
             }
+
+            try{
+                _message.post(['_message.post error test'], null );
+                FAIL_TEST();
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+
+            try{
+                _message.postDelayed(['_message.postDelayed error test 1'], null , null );
+                FAIL_TEST();
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
+            try{
+                _message.postDelayed(100, ['_message.postDelayed error test 2'], null );
+                FAIL_TEST();
+            }catch(err){
+                ASSERT( err instanceof TypeError );
+            }
         </code></pre>
 
         <hr/>
 
-        <h2>Router System</h2>
+        <h2><a class="mark" name="route">Router</a></h2>
 
         <p>Router is used to indicate a stateful view by a persistent URL.</p>
         <p>With it you can access or share content directly with an URL, go back &amp; forth with the browser buttons.</p>
         <p>It should not be used for temporary view like a popup dialog or represent an action to execute.</p>
         <p>This is why the router system of Tiny is this simple.</p>
         <p>And for simplicity and compatibility, this router system uses <code>window.location.hash</code> (#string) for routing,
-            other than the History API introduced in HTML5.</p>
+            instead of the fancy History API introduced in HTML5.</p>
         <p>And Tiny provides a predefined View Manager for fast implement of views.</p>
 
-        <h3>_route.watch()</h3>
+        <h3><a class="mark" name="route-watch">_route.watch()</a></h3>
         <p>Watch a certain route.</p>
         <p>There is no unwatch() method, since you can easily drop a call in your route handler by checking internal flag (and
             you definitely will have an internal flag in such case).</p>

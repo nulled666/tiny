@@ -13,105 +13,152 @@
 
 var _tiny = (function () {
 
-    var config_ = {
-        registerGlobals: true,
-        showLog: false
-    };
+    var _show_log_ = false;
+    var _injected_globals = false;
 
-    var _tiny_definition = {};
-    var _global_prototype = [];
-    var _skip_global = ',showMe,showLog,';
+    var _tiny_definition_ = {};
+    var _prototype_extensions_ = [];
+    var _skip_global_ = ',import,list,showLog,';
 
-    var TAG_T = '{_tiny}';
-    var TAG_SUFFIX = ' -> ';
-    var SEE_ABOVE = '^^^ See Above for Details';
+    var TAG_TINY = '_tiny ::';
+    var TAG_SUFFIX = ' :: ';
+    var SEE_ABOVE = '^^^ See Above for Details ^^^ ';
 
     /**
      * Exports methods & properties
      */
     function _exports() {
 
-        if (config_.registerGlobals) {
-            register_globals();
-            _info(TAG_T, 'Global functions rigistered.');
-        }
-
-        return _tiny_definition;
+        return _tiny_definition_;
 
     }
 
     /**
     * Register functions to global namespace
-    * This can be disabled by setting config.registerGlobals = false
     */
-    function register_globals() {
+    function inject_globals() {
+
+        _injected_globals = true;
 
         var win = window
 
         if (!win) {
-            _error(TAG_T, 'window object is not available');
+            _error(TAG_TINY, 'window object is not available. global functions will not be registered.');
             return;
         }
 
-        _each(_tiny_definition, function (item, label) {
-            if (_skip_global.includes(label)) return;
+        _each(_tiny_definition_, function (item, label) {
+            if (_skip_global_.includes(label)) return;
+            if (win['_' + label] !== undefined) {
+                _error(TAG_TINY, 'global function name already taken : ', '_' + label);
+                throw new Error(SEE_ABOVE);
+            }
             win['_' + label] = item;
         })
 
+        _info(TAG_TINY, 'global objects imported.');
+
     }
+
+    add_to_tiny_definition({ import: inject_globals });
 
     /**
      * show _tiny namespace structure
      */
     function show_tiny_definition() {
-        _warn('_tiny = ' + flatten_object(_tiny_definition));
+
+        // show the namespace
+        _warn('_tiny = ' + inspect_object(_tiny_definition_));
+
+        // show global objects
+        if (_injected_globals !== true) return;
+
+        var win = window;
+        var result = 'Injected global objects:';
+
+        _each(_tiny_definition_, function (item, label) {
+
+            if (_skip_global_.includes(label)) return;
+
+            var value = win['_' + label];
+            value = _inspect(value);
+
+            result += '\n_' + label + ' = ' + value;
+        });
+
+        _warn(result);
+
     }
 
-    add_to_tiny_definition({ showMe: show_tiny_definition });
+    add_to_tiny_definition({ list: show_tiny_definition });
 
     /**
      * Add entry to _tiny_definition
      */
     function add_to_tiny_definition(ext) {
-        _tiny_definition = _extend(_tiny_definition, ext);
+        _tiny_definition_ = _extend(_tiny_definition_, ext);
     }
 
     /**
      * Add entry to Prototype list
      */
-    function add_to_global_prototype(ext) {
-        _global_prototype = _extend(_global_prototype, ext);
+    function add_to_prototype(ext) {
+        _prototype_extensions_ = _extend(_prototype_extensions_, ext);
     }
 
 
     //////////////////////////////////////////////////////////
     // CONSOLE SHORTHAND METHODS
     //////////////////////////////////////////////////////////
-    var _log, _info, _warn, _error
+    var _log, _dir, _info, _warn, _error;
+    var _inspect = inspect_object;
 
+    /**
+     * Assign the console shorthands
+     */
     function assign_console_shorthand() {
+
+        // IE8 polyfill
+        if (typeof console === "undefined") console = {};
+
+        _each(['log', 'dir', 'info', 'warn', 'error'], function (item) {
+            if (typeof console[item] === "undefined")
+                console[item] = console_method_polyfill;
+        });
+
         _info = console.info.bind(window.console);
         _warn = console.warn.bind(window.console);
         _error = console.error.bind(window.console);
-        show_log(config_.showLog);
-    }
+        show_log(_show_log_);
 
-    // execute immediately - following function might need them
+    }
+    // execute immediately
+    // following functions might need them
     assign_console_shorthand();
 
     // append to definition
     add_to_tiny_definition({
         log: _log,
+        dir: _dir,
         info: _info,
         warn: _warn,
         error: _error,
         showLog: show_log,
-        xObj: flatten_object
+        inspect: inspect_object
     });
 
     /**
-     * Console.log wrapper for fast enable/disable console output
-     * Other console output types should not be disabled
+     * a polyfill function for console methods
+     */
+    function console_method_polyfill() {
+        var arr = Array.prototype.slice.call(arguments);
+        var msg = 'Console Output >>>\n' + arr.join('\n');
+        alert(msg);
+    }
+
+    /**
+     * Enable/disable console.log & console.dir output
+     * Other console output types should never be disabled
      * ```
      *   _tiny.showLog(true);
      * ```
@@ -120,14 +167,16 @@ var _tiny = (function () {
 
         if (on) {
             _log = console.log.bind(window.console);
-            _warn('{_tiny}', '_log() output is enabled');
+            _dir = console.dir.bind(window.console);
+            _warn(TAG_TINY, '_log() & _dir() output is enabled');
         } else {
-            _log = function () { }
-            _info('{_tiny}', '_log() output is disabled');
+            _log = _dir = function () { };
+            _info(TAG_TINY, '_log() & _dir() output is disabled');
         }
 
-        if (config_.registerGlobals) {
+        if (_injected_globals) {
             window._log = _log;
+            window._dir = _dir;
         }
 
     }
@@ -136,14 +185,14 @@ var _tiny = (function () {
      * Expand object to an JSON string
      * Helper function for display nested object in console
      * ```
-     *   _log( _xObj({text: 'test', func: test_func}) )
+     *   _log( _inspect({text: 'test', func: test_func}) )
      *   // {
      *   //   "text": "test",
      *   //   "func": "[function]"
      *   // }
      * ```
      */
-    function flatten_object(obj) {
+    function inspect_object(obj) {
 
         return JSON.stringify(obj, function (name, value) {
             switch (typeof value) {
@@ -154,61 +203,9 @@ var _tiny = (function () {
                 default:
                     return value;
             }
-        }, 4)
+        }, 4);
 
     }
-
-
-    //////////////////////////////////////////////////////////
-    // REQUIRED ECMASCRIPT 5+ FEATURE POLYFILLS
-    //////////////////////////////////////////////////////////
-
-    // String.prototype
-    //  .trim()
-    // 	.includes()
-    //	.startsWith()
-    //  .repeat()
-    _extend(String.prototype, {
-
-        trim: function () {
-            return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
-        },
-
-        includes: function (search, start) {
-            if (typeof start !== 'number') {
-                start = 0;
-            }
-            if (start + search.length > this.length) {
-                return false;
-            } else {
-                return this.indexOf(search, start) !== -1;
-            }
-        },
-
-        startsWith: function (searchString, position) {
-            position = position || 0;
-            return this.substr(position, searchString.length) === searchString;
-        },
-
-        repeat: function (count) {
-            if (typeof count !== 'number') {
-                count = 0;
-            }
-            if (count < 1) {
-                return '';
-            }
-            return Array(count + 1).join(this);
-        }
-
-    }, true);
-
-    // Array.prototype
-    //  .isArray()
-    _extend(Array, {
-        isArray: function (obj) {
-            return Object.prototype.toString.call(obj) == '[object Array]';
-        }
-    }, true);
 
     //////////////////////////////////////////////////////////
     // BASE FUNCTIONS
@@ -237,11 +234,11 @@ var _tiny = (function () {
     function _each(obj, func, this_arg) {
 
         if (typeof obj !== 'object') {
-            _error(TAG_EACH, 'Only Array and Object can be iterated\n > Got "' + typeof obj + '"\n > ', obj);
+            _error(TAG_EACH, 'Only Array and Object can be iterated. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(SEE_ABOVE);
         }
         if (typeof func !== 'function') {
-            _error(TAG_EACH, 'Iteration callback function required\n > Got "' + typeof func + '"\n > ', func);
+            _error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
             throw new TypeError(SEE_ABOVE);
         }
 
@@ -282,11 +279,11 @@ var _tiny = (function () {
         // Don't extend non-objects
         var type = typeof target;
         if (type !== 'object' && type !== 'function') {
-            _error(TAG_EXTEND, 'Only Object & Function can be extended\n > Got "' + type + '"\n > ', target);
+            _error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
             throw new TypeError(SEE_ABOVE);
         }
         if (typeof extensions !== 'object') {
-            _error(TAG_EXTEND, 'Extension should be an Object\n > Got "' + typeof extensions + '"\n > ', extensions);
+            _error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
             throw new TypeError(SEE_ABOVE);
         }
 
@@ -314,7 +311,7 @@ var _tiny = (function () {
     function _namespace(ns_string, ext) {
 
         if (typeof ns_string != 'string') {
-            _error(TAG_NS, 'Expect a namespace string\n > Got "' + typeof ns_string + '"\n > ', ns_string);
+            _error(TAG_NS, 'Expect a namespace string. > Got "' + typeof ns_string + '": ', ns_string);
             throw new TypeError(SEE_ABOVE);
         }
 
@@ -364,20 +361,20 @@ var _tiny = (function () {
      */
     function listen_message(msg, handler) {
 
-        if(typeof msg !== 'string'){
-            _error(TAG_MSG_LISTEN, 'Expect a message string\n > Got "' + typeof msg + '"\n > ', msg);
+        if (typeof msg !== 'string') {
+            _error(TAG_MSG_LISTEN, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(SEE_ABOVE);
         }
 
-        if(typeof handler !== 'function'){
-            _error(TAG_MSG_LISTEN, 'Expect a function\n > Got "' + typeof handler + '"\n > ', handler);
+        if (typeof handler !== 'function') {
+            _error(TAG_MSG_LISTEN, 'Expect a function. > Got "' + typeof handler + '": ', handler);
             throw new TypeError(SEE_ABOVE);
         }
 
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
-        _log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '"');
+        _log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', handler.name);
 
         _message_handlers[msg].push(handler);
 
@@ -392,13 +389,13 @@ var _tiny = (function () {
      */
     function post_message(msg) {
 
-        if(typeof msg !== 'string'){
-            _error(TAG_MSG_POST, 'Expect a message string\n > Got "' + typeof msg + '"\n > ', msg);
+        if (typeof msg !== 'string') {
+            _error(TAG_MSG_POST, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(SEE_ABOVE);
         }
 
         var sliced_args = Array.prototype.slice.call(arguments, 1);
-        _info(TAG_MSG_POST, 'Post message "' + msg + '"\n', sliced_args);
+        _info(TAG_MSG_POST, 'Post message "' + msg + '" + ', sliced_args);
 
         var handles = _message_handlers[msg];
 
@@ -424,14 +421,14 @@ var _tiny = (function () {
      * ```
      */
     function post_delayed_message(delay, msg) {
-        
-        if(typeof delay !== 'number'){
-            _error(TAG_MSG_POST_DELAYED, 'Expect a delay number\n > Got "' + typeof delay + '"\n > ', delay);
+
+        if (typeof delay !== 'number') {
+            _error(TAG_MSG_POST_DELAYED, 'Expect a delay time in milliseconds. > Got "' + typeof delay + '": ', delay);
             throw new TypeError(SEE_ABOVE);
         }
 
-        if(typeof msg !== 'string'){
-            _error(TAG_MSG_POST_DELAYED, 'Expect a message string\n > Got "' + typeof msg + '"\n > ', msg);
+        if (typeof msg !== 'string') {
+            _error(TAG_MSG_POST_DELAYED, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(SEE_ABOVE);
         }
 
@@ -887,7 +884,7 @@ var _tiny = (function () {
     add_to_tiny_definition({ format: _format });
 
     // prototypes
-    _global_prototype.push(
+    _prototype_extensions_.push(
 
         [String.prototype,
             {
@@ -1957,4 +1954,82 @@ var _tiny = (function () {
 })();
 
 
+
+
+//////////////////////////////////////////////////////////
+// REQUIRED ECMASCRIPT 5+ FEATURE POLYFILLS
+//////////////////////////////////////////////////////////
+
+// String.prototype
+//  .trim()
+// 	.includes()
+//	.startsWith()
+//  .repeat()
+_tiny.extend(String.prototype, {
+
+    trim: function () {
+        return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+    },
+
+    includes: function (search, start) {
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+        if (start + search.length > this.length) {
+            return false;
+        } else {
+            return this.indexOf(search, start) !== -1;
+        }
+    },
+
+    startsWith: function (searchString, position) {
+        position = position || 0;
+        return this.substr(position, searchString.length) === searchString;
+    },
+
+    repeat: function (count) {
+        if (typeof count !== 'number') {
+            count = 0;
+        }
+        if (count < 1) {
+            return '';
+        }
+        return Array(count + 1).join(this);
+    }
+
+}, true);
+
+// Array.prototype
+//  .isArray()
+//  .includes()
+_tiny.extend(Array, {
+    isArray: function (obj) {
+        return Object.prototype.toString.call(obj) == '[object Array]';
+    },
+    includes: function (searchElement /*, fromIndex*/) {
+        var O = Object(this);
+        var len = parseInt(O.length, 10) || 0;
+        if (len === 0) {
+            return false;
+        }
+        var n = parseInt(arguments[1], 10) || 0;
+        var k;
+        if (n >= 0) {
+            k = n;
+        } else {
+            k = len + n;
+            if (k < 0) { k = 0; }
+        }
+        var currentElement;
+        while (k < len) {
+            currentElement = O[k];
+            if (searchElement === currentElement ||
+                (searchElement !== searchElement && currentElement !== currentElement)) { // NaN !== NaN
+                return true;
+            }
+            k++;
+        }
+        return false;
+    }
+}, true);
 

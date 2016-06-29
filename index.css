@@ -1,4 +1,5 @@
 body{
+	font-family: "Segoe UI", Tahoma, Arial;
 	font-size: 14px;
 	color: #333;
 	background: #fff;
@@ -9,8 +10,23 @@ body{
 	top: 0;
 	left: 0;
 	bottom: 0;
+	padding: 10px 0;
 	width: 280px;
 	background: #f6f6f6;
+}
+.sidebar a{
+	display: block;
+	padding: 6px 6px 6px 32px;
+	text-decoration: none;
+	color: #333;
+}
+.sidebar a.header{
+	padding: 6px 16px;
+	font-weight: bold;
+}
+.sidebar a:hover{
+	color: #000;
+	background: #dee;
 }
 
 .content{
