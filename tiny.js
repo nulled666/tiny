@@ -47,13 +47,30 @@ var _tiny = (function () {
             return;
         }
 
+        // inject global functions
         _each(_tiny_definition_, function (item, label) {
+
             if (_skip_global_.includes(label)) return;
+
             if (win['_' + label] !== undefined) {
                 _error(TAG_TINY, 'global function name already taken : ', '_' + label);
                 throw new Error(SEE_ABOVE);
             }
+
             win['_' + label] = item;
+
+        });
+
+        // inject object prototype extensions
+        _each(_prototype_extensions_, function (item, index) {
+
+            if (typeof item[0] !== 'function') {
+                _error(TAG_TINY, 'Prototype not found : ', item[0]);
+                throw new Error(SEE_ABOVE);
+            }
+
+            _extend(item[0].prototype, item[1]);
+
         })
 
         _info(TAG_TINY, 'global objects imported.');
@@ -85,7 +102,18 @@ var _tiny = (function () {
 
             result += '\n_' + label + ' = ' + value;
         });
+        _warn(result);
 
+        // show prototype extensions
+        result = 'Injected prototype extensions:';
+
+        _each(_prototype_extensions_, function (item, label) {
+
+            var name = get_function_name(item[0]);
+            var value = _inspect(item[1]);
+
+            result += '\n' + name + '.prototype + ' + value;
+        });
         _warn(result);
 
     }
@@ -103,9 +131,24 @@ var _tiny = (function () {
      * Add entry to Prototype list
      */
     function add_to_prototype(ext) {
-        _prototype_extensions_ = _extend(_prototype_extensions_, ext);
+        _prototype_extensions_.push(ext);
     }
 
+    /**
+     * get a function's name
+     */
+    function get_function_name(func) {
+        if (typeof func !== 'function')
+            return '';
+        if (func.name !== undefined)
+            return func.name;
+
+        var match = func.toString().match(/function ([^\(]+)/);
+        if (match && match[1])
+            return match[1];
+
+        return '';
+    }
 
     //////////////////////////////////////////////////////////
     // CONSOLE SHORTHAND METHODS
@@ -216,6 +259,8 @@ var _tiny = (function () {
         namespace: _namespace
     });
 
+    add_to_prototype([Array, { _each: each_extension }]);
+
     var TAG_EACH = '_each()' + TAG_SUFFIX
     /**
      * Simply iteration helper function
@@ -259,6 +304,11 @@ var _tiny = (function () {
         }
 
     }
+
+    function each_extension(func) {
+        return _each(this.valueOf(), func);
+    }
+
 
     var TAG_EXTEND = '_extend()' + TAG_SUFFIX;
     /**
@@ -374,7 +424,7 @@ var _tiny = (function () {
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
-        _log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', handler.name);
+        _log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', get_function_name(handler) + '()');
 
         _message_handlers[msg].push(handler);
 
@@ -883,27 +933,28 @@ var _tiny = (function () {
 
     add_to_tiny_definition({ format: _format });
 
-    // prototypes
-    _prototype_extensions_.push(
+    add_to_prototype([Number, { _format: format_number_extension }]);
+    add_to_prototype([Date, { _format: format_date_extension }]);
+    add_to_prototype([String, {
+        _htmlSafe: html_safe_extension,
+        _formatWith: format_extension
+    }]);
 
-        [String.prototype,
-            {
-                _htmlSafe: function () { return html_safe(this.valueOf()); },
-                _formatWith: function (obj) { return format_template(this.valueOf(), obj); }
-            }],
+    function format_number_extension(format) {
+        return format_number(this.valueOf(), format);
+    }
 
-        [Number.prototype,
-            {
-                _format: function (format) { return format_number(this.valueOf(), format); }
-            }],
+    function format_date_extension(format, names) {
+        return format_date(this.valueOf(), format, names);
+    }
 
-        [Date.prototype,
-            {
-                _format: function (format, names) { return format_date(this, format, names); }
-            }
-        ]
+    function html_safe_extension(keep_spaces) {
+        return html_safe(this.valueOf(), keep_spaces);
+    }
 
-    );
+    function format_extension(obj) {
+        return format_template(this.valueOf(), obj);
+    }
 
     /**
      * Make string HTML-safe
@@ -934,7 +985,8 @@ var _tiny = (function () {
 
         return str;
 
-    };
+    }
+
 
     /**
      * Number format function
@@ -966,6 +1018,7 @@ var _tiny = (function () {
             return format_dec_number(num, format);
         }
     }
+
 
     /**
      * Format Decimal Number
