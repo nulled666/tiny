@@ -384,7 +384,7 @@
         </ul>
         <p>The <code>handler</code> function will be called when:</p>
         <ul>
-            <li>Current route is matching.</li>
+            <li>Current route is a match.</li>
             <li>The route was matched last time, but no match this time.</li>
         </ul>
         <p>This behavior can make view switching easier.</p>
@@ -420,17 +420,27 @@
             _route.off() : _route
         </code></pre>
 
-        <h3><a class="mark" name="route-get">_route.get() _route.set()</a></h3>
-
-        <p>Get or set route string.</p>
-        <pre class="usage"><code class="language-javascript">
-            _route.get() : string
-            // return string will not contain #
-
-            _route.set(route[, trigger]) : _route
-            // trigger : whether trigger route change event, default is true
+        <h4>EXAMPLES</h4>
+        <pre><code class="run-code language-javascript">
         </code></pre>
-        
+
+        <h3><a class="mark" name="route-append">_route.append()</a></h3>
+
+        <p>Append items to route string.</p>
+        <pre class="usage"><code class="language-javascript">
+            _route.append(string_or_array[, trigger]) : _route
+            // string_or_array : a string or an array of items to append
+            // trigger         : whether trigger route change event, default is true
+        </code></pre>
+
+        <h3><a class="mark" name="route-get">_route.cut()</a></h3>
+
+        <p>Cut route string from given section.</p>
+        <pre class="usage"><code class="language-javascript">
+            _route.cut(section[, trigger]) : _route
+            // section : from which the route string will be cut
+        </code></pre>
+
     </div>
 </body>
 
