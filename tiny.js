@@ -321,11 +321,13 @@ var tiny = (function () {
      *   _extand({'old': 1}, {'old': 200})
      *     == {'old': 200}
      *   // set true in 3rd parameter to prevent overwrite existing items
-     *   _extand({'old': 1}, {'old': 200}, true)
+     *   _extand({'old': 1}, {'old': 200}, false)
      *     == {'old': 1}
      * ```
      */
-    function _extend(target, extensions, keep_old) {
+    function _extend(target, extensions, overwrite) {
+
+        overwrite = (overwrite !== false);
 
         // Don't extend non-objects
         var type = typeof target;
@@ -342,7 +344,7 @@ var tiny = (function () {
             // no self reference - continue
             if (target === item) return;
             // exists and no overwrite - continue
-            if (keep_old && (typeof target[name] !== 'undefined')) return;
+            if (!overwrite && (typeof target[name] !== 'undefined')) return;
             // set extension
             target[name] = item;
         })
@@ -503,10 +505,14 @@ var tiny = (function () {
     // SIMPLE ROUTE SYSTEM
     //////////////////////////////////////////////////////////
     var _route = {
-        watch: watch_route,
-        check: check_route,
+        watch: route_watch,
+        check: route_check,
         on: route_mode_on,
-        off: route_mode_off
+        off: route_mode_off,
+        get: route_get,
+        set: route_set,
+        append: route_append,
+        cut: route_cut
     };
 
     add_to_tiny_definition({ route: _route });
@@ -515,6 +521,7 @@ var tiny = (function () {
     var _route_rules_ = {};
     var _route_handlers_ = {};
     var _route_on_ = false;
+    var _route_bind_event_ = false;
 
     var TAG_RT_WATCH = '_route.watch()' + TAG_SUFFIX
     /**
@@ -533,12 +540,12 @@ var tiny = (function () {
      *     do event_handler('/item/test/123/other', ['test', '123'])
      * ```
      */
-    function watch_route(route, handler) {
+    function route_watch(route, handler) {
 
         var rule;
 
         if (typeof route == 'string') {
-            rule = prepare_route(route);
+            rule = route_prepare_rule(route);
         } else if (route instanceof RegExp) {
             // remove the 'g' flag - it should not be used here
             route = route.toString();
@@ -569,10 +576,10 @@ var tiny = (function () {
     }
 
     /**
-     * Prepare route string to RegExp
+     * Prepare route rule
      * @param {string} route - Route string
      */
-    function prepare_route(route) {
+    function route_prepare_rule(route) {
 
         var rule = {};
         var re = route;
@@ -615,9 +622,14 @@ var tiny = (function () {
      *     -> return true // when match found
      * ```
      */
-    function check_route(str) {
+    function route_check(str) {
 
-        var q = str || window.location.hash;
+        if (str !== undefined && typeof str !== 'string') {
+            _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof str + '": ', str);
+            throw new TypeError(SEE_ABOVE);
+        }
+
+        var q = str || route_get();
         q = q.replace(/^#/, '');
 
         _log(TAG_RT_CHECK, 'Check route: "' + q + '"');
@@ -680,15 +692,27 @@ var tiny = (function () {
      * Monitoring on hashchange event and check current hash string immediately
      */
     function route_mode_on() {
+
+        // bind event if not
+        if (!_route_bind_event_) {
+            window.addEventListener('hashchange', route_on_window_hash_change);
+        }
+
         _route_on_ = true;
-        check_route();
+        route_check();
+
+        return _route;
+
     }
 
     /**
      * Turn off monitoring
      */
     function route_mode_off() {
+
         _route_on_ = false;
+
+        return _route;
     }
 
     /**
@@ -696,12 +720,107 @@ var tiny = (function () {
      */
     function route_on_window_hash_change(e) {
         if (_route_on_)
-            check_route();
+            route_check();
     }
 
-    // bind event immediately
-    window.addEventListener('hashchange', route_on_window_hash_change);
+    var TAG_RT_GET = '_route.get()' + TAG_SUFFIX;
+    /**
+     * Get current route string
+     * ```
+     *   _route.get()
+     * ```
+     */
+    function route_get() {
+        return window.location.hash.replace(/^#/, '');
+    }
 
+    var TAG_RT_SET = '_route.set()' + TAG_SUFFIX;
+    /**
+     * Set route
+     * ```
+     *   _route.set('/test/name/4123')         // set to given route
+     *   _route.set('/test/name/4123', false)  // set to given route without trigger event
+     * ```
+     */
+    function route_set(route, trigger) {
+
+        if (typeof route !== 'string') {
+            _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof route + '": ', route);
+            throw new TypeError(SEE_ABOVE);
+        }
+
+        trigger = (trigger !== false);
+
+        var route_on = _route_on_;
+        if (!trigger) _route_on_ = false;
+
+        window.location.hash = route;
+
+        _route_on_ = route_on;
+
+        return _route;
+
+    }
+
+
+    var TAG_RT_APPEND = '_route.append()' + TAG_SUFFIX;
+    /**
+     * Append sections to current route
+     * ```
+     *   _route.append('name/4123');             // append a string
+     *   _route.append(['name','4123'], false);  // append without trigger event
+     * ```
+     */
+    function route_append(str_or_arr, trigger) {
+
+        var route = route_get();
+        if (!route.endsWith('/')) route += '/';
+
+        if (typeof str_or_arr == 'string') {
+            // string
+            route += str_or_arr;
+        } else if (Array.isArray(str_or_arr)) {
+            // array
+            route += str_or_arr.join('/');
+        } else {
+            _error(TAG_RT_WATCH, 'Expect a string or array. > Got "' + typeof str_or_arr + '": ', str_or_arr);
+            throw new TypeError(SEE_ABOVE);
+        }
+
+        route_set(route, trigger);
+
+        return _route;
+
+    }
+
+
+    var TAG_RT_CUT = '_route.cut()' + TAG_SUFFIX;
+    /**
+     * Cut everything from given section
+     * ```
+     *   //  without trigger event
+     *   _route.cut('name', false);
+     * ```
+     */
+    function route_cut(str, trigger) {
+
+        var route = route_get();
+
+        if (typeof str == 'string') {
+            _error(TAG_RT_WATCH, 'Expect a string. > Got "' + typeof str + '": ', str);
+            throw new TypeError(SEE_ABOVE);
+        }
+
+        var re = new RegExp('(^|\/)' + str + '(\/|$)');
+        var pos = route.search(re);
+        if (pos > -1) {
+            route = route.substr(0, pos);
+            route_set(route, trigger);
+        }
+
+        return _route;
+
+    }
 
     //////////////////////////////////////////////////////////
     // LOCAL STORAGE ACCESS
@@ -2055,6 +2174,7 @@ var tiny = (function () {
 //  .trim()
 // 	.includes()
 //	.startsWith()
+//  .endsWith()
 //  .repeat()
 tiny.extend(String.prototype, {
 
@@ -2078,6 +2198,16 @@ tiny.extend(String.prototype, {
         return this.substr(position, searchString.length) === searchString;
     },
 
+    endsWith: function (searchString, position) {
+        var subjectString = this.toString();
+        if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        var lastIndex = subjectString.indexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
+    },
+
     repeat: function (count) {
         if (typeof count !== 'number') {
             count = 0;
@@ -2088,7 +2218,7 @@ tiny.extend(String.prototype, {
         return Array(count + 1).join(this);
     }
 
-}, true);
+}, false);
 
 // Array.prototype
 //  .isArray()
@@ -2122,5 +2252,5 @@ tiny.extend(Array, {
         }
         return false;
     }
-}, true);
+}, false);
 
