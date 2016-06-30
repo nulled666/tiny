@@ -512,7 +512,7 @@ var tiny = (function () {
         get: route_get,
         set: route_set,
         append: route_append,
-        cut: route_cut
+        remove: route_remove
     };
 
     add_to_tiny_definition({ route: _route });
@@ -794,15 +794,15 @@ var tiny = (function () {
     }
 
 
-    var TAG_RT_CUT = '_route.cut()' + TAG_SUFFIX;
+    var TAG_RT_REMOVE = '_route.remove()' + TAG_SUFFIX;
     /**
-     * Cut everything from given section
+     * Remove child levels from given section
      * ```
      *   //  without trigger event
-     *   _route.cut('name', false);
+     *   _route.remove('name', false);
      * ```
      */
-    function route_cut(str, trigger) {
+    function route_remove(str, trigger) {
 
         var route = route_get();
 
