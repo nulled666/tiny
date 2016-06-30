@@ -552,7 +552,7 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        rule.match = false; // set last match state to false
+        rule.matched = false; // set last match state to false
 
         if (!_route_rules_[route])
             _route_rules_[route] = rule;
@@ -581,9 +581,9 @@ var tiny = (function () {
 
         re = re.replace(/([:|$?.*=\(\)\\\/^])/g, '\\$1');
 
-        if (re.indexOf('\\/') == 0){
+        if (re.indexOf('\\/') == 0) {
             re = '^' + re;
-        }else{
+        } else {
             re = '(?:\/)';
         }
 
@@ -630,6 +630,8 @@ var tiny = (function () {
 
             if (match) {
 
+                rule.matched = true;
+
                 match.shift(); // remove first match - full string
 
                 // process params
@@ -657,10 +659,14 @@ var tiny = (function () {
 
             } else {
 
-                // not match - notify them with a false value
-                _each(_route_handlers_[route], function (handler) {
-                    var result = handler(q, false);
-                });
+                if (rule.matched) {
+                    // only notify previously matched items
+                    _each(_route_handlers_[route], function (handler) {
+                        var result = handler(q, false);
+                    });
+                }
+
+                rule.matched = false;
 
             }
 
