@@ -261,6 +261,11 @@ var tiny = (function () {
 
     add_to_prototype([Array, { _each: each_extension }]);
 
+    function each_extension(func, this_arg) {
+        return _each(this.valueOf(), func, this_arg);
+    }
+
+
     var TAG_EACH = '_each()' + TAG_SUFFIX
     /**
      * Simply iteration helper function
@@ -303,10 +308,6 @@ var tiny = (function () {
             }
         }
 
-    }
-
-    function each_extension(func) {
-        return _each(this.valueOf(), func);
     }
 
 
@@ -428,6 +429,8 @@ var tiny = (function () {
 
         _message_handlers[msg].push(handler);
 
+        return _message;
+
     }
 
     var TAG_MSG_POST = '_message.post()' + TAG_SUFFIX;
@@ -451,7 +454,7 @@ var tiny = (function () {
 
         if (!handles || handles.length < 1) {
             _warn(TAG_MSG_POST, 'Nobody is listen to this message');
-            return;
+            return _message;
         }
 
         // call handles
@@ -460,6 +463,8 @@ var tiny = (function () {
         });
 
         _log(TAG_MSG_POST, handles.length + ' message handlers triggered');
+
+        return _message;
 
     }
 
@@ -490,6 +495,8 @@ var tiny = (function () {
             post_message.apply(this, sliced_args);
         }, delay);
 
+        return _message;
+
     }
 
     //////////////////////////////////////////////////////////
@@ -497,14 +504,17 @@ var tiny = (function () {
     //////////////////////////////////////////////////////////
     var _route = {
         watch: watch_route,
-        check: check_route
+        check: check_route,
+        on: route_mode_on,
+        off: route_mode_off
     };
 
     add_to_tiny_definition({ route: _route });
 
     // route match route & handler registry
-    var _route_rules = {};
-    var _route_handlers = {};
+    var _route_rules_ = {};
+    var _route_handlers_ = {};
+    var _route_on_ = false;
 
     var TAG_RT_WATCH = '_route.watch()' + TAG_SUFFIX
     /**
@@ -531,25 +541,30 @@ var tiny = (function () {
             rule = prepare_route(route);
         } else if (route instanceof RegExp) {
             // remove the 'g' flag - it should not be used here
+            route = route.toString();
             var flags = route.toString();
             flags = flags.slice(flags.lastIndexOf('/') + 1);
             flags = flags.replace('g', '');
-            route = new RegExp(route.source, flags);
-            rule = { re: route };
+            var re = new RegExp(route.source, flags);
+            rule = { re: re };
         } else {
-            _error(TAG_RT_WATCH, 'Expect string or RegExp :\n', route);
-            return;
+            _error(TAG_RT_WATCH, 'Expect a string or RegExp. > Got "' + typeof route + '": ', route);
+            throw new TypeError(SEE_ABOVE);
         }
 
-        if (!_route_rules[route])
-            _route_rules[route] = rule;
+        rule.match = false; // set last match state to false
 
-        if (!_route_handlers[route])
-            _route_handlers[route] = [];
+        if (!_route_rules_[route])
+            _route_rules_[route] = rule;
 
-        _route_handlers[route].push(handler);
+        if (!_route_handlers_[route])
+            _route_handlers_[route] = [];
+
+        _route_handlers_[route].push(handler);
 
         _log(TAG_RT_WATCH, 'Watch route: "' + route + '"\n', rule);
+
+        return _route;
 
     }
 
@@ -566,8 +581,11 @@ var tiny = (function () {
 
         re = re.replace(/([:|$?.*=\(\)\\\/^])/g, '\\$1');
 
-        if (re.indexOf('\\/') == 0)
+        if (re.indexOf('\\/') == 0){
             re = '^' + re;
+        }else{
+            re = '(?:\/)';
+        }
 
         re += '(?:\/|$)';
 
@@ -606,7 +624,7 @@ var tiny = (function () {
 
         var found = false;
 
-        _each(_route_rules, function (rule, route) {
+        _each(_route_rules_, function (rule, route) {
 
             var match = rule.re.exec(q);
 
@@ -631,7 +649,7 @@ var tiny = (function () {
                 _info(TAG_RT_CHECK, 'Invoke route rule:\n', route, q, params);
 
                 // call handlers
-                _each(_route_handlers[route], function (handler) {
+                _each(_route_handlers_[route], function (handler) {
                     var result = handler(q, params);
                 });
 
@@ -640,7 +658,7 @@ var tiny = (function () {
             } else {
 
                 // not match - notify them with a false value
-                _each(_route_handlers[route], function (handler) {
+                _each(_route_handlers_[route], function (handler) {
                     var result = handler(q, false);
                 });
 
@@ -648,20 +666,34 @@ var tiny = (function () {
 
         });
 
-
         return found;
 
     }
 
+    /**
+     * Monitoring on hashchange event and check current hash string immediately
+     */
+    function route_mode_on() {
+        _route_on_ = true;
+        check_route();
+    }
+
+    /**
+     * Turn off monitoring
+     */
+    function route_mode_off() {
+        _route_on_ = false;
+    }
 
     /**
      * Event listener for window.location.hash change
      */
     function route_on_window_hash_change(e) {
-        check_route();
+        if (_route_on_)
+            check_route();
     }
 
-    // bind listener immediately
+    // bind event immediately
     window.addEventListener('hashchange', route_on_window_hash_change);
 
 

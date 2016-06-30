@@ -1,7 +1,7 @@
 function start() {
 
     build_content_table();
-    
+
     setTimeout(run_all_code, 100);
 
 }
@@ -12,7 +12,7 @@ $(start)
 // ====== content table builder
 function build_content_table() {
 
-    var sidebar = $('#sidebar');
+    var sidebar = $('#content-table');
 
     var a_list = $('.mark');
     a_list.each(function (index, elem) {
@@ -25,7 +25,7 @@ function check_and_append_link(sidebar, elem) {
 
     elem = $(elem);
     var name = elem.attr('name');
-    
+
     if (typeof name !== 'string') return;
 
     var parent_elem = elem.parent();
@@ -35,12 +35,12 @@ function check_and_append_link(sidebar, elem) {
 
     var title = parent_elem.text();
 
-    var a_class ='';
-    if(tag == 'H2'){
+    var a_class = '';
+    if (tag == 'H2') {
         a_class = 'header';
         title = title.toUpperCase();
     }
-    
+
     var a = $('<a>', { href: '#' + name, class: a_class });
     a.text(title);
 
@@ -63,9 +63,9 @@ function run_all_code() {
 function run_code(elem) {
 
     var code = $(elem).text();
-    code = 'var test_elem = arguments[0]; var test_result = [];\
-        var ASSERT = function(item){ test_result.push(item);};\
-        var FAIL_TEST = function(){ test_result.push(false); };\n' + code;
+    code = 'var test_elem = arguments[0]; var test_result = {};\
+        var ASSERT = function(txt, value){ test_result[txt] = value };\
+        var FAIL = function(txt){ test_result[txt] = false };\n' + code;
     if (code.indexOf('setTimeout(') > -1) {
         code += ';setTimeout(function(){\
             show_run_code_result(test_elem, test_result);\
@@ -83,21 +83,14 @@ function run_code(elem) {
 function show_run_code_result(elem, result) {
 
     var result_index = 0;
-    var comments = $(elem).find(".function");
+    var assert_elems = $(elem).find(".function:contains(ASSERT)");
 
-    comments.each(function (index, item) {
-        item = $(item);
-        var tag_text = item.text();
-        if (tag_text == 'ASSERT') {
-            if (result[result_index] === true) {
-                item.attr("title", "Code Test: PASSED");
-                item.addClass("passed");
-            } else {
-                item.attr("title", "Code Test: FAILED");
-                item.addClass("failed");
-            }
-            result_index++;
-        }
+    _each(result, function (item, label) {
+        var text = label + (item ? ": PASSED" : ": FAILED");
+        var elem = $(assert_elems.get(result_index));
+        elem.attr("title", text);
+        elem.addClass(item ? "passed" : "failed");
+        result_index++;
     });
 
 }

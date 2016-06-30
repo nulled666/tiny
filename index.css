@@ -5,22 +5,19 @@ body{
 	background: #fff;
 }
 
+/* sidebar */
 .sidebar{
 	position: fixed;
 	top: 0;
 	left: 0;
 	bottom: 0;
-	padding: 10px 0;
+	padding: 20px 0;
 	width: 280px;
-	background: #ddd;
-	transition: all 1s;
-}
-.sidebar:hover{
-	background: #f6f6f6;
+	background: #eee;
 }
 .sidebar a{
 	display: block;
-	padding: 6px 6px 6px 32px;
+	padding: 6px 30px;
 	text-decoration: none;
 	color: #666;
 	transition: color 1s;
@@ -29,13 +26,17 @@ body{
 	color: #000;
 }
 .sidebar a.header{
-	padding: 6px 16px;
 	font-weight: bold;
 }
 .sidebar a:hover{
-	background: #dee;
+	background: #cdf;
 }
 
+.content-table{
+	text-align: right;
+}
+
+/* content */
 .content{
 	margin-left: 300px;
 	padding: 20px;
@@ -68,14 +69,15 @@ pre.usage{
 	border-radius: 0;
 }
 
-.function.passed{
-	color: #a83;
-	border-bottom: 1px dotted #a83;
+.function.passed,
+.function.failed{
+	padding: 0 4px;
+	color: #fff;
+	background: #aca;
+	border-radius: 4px;
 }
 .function.failed{
-	color: #c00;
-	background: #ffc;
-	border-bottom: 1px dotted #c00;
+	background: #c00;
 }
 
 
