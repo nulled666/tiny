@@ -378,8 +378,10 @@
         <ul>
             <li><code>'/'</code> - match <code>''</code> or <code>'/'</code> route only. This is used to implement index view.</li>
             <li><code>'/module'</code> - match any route which starts with a '/module' section.</li>
-            <li><code>'module'</code> - match any route which contains a 'module' section.</li>
-            <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword: 'me', page: '3'}</li>
+            <li><code>'module'</code> - match any route which contains a 'module' section. A section must start with '/' or start
+                of line, and end with '/' or end of line.</li>
+            <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword: 'me', page:
+                '3'}</li>
             <li><code>/item=(.*?),(.*?)/i</code> - use RegExp to match, matched parameters will be returned in an Array.</li>
         </ul>
         <p>The <code>handler</code> function will be called when:</p>
@@ -410,14 +412,6 @@
         <pre class="usage"><code class="language-javascript">
             _route.check([route_string]) : boolean
             // route_string : if not given, window.location.hash will be checked
-        </code></pre>
-
-        <h3><a class="mark" name="route-on">_route.on() _route.off()</a></h3>
-
-        <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
-        <pre class="usage"><code class="language-javascript">
-            _route.on() : _route
-            _route.off() : _route
         </code></pre>
 
         <h4>EXAMPLES</h4>
@@ -454,12 +448,28 @@
             // match '/list/id:{id}' and get parameters
             result = _route.check('word/list/id:123');
             ASSERT('_route.check() true again', result === true);
-            ASSERT('data change again', FLAT(data) === '["*",true,false,{"id":"123"}]');
+            ASSERT('data change', FLAT(data) === '["*",true,false,{"id":"123"}]');
 
+            data = [];
             // match '/list' and '/list/id:{id}'
             result = _route.check('/list/id:456');
             ASSERT('_route.check() must true again', result === true);
-            ASSERT('data add more', FLAT(data) === '["*",true,false,{"id":"123"},true,{"id":"456"}]');
+            ASSERT('data change again', FLAT(data) === '[true,{"id":"456"}]');
+
+            data = [];
+            // no match becuase the section string is 'my_list', not 'list'
+            // and previously matched routes will receive false
+            result = _route.check('my_list/id:789');
+            ASSERT('_route.check() shoule be false', result === false);
+            ASSERT('data add 2 false', FLAT(data) === '[false,false]');
+        </code></pre>
+
+        <h3><a class="mark" name="route-on">_route.on() _route.off()</a></h3>
+
+        <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
+        <pre class="usage"><code class="language-javascript">
+            _route.on() : _route
+            _route.off() : _route
         </code></pre>
 
         <h3><a class="mark" name="route-add">_route.add()</a></h3>
