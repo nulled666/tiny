@@ -39,6 +39,8 @@ function check_and_append_link(sidebar, elem) {
     if (tag == 'H2') {
         a_class = 'header';
         title = title.toUpperCase();
+    }else{
+        a_class = 'sub';
     }
 
     var a = $('<a>', { href: '#' + name, class: a_class });

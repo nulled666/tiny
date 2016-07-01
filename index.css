@@ -5,36 +5,87 @@ body{
 	background: #fff;
 }
 
+/* Scroll Bars */
+::-webkit-scrollbar{
+    width: 8px;
+	overflow: visible;
+}
+::-webkit-scrollbar-button {
+	height: 0;
+	width: 0;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(0,0,0,.02);
+	background-clip: padding-box;
+	border: 1px solid rgba(0,0,0,.02);
+}
+::-webkit-scrollbar-track:horizontal {
+	border-width: 4px 0 0;
+}
+::-webkit-scrollbar-track:hover {
+	background-color: rgba(0,0,0,.05);
+	border: 1px solid rgba(0,0,0,.1);
+}
+::-webkit-scrollbar-track:horizontal:hover {
+	border: 1px solid rgba(0,0,0,.1);
+}
+::-webkit-scrollbar-track:active {
+	background-color: rgba(0,0,0,.1);
+	border: 1px solid rgba(0,0,0,.2);
+}
+::-webkit-scrollbar-track:horizontal:active {
+	border: 1px solid rgba(0,0,0,.2);
+}
+
+::-webkit-scrollbar-thumb {
+	background-clip: padding-box;
+    background: rgba(0,0,0,.06);
+	border: 1px solid transparent;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(36,36,36,.15);
+}
+
 /* sidebar */
 .sidebar{
+	overflow-y: auto;
 	position: fixed;
 	top: 0;
 	left: 0;
 	bottom: 0;
-	padding: 20px 0;
 	width: 220px;
 	background: #eee;
+	transition: background 1s;
 }
-.sidebar a{
+.sidebar:hover{
+	background: #f9f9f9;
+}
+
+.content-table{
+	margin: 20px 0 80px 0;
+	font-size: 12px;
+	text-align: right;
+}
+.content-table a{
 	display: block;
 	padding: 6px 30px;
 	text-decoration: none;
 	color: #666;
 	transition: color 1s;
 }
-.sidebar:hover a{
+.content-table:hover a{
 	color: #000;
 }
-.sidebar a.header{
+.content-table a.header{
 	font-weight: bold;
 }
-.sidebar a:hover{
+.content-table a.sub{
+}
+.content-table a:hover{
 	background: #cdf;
 }
 
-.content-table{
-	text-align: right;
-}
 
 /* content */
 .content{
