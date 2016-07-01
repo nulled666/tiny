@@ -16,6 +16,9 @@
         </div>
     </div>
     <div id="content-block" class="content">
+        <div id="test-info" class="test-info">
+            CODE TEST
+        </div>
 
         <h1>The Tiny Function Library</h1>
 
@@ -28,7 +31,8 @@
 
         <h3><a class="mark" name="import">tiny.import()</a></h3>
 
-        <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace (the <code>window</code> object).</p>
+        <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace
+            (the <code>window</code> object).</p>
         <p>To use those short function names, pleas call <code>tiny.import()</code> ahead of all calls.</p>
         <pre><code class="run-code language-javascript">
            tiny.import();  // register global function names for tiny methods
@@ -158,7 +162,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="collapse"><code class="error-test run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -201,8 +205,9 @@
             point_4d = _extend(point_3d, {x: 100, y: 100}, false);
             ASSERT('_extend() no overwrite', FLAT(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
         </code></pre>
+
         <h4>ERROR TESTS</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="collapse"><code class="error-test run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -244,7 +249,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="collapse"><code class="error-test run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -325,8 +330,9 @@
                 ASSERT( '_message.postDelayed()', FLAT(list) == '["me",123,"you",456]' );
             }, 1000);
         </code></pre>
+
         <h4>ERROR TESTS</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="collapse"><code class="error-test run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -395,7 +401,8 @@
             <li><code>'module'</code> - match any route which contains a 'module' section. A section must start with '/' or start
                 of line, and end with '/' or end of line.</li>
             <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword: 'me', page:
-                '3'}</li>
+                '3'}
+            </li>
             <li><code>/item=(.*?),(.*?)/i</code> - use RegExp to match, matched parameters will be returned in an Array.</li>
         </ul>
         <p>The <code>handler</code> function will be called when:</p>

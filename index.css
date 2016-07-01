@@ -63,7 +63,7 @@ body{
 }
 
 .content-table{
-	margin: 20px 0 80px 0;
+	margin: 60px 0;
 	font-size: 12px;
 	text-align: right;
 }
@@ -80,12 +80,35 @@ body{
 .content-table a.header{
 	font-weight: bold;
 }
-.content-table a.sub{
-}
 .content-table a:hover{
 	background: #cdf;
 }
 
+/* test info */
+.test-info{
+	position: fixed;
+	z-index: 99;
+	top: -4em;
+	display: inline-block;
+	margin: 0 0 0 -20px;
+	padding: 10px 20px;
+	font-size: 12px;
+	color: #fff;
+	background: #36c;
+	border-radius: 0 0 4px 4px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+	cursor: pointer;
+	transition: all 1s;
+}
+.test-info.show{
+	top: 0;
+}
+.test-info.pass{
+	background: #393;
+}
+.test-info.fail{
+	background: #c00;
+}
 
 /* content */
 .content{
@@ -119,6 +142,25 @@ pre.usage{
 	background: #fff !important;
 	border-left: 4px solid #f3f3f3;
 	border-radius: 0;
+}
+
+pre.collapse{
+	cursor: pointer;
+}
+pre.collapse.failed{
+	background: #c00;
+}
+pre.collapse.failed::before{
+	color: #fff;
+	content: 'TEST FAILED';
+}
+pre.collapse.passed::before{
+	color: #696;
+	content: 'TEST PASSED';
+}
+
+pre.collapse .error-test{
+	display: none;
 }
 
 .function.passed,
