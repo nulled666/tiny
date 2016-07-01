@@ -182,15 +182,15 @@
         <pre><code class="run-code language-javascript">
             var point = { x: 1, y: 2 };
             var point_3d = _extend(point, {z: 3});
-            ASSERT('_extend()', JSON.stringify(point_3d) === '{"x":1,"y":2,"z":3}' );
+            ASSERT('_extend()', FLAT(point_3d) === '{"x":1,"y":2,"z":3}' );
 
             // x will be overwrite
             var point_4d = _extend(point_3d, {x: 10, t: 4});
-            ASSERT('_extend() overwrite', JSON.stringify(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
+            ASSERT('_extend() overwrite', FLAT(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
 
             // x & y will not be overwrite
             point_4d = _extend(point_3d, {x: 100, y: 100}, false);
-            ASSERT('_extend() no overwrite', JSON.stringify(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
+            ASSERT('_extend() no overwrite', FLAT(point_4d) === '{"x":10,"y":2,"z":3,"t":4}' );
         </code></pre>
         <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
@@ -225,7 +225,7 @@
         <pre><code class="run-code language-javascript">
             // just create a blank namespace
             _namespace('my.project');
-            ASSERT('_namespace() create blank', JSON.stringify(my.project) === '{}' );
+            ASSERT('_namespace() create blank', FLAT(my.project) === '{}' );
 
             // add something to it
             var ns_obj = _namespace('my.project.lib', { id: 1, type: 'blank' });
@@ -296,19 +296,19 @@
 
             // listen to the message
             _message
-                .listen('put_in_list', put_in_list)
-                .listen('put_nothing', function(){ FAIL('_message.post()') });
+                .listen('list::add', put_in_list)
+                .listen('list::error', function(){ FAIL('_message.post()') });
 
             // post a message
-            _message.post('put_in_list', 'me', 123);
+            _message.post('list::add', 'me', 123);
             // check result
-            ASSERT( '_message.post()', JSON.stringify(list) == '["me",123]' );
+            ASSERT( '_message.post()', FLAT(list) == '["me",123]' );
 
             // post a delayed message
-            _message.postDelayed(1000, 'put_in_list', 'you', 456);
+            _message.postDelayed(1000, 'list::add', 'you', 456);
             // check result after 1 second
             setTimeout(function(){
-                ASSERT( '_message.postDelayed()', JSON.stringify(list) == '["me",123,"you",456]' );
+                ASSERT( '_message.postDelayed()', FLAT(list) == '["me",123,"you",456]' );
             }, 1000);
         </code></pre>
         <h4>ERROR TESTS</h4>
@@ -376,8 +376,8 @@
         <p>This method will return <code>_route</code> object, you can chain methods if needed.</p>
         <p>The <code>route</code> parameter can be:</p>
         <ul>
-            <li><code>'/'</code> - match the root, handler will always be called.</li>
-            <li><code>'/module'</code> - match any route which starts with a '/module/' section.</li>
+            <li><code>'/'</code> - match <code>''</code> or <code>'/'</code> route only. This is used to implement index view.</li>
+            <li><code>'/module'</code> - match any route which starts with a '/module' section.</li>
             <li><code>'module'</code> - match any route which contains a 'module' section.</li>
             <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword: 'me', page: '3'}</li>
             <li><code>/item=(.*?),(.*?)/i</code> - use RegExp to match, matched parameters will be returned in an Array.</li>
@@ -422,22 +422,60 @@
 
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
+            var data = [];
+            function save_data(route, params){
+                data.push(params);
+            }
+
+            _route
+                .watch('/', function(route, param){ data.push('*') })
+                .watch('/list', save_data)
+                .watch('list/id:{id}', save_data);
+            
+            // invoke root rule only
+            _route.check('');
+            ASSERT('_route.check() root', FLAT(data) === '["*"]');
+
+            // match '/list' and no parameter
+            var result = _route.check('/list/a');
+            ASSERT('_route.check() true', result === true);
+            ASSERT('data', FLAT(data) === '["*",true]');
+
+            // no match, but previous matched, a false parameter will be sent
+            result = _route.check('/id:123');
+            ASSERT('_route.check() false', result === false);
+            ASSERT('data add false', FLAT(data) === '["*",true,false]');
+
+            // no match again, nothing should happen
+            result = _route.check('lis');
+            ASSERT('_route.check() false again', result === false);
+            ASSERT('data no change', FLAT(data) === '["*",true,false]');
+
+            // match '/list/id:{id}' and get parameters
+            result = _route.check('word/list/id:123');
+            ASSERT('_route.check() true again', result === true);
+            ASSERT('data change again', FLAT(data) === '["*",true,false,{"id":"123"}]');
+
+            // match '/list' and '/list/id:{id}'
+            result = _route.check('/list/id:456');
+            ASSERT('_route.check() must true again', result === true);
+            ASSERT('data add more', FLAT(data) === '["*",true,false,{"id":"123"},true,{"id":"456"}]');
         </code></pre>
 
-        <h3><a class="mark" name="route-append">_route.append()</a></h3>
+        <h3><a class="mark" name="route-add">_route.add()</a></h3>
 
-        <p>Append levels to route string.</p>
+        <p>Add sections to route string.</p>
         <pre class="usage"><code class="language-javascript">
-            _route.append(string_or_array[, trigger]) : _route
+            _route.add(string_or_array[, trigger]) : _route
             // string_or_array : a string or an array of items to append
             // trigger         : whether trigger route change event, default is true
         </code></pre>
 
-        <h3><a class="mark" name="route-remove">_route.remove()</a></h3>
+        <h3><a class="mark" name="route-cut">_route.cut()</a></h3>
 
         <p>Cut route string from given section.</p>
         <pre class="usage"><code class="language-javascript">
-            _route.remove(section[, trigger]) : _route
+            _route.cut(section[, trigger]) : _route
             // section : from which the route string will be cut
         </code></pre>
 

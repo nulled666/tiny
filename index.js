@@ -64,6 +64,7 @@ function run_code(elem) {
 
     var code = $(elem).text();
     code = 'var test_elem = arguments[0]; var test_result = {};\
+        var FLAT = function(obj){ return JSON.stringify(obj)};\
         var ASSERT = function(txt, value){ test_result[txt] = value };\
         var FAIL = function(txt){ test_result[txt] = false };\n' + code;
     if (code.indexOf('setTimeout(') > -1) {
