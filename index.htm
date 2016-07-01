@@ -40,7 +40,7 @@
 
         <h3><a class="mark" name="show-me">tiny.me()</a></h3>
 
-        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list injected global functions.</p>
+        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global functions and prototype methods.</p>
         <pre><code class="run-code language-javascript">
            tiny.me();  // show tiny definitions in console
         </code></pre>
@@ -570,6 +570,8 @@
             _route.on();
             // '/books' no match, 'books/id:{id}' match, 'books/{id}/{page}' no match
             ASSERT('_route.on() again', FLAT(data) === '[false,{"id":"789"},false]');
+            
+            _route.off();
         </code></pre>
 
     </div>
