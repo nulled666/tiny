@@ -13,12 +13,12 @@
 
 var tiny = (function () {
 
-    var _show_log_ = false;
+    var _verbose_mode_ = false;
     var _injected_globals = false;
 
     var _tiny_definition_ = {};
     var _prototype_extensions_ = [];
-    var _skip_global_ = ',import,me,showLog,';
+    var _skip_global_ = ',import,me,verbose,';
 
     var TAG_TINY = 'tiny ::';
     var TAG_SUFFIX = ' :: ';
@@ -172,7 +172,7 @@ var tiny = (function () {
         _info = console.info.bind(window.console);
         _warn = console.warn.bind(window.console);
         _error = console.error.bind(window.console);
-        show_log(_show_log_);
+        verbose_output(_verbose_mode_);
 
     }
     // execute immediately
@@ -186,7 +186,7 @@ var tiny = (function () {
         info: _info,
         warn: _warn,
         error: _error,
-        showLog: show_log,
+        verbose: verbose_output,
         inspect: inspect_object
     });
 
@@ -203,10 +203,10 @@ var tiny = (function () {
      * Enable/disable console.log & console.dir output
      * Other console output types should never be disabled
      * ```
-     *   tiny.showLog(true);
+     *   tiny.verbose(true);
      * ```
      */
-    function show_log(on) {
+    function verbose_output(on) {
 
         if (on) {
             _log = console.log.bind(window.console);
@@ -389,7 +389,7 @@ var tiny = (function () {
 
 
     //////////////////////////////////////////////////////////
-    // SIMPLE CUSTOM EVENT SYSTEM
+    // SIMPLE MESSAGE SYSTEM
     //////////////////////////////////////////////////////////
     var _message = {
         listen: listen_message,
@@ -644,7 +644,7 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        if(str === undefined) str = route_get();
+        if (str === undefined) str = route_get();
 
         var q = str.replace(/^#/, '');
 
@@ -669,7 +669,7 @@ var tiny = (function () {
         // normal rules
         _each(_route_rules_, function (rule, route) {
 
-            if(!rule.re) return;
+            if (!rule.re) return;
 
             var match = rule.re.exec(q);
 
@@ -792,24 +792,22 @@ var tiny = (function () {
 
         trigger = (trigger !== false);
 
-        var route_on = _route_on_;
-        if (!trigger) _route_on_ = false;
-
         window.location.hash = route;
 
-        _route_on_ = route_on;
+        if (trigger && _route_on_)
+            _route.check();
 
         return _route;
 
     }
 
 
-    var TAG_RT_APPEND = '_route.append()' + TAG_SUFFIX;
+    var TAG_RT_ADD = '_route.add()' + TAG_SUFFIX;
     /**
      * Append sections to current route
      * ```
-     *   _route.append('name/4123');             // append a string
-     *   _route.append(['name','4123'], false);  // append without trigger event
+     *   _route.add('name/4123');             // append a string
+     *   _route.add(['name','4123'], false);  // append without trigger event
      * ```
      */
     function route_add(str_or_arr, trigger) {
@@ -835,9 +833,9 @@ var tiny = (function () {
     }
 
 
-    var TAG_RT_REMOVE = '_route.remove()' + TAG_SUFFIX;
+    var TAG_RT_CUT = '_route.cut()' + TAG_SUFFIX;
     /**
-     * Remove child levels from given section
+     * Remove child levels from section with given start string
      * ```
      *   //  without trigger event
      *   _route.remove('name', false);
@@ -847,13 +845,12 @@ var tiny = (function () {
 
         var route = route_get();
 
-        if (typeof str == 'string') {
-            _error(TAG_RT_WATCH, 'Expect a string. > Got "' + typeof str + '": ', str);
+        if (typeof str !== 'string') {
+            _error(TAG_RT_CUT, 'Expect a string. > Got "' + typeof str + '": ', str);
             throw new TypeError(SEE_ABOVE);
         }
 
-        var re = new RegExp('(^|\/)' + str + '(\/|$)');
-        var pos = route.search(re);
+        var pos = route.indexOf(str);
         if (pos > -1) {
             route = route.substr(0, pos);
             route_set(route, trigger);

@@ -20,19 +20,22 @@
         <h1>The Tiny Function Library</h1>
 
         <h2><a class="mark" name="">Introduction</a></h2>
+
         <p>This small library is meant to provide some handy functions which are missing in DOM manipulating frameworks like
             jQuery or others.</p>
         <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
         <p>Its goal is providing a minimalist building foundation for modern App-like web pages.</p>
 
         <h3><a class="mark" name="import">tiny.import()</a></h3>
-        <p>By default, Tiny will not inject global functions used in below examples into global namespace (<code>window</code>).</p>
+
+        <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace (the <code>window</code> object).</p>
         <p>To use those short function names, pleas call <code>tiny.import()</code> ahead of all calls.</p>
         <pre><code class="run-code language-javascript">
            tiny.import();  // register global function names for tiny methods
         </code></pre>
 
         <h3><a class="mark" name="show-me">tiny.me()</a></h3>
+
         <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list injected global functions.</p>
         <pre><code class="run-code language-javascript">
            tiny.me();  // show tiny definitions in console
@@ -42,26 +45,28 @@
 
         <h2><a class="mark" name="basic-functions">Base Functions</a></h2>
 
-        <h3><a class="mark" name="console-shorthands">_log()</a></h3>
-        <p>Tiny provides these shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
+        <h3><a class="mark" name="console-shorthands">_log(), _dir(), ... _error()</a></h3>
+
+        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
             <code>_warn()</code> and <code>_error()</code>.</p>
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
         <pre class="usage"><code class="language-javascript">
-            tiny.showLog(true);        // enable log output
+            tiny.verbose(true);        // enable log output
 
             _log(param1, param2, ...);  // == console.log(param1, param2)
         </code></pre>
         <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
             logs.
         </p>
-        <p>You can easily turn the console log on or off by calling <code>tiny.showLog(true)</code> in develop or production
+        <p>You can easily turn the console log on or off by calling <code>tiny.verbose(true)</code> in develop or production
             environments.
         </p>
+
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             // enable _log() output when you need them
-            tiny.showLog(true);
+            tiny.verbose(true);
 
             // use them as you would like the console.xxx equivalents
             _log('Test for _log()', '----------------------------');
@@ -72,12 +77,14 @@
         </code></pre>
 
         <h3><a class="mark" name="inspect">_inspect()</a></h3>
+
         <p>The <code>_inspect</code> function is a helper function for debug purpose.</p>
         <p>It will return a formatted JSON string version of given object for inspection.</p>
         <p>Functions and special objects might lose in this process.</p>
         <pre class="usage"><code class="language-javascript">
             _inspect(obj) : string
         </code></pre>
+
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             var obj = {
@@ -103,9 +110,11 @@
         <hr/>
 
         <h3><a class="mark" name="each">_each()</a></h3>
+
         <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
         <p>Its syntax is just like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break
             with a return value.</p>
+        <p>If you called <code>tiny.import()</code>, an method named <code>Array._each()</code> will be available.</p>
         <pre class="usage"><code class="language-javascript">
             _each(array_or_object, callback[, this_arg]) : any
             // array_or_object : Array or Object to loop
@@ -116,12 +125,11 @@
                 return;              // continue to next item in array_or_object
                 return any_value;    // break out, and _each() will return any_value
             }
+
+            // extended method for Array
+            Array._each(callback[, this_arg]) : any
             </code></pre>
-        <p>And an method named <code>Array._each()</code> will be append, if you allowed global.</p>
-        <p>You can use it just like any other Array methods.</p>
-        <pre class="usage"><code class="language-javascript">
-            Array._each( function(value, index, array) { ... }, this_arg );
-            </code></pre>
+
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             //==== Work with Array ================
@@ -148,6 +156,7 @@
             });
             ASSERT('_each() on object', my_string === 'It\'s my book. It\'s my pen. ' );
         </code></pre>
+
         <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
@@ -221,6 +230,7 @@
             // namespace  - a string which represent the namespace path
             // obj        - the object which will be bind to that namespace
         </code></pre>
+
         <h4>EXAMPLES</h4>
         <pre><code class="run-code language-javascript">
             // just create a blank namespace
@@ -232,6 +242,7 @@
             ASSERT('_namespace() add child', my.project.lib.id === 1);
             ASSERT('_namespace() extension value', ns_obj.type === 'blank');
         </code></pre>
+
         <h4>ERROR TESTS</h4>
         <pre><code class="run-code language-javascript">
             // A TypeError will be thrown on invalid parameter types
@@ -259,6 +270,7 @@
         <p>Though it's not real asynchronize message delivery, it should be enough for most use cases on browser client.</p>
 
         <h3><a class="mark" name="message-listen">_message.listen()</a></h3>
+
         <p>Register a message listener.</p>
         <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking internal flag
             (and you definitely will have an internal flag in such case).</p>
@@ -269,12 +281,14 @@
         </code></pre>
 
         <h3><a class="mark" name="message-post">_message.post()</a></h3>
+
         <p>Post a message to listeners.</p>
         <pre class="usage"><code class="language-javascript">
             _message.post(msg_name, param_1, param_2 ...) : _message
         </code></pre>
 
         <h3><a class="mark" name="message-post-delayed">_message.postDelayed()</a></h3>
+
         <p>Post a message to listeners after a specified delay in milliseconds.</p>
         <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement Type-n-Search
             like features.</p>
@@ -409,6 +423,7 @@
         <h3><a class="mark" name="route-check">_route.check()</a></h3>
 
         <p>Check a route string or window.location.hash for route matching. Returns true if match found.</p>
+        <p>If you want Tiny to check automatically on window.location.hash changes, please use <code>_route.on()</code>.</p>
         <pre class="usage"><code class="language-javascript">
             _route.check([route_string]) : boolean
             // route_string : if not given, window.location.hash will be checked
@@ -464,7 +479,7 @@
             ASSERT('data add 2 false', FLAT(data) === '[false,false]');
         </code></pre>
 
-        <h3><a class="mark" name="route-on">_route.on().off()</a></h3>
+        <h3><a class="mark" name="route-on">_route.on(), _route.off()</a></h3>
 
         <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
         <pre class="usage"><code class="language-javascript">
@@ -483,10 +498,71 @@
 
         <h3><a class="mark" name="route-cut">_route.cut()</a></h3>
 
-        <p>Cut route string from given section.</p>
+        <p>Cut route string from first occurance of given string.</p>
+        <p>Slashes matters:</p>
+        <ul>
+            <li><code>'key'</code> - /my_key_chain/car_key/key:1' -> '/my_'.</li>
+            <li><code>'/key'</code> -'/my_key_chain/car_key/key:1' -> '/my_key_chain/car_key'.</li>
+            <li><code>'key/'</code> -'/my_key_chain/car_key/key:1' -> '/my_key_chain/car_'.</li>
+            <li><code>'/key/'</code> -'/my_key_chain/key/id:1' -> '/my_key_chain'.</li>
+        </ul>
         <pre class="usage"><code class="language-javascript">
             _route.cut(section[, trigger]) : _route
             // section : from which the route string will be cut
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre><code class="run-code language-javascript">
+            var data = [];
+            function save_data(route, params){
+                data.push(params);
+            }
+
+            _route
+                .watch('/books', save_data)
+                .watch('books/id:{id}', save_data)
+                .watch('books/{id}/{page}', save_data);
+            
+            // set a test route
+            _route.set('/books', false);
+
+            // start monitoring window.location.hash changes
+            _route.on();
+            // got a match immediately
+            ASSERT('_route.on() match', FLAT(data) === '[true]');
+
+            // add something to current route
+            _route.add('id:123');
+            ASSERT('_route.get()', _route.get() === '/books/id:123');
+            // match '/books' and '/books/id:{id}' with the parameter
+            ASSERT('_route.add()', FLAT(data) === '[true,true,{"id":"123"}]');
+
+            // remove the 'id:123' section without trigger the event
+            _route.cut('/id:', false);
+            ASSERT('_route.get() after cut', _route.get() === '/books');
+            // no change to the data
+            ASSERT('_route.cut()', FLAT(data) === '[true,true,{"id":"123"}]');
+
+            data = [];
+            // send an array to _route.add()
+            _route.add([123, 456]);
+            ASSERT('_route.add() array', _route.get() === '/books/123/456');
+            // '/books' match, 'books/id:{id}' no match, 'books/{id}/{page}' match
+            ASSERT('_route.add() array result', FLAT(data) === '[true,false,{"id":"123","page":"456"}]');
+
+            // turn off event monitoring
+            _route.off();
+            // set a new route
+            _route.set('my/books/id:789');
+            ASSERT('_route.set() result', _route.get() === 'my/books/id:789');
+            // no change to the data
+            ASSERT('_route.set() array result', FLAT(data) === '[true,false,{"id":"123","page":"456"}]');
+
+            data = [];
+            // turn back on
+            _route.on();
+            // '/books' no match, 'books/id:{id}' match, 'books/{id}/{page}' no match
+            ASSERT('_route.on() again', FLAT(data) === '[false,{"id":"789"},false]');
         </code></pre>
 
     </div>
