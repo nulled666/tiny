@@ -546,14 +546,7 @@ var tiny = (function () {
 
         if (typeof route == 'string') {
 
-            // -> string
-            if (route == '' || route == '/') {
-                // special index rule
-                route = '/';
-                rule = {};
-            } else {
-                rule = route_prepare_rule(route);
-            }
+            rule = route_prepare_rule(route);
 
         } else if (route instanceof RegExp) {
 
@@ -598,8 +591,16 @@ var tiny = (function () {
     function route_prepare_rule(route) {
 
         var rule = {};
-        var re = route;
 
+        if (route == '') route = '/';
+
+        // ==> special index route
+        if (route == '/') {
+            return { re: /^\/$/ };
+        }
+
+        // ==> normal rules
+        var re = route;
         re = re.replace(/([:|$?.*=\(\)\\\/^])/g, '\\$1');
 
         if (re.indexOf('\\/') == 0) {
@@ -650,23 +651,10 @@ var tiny = (function () {
 
         _log(TAG_RT_CHECK, 'Check route: "' + q + '"');
 
+        if (q == '') q = '/';
+
         var found = false;
 
-        // special index rule
-        if (q == '' || q == '/') {
-
-            if (!_route_handlers_['/'] || _route_handlers_['/'].length < 1)
-                return false;
-
-            // call handlers
-            _info(TAG_RT_CHECK, 'Route match: "' + q + '" + ', true);
-            route_invoke_handlers(_route_handlers_['/'], q, true);
-
-            return true;
-
-        }
-
-        // normal rules
         _each(_route_rules_, function (rule, route) {
 
             if (!rule.re) return;

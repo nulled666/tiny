@@ -444,33 +444,34 @@
             }
 
             _route
-                .watch('/', function(route, param){ data.push('*') })
+                .watch('/', function(route, param){ data.push(param ? 1 : 0) })
                 .watch('/list', save_data)
                 .watch('list/id:{id}', save_data);
             
             // invoke root rule only
             _route.check('');
-            ASSERT('_route.check() root', FLAT(data) === '["*"]');
+            ASSERT('_route.check() root', FLAT(data) === '[1]');
 
-            // match '/list' and no parameter
+            // '/' no match, a false parameter will be sent
+            // and match '/list' without parameter
             var result = _route.check('/list/a');
             ASSERT('_route.check() true', result === true);
-            ASSERT('data', FLAT(data) === '["*",true]');
+            ASSERT('data', FLAT(data) === '[1,0,true]');
 
-            // no match, but previous matched, a false parameter will be sent
+            // no match, but '/list' matched previously, a false parameter will be sent
             result = _route.check('/id:123');
             ASSERT('_route.check() false', result === false);
-            ASSERT('data add false', FLAT(data) === '["*",true,false]');
+            ASSERT('data add false', FLAT(data) === '[1,0,true,false]');
 
             // no match again, nothing should happen
             result = _route.check('lis');
             ASSERT('_route.check() false again', result === false);
-            ASSERT('data no change', FLAT(data) === '["*",true,false]');
+            ASSERT('data no change', FLAT(data) === '[1,0,true,false]');
 
             // match '/list/id:{id}' and get parameters
             result = _route.check('word/list/id:123');
             ASSERT('_route.check() true again', result === true);
-            ASSERT('data change', FLAT(data) === '["*",true,false,{"id":"123"}]');
+            ASSERT('data change', FLAT(data) === '[1,0,true,false,{"id":"123"}]');
 
             data = [];
             // match '/list' and '/list/id:{id}'
@@ -526,12 +527,14 @@
             }
 
             _route
+                .watch('/', function(){ data.push('/') })
                 .watch('/books', save_data)
                 .watch('books/id:{id}', save_data)
                 .watch('books/{id}/{page}', save_data);
             
-            // set a test route
+            // set a test route - no event triggered
             _route.set('/books', false);
+            ASSERT('_route.set() no match', FLAT(data) === '[]');
 
             // start monitoring window.location.hash changes
             _route.on();
@@ -571,6 +574,12 @@
             // '/books' no match, 'books/id:{id}' match, 'books/{id}/{page}' no match
             ASSERT('_route.on() again', FLAT(data) === '[false,{"id":"789"},false]');
             
+            data = [];
+            // move to root
+            _route.set('/');
+            // '/' match, 'books/id:{id}' no match
+            ASSERT('_route.set() to root', FLAT(data) === '["/",false]');
+
             _route.off();
         </code></pre>
 
