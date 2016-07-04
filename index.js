@@ -16,7 +16,9 @@ function start() {
 
     $('#test-info').on('click', jump_to_error);
 
-    $('.content').on('click', 'pre.collapse', expand_pre);
+    $('.content').on('click', 'pre.collapse', function(){
+        expand_pre(this);
+    });
 
 }
 
