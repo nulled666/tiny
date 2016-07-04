@@ -40,7 +40,8 @@
 
         <h3><a class="mark" name="show-me">tiny.me()</a></h3>
 
-        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global functions and prototype methods.</p>
+        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global
+            functions and prototype methods.</p>
         <pre><code class="run-code language-javascript">
            tiny.me();  // show tiny definitions in console
         </code></pre>
@@ -487,7 +488,7 @@
             ASSERT('data add 2 false', FLAT(data) === '[false,false]');
         </code></pre>
 
-        <h3><a class="mark" name="route-on">_route.on(), _route.off()</a></h3>
+        <h3><a class="mark" name="route-on">_route.on/off()</a></h3>
 
         <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
         <pre class="usage"><code class="language-javascript">
@@ -495,18 +496,18 @@
             _route.off() : _route
         </code></pre>
 
-        <h3><a class="mark" name="route-add">_route.add()</a></h3>
+        <h3><a class="mark" name="route-append">_route.append()</a></h3>
 
-        <p>Add sections to route string.</p>
+        <p>Append sections to route string.</p>
         <pre class="usage"><code class="language-javascript">
-            _route.add(string_or_array[, trigger]) : _route
+            _route.append(string_or_array[, trigger]) : _route
             // string_or_array : a string or an array of items to append
             // trigger         : whether trigger route change event, default is true
         </code></pre>
 
-        <h3><a class="mark" name="route-cut">_route.cut()</a></h3>
+        <h3><a class="mark" name="route-remove">_route.remove()</a></h3>
 
-        <p>Cut route string from first occurance of given string.</p>
+        <p>Remove route string from first occurance of given string.</p>
         <p>Slashes matters:</p>
         <ul>
             <li><code>'key'</code> - /my_key_chain/car_key/key:1' -> '/my_'.</li>
@@ -515,8 +516,8 @@
             <li><code>'/key/'</code> -'/my_key_chain/key/id:1' -> '/my_key_chain'.</li>
         </ul>
         <pre class="usage"><code class="language-javascript">
-            _route.cut(section[, trigger]) : _route
-            // section : from which the route string will be cut
+            _route.remove(section[, trigger]) : _route
+            // section : from which the route string will be removed
         </code></pre>
 
         <h4>EXAMPLES</h4>
@@ -569,19 +570,57 @@
             ASSERT('_route.set() array result', FLAT(data) === '[true,false,{"id":"123","page":"456"}]');
 
             data = [];
-            // turn back on
-            _route.on();
+            // check window.location.hash
+            _route.check();
             // '/books' no match, 'books/id:{id}' match, 'books/{id}/{page}' no match
             ASSERT('_route.on() again', FLAT(data) === '[false,{"id":"789"},false]');
             
             data = [];
             // move to root
             _route.set('/');
+            _route.check();
             // '/' match, 'books/id:{id}' no match
             ASSERT('_route.set() to root', FLAT(data) === '["/",false]');
-
-            _route.off();
         </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse"><code class="error-test run-code language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _route.watch(null);
+                FAIL('_route.watch() paramter 1 error');
+            }catch(err){
+                ASSERT('_route.watch() paramter 1 error', err instanceof TypeError );
+            }
+            try{
+                _route.watch('/test', null);
+                FAIL('_route.watch() paramter 2 error');
+            }catch(err){
+                ASSERT('_route.watch() paramter 2 error', err instanceof TypeError );
+            }
+
+            try{
+                _route.check(123);
+                FAIL('_route.check() paramter 1 error');
+            }catch(err){
+                ASSERT('_route.check() paramter 1 error', err instanceof TypeError );
+            }
+
+            try{
+                _route.append(null);
+                FAIL('_route.append() paramter 1 error');
+            }catch(err){
+                ASSERT('_route.append() paramter 1 error', err instanceof TypeError );
+            }
+
+            try{
+                _route.remove(null);
+                FAIL('_route.remove() paramter 1 error');
+            }catch(err){
+                ASSERT('_route.remove() paramter 1 error', err instanceof TypeError );
+            }
+            </code></pre>
 
     </div>
 </body>

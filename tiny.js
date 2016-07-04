@@ -545,11 +545,10 @@ var tiny = (function () {
         var rule;
 
         if (typeof route == 'string') {
-
+            // -> string
             rule = route_prepare_rule(route);
 
         } else if (route instanceof RegExp) {
-
             // -> RegExp
 
             // remove the 'g' flag - it should not be used here
@@ -560,7 +559,6 @@ var tiny = (function () {
 
             var re = new RegExp(route.source, flags);
             rule = { is_regexp: true, re: re };
-
         } else {
 
             _error(TAG_RT_WATCH, 'Expect a string or RegExp. > Got "' + typeof route + '": ', route);
@@ -575,6 +573,11 @@ var tiny = (function () {
 
         if (!_route_handlers_[route])
             _route_handlers_[route] = [];
+
+        if (typeof handler !== 'function') {
+            _error(TAG_RT_WATCH, 'Expect a function. > Got "' + typeof handler + '": ', handler);
+            throw new TypeError(SEE_ABOVE);
+        }
 
         _route_handlers_[route].push(handler);
 
