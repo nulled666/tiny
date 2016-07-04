@@ -95,19 +95,23 @@ function run_code(elem) {
         code += ';show_run_code_result(test_elem, test_result);';
     }
 
-    var func = new Function(code);
-
-    func(elem);
+    try {
+        var func = new Function(code);
+        func(elem);
+    } catch (e) {
+        _error_counter++;
+        show_run_code_result(elem, {}, true);
+    }
 
 }
 
-function show_run_code_result(elem, result) {
+function show_run_code_result(elem, result, is_error) {
 
     elem = $(elem);
 
     var result_index = 0;
     var assert_elems = elem.find(".function:contains(ASSERT)");
-    var error = false;
+    var error = is_error === true;
 
     _each(result, function (item, label) {
 
@@ -125,15 +129,10 @@ function show_run_code_result(elem, result) {
 
     });
 
-    if (elem.hasClass('error-test')) {
-
-        var parent = $(elem).parent();
-        parent.addClass(error ? 'failed' : 'passed');
-
-    }
+    var parent = $(elem).parent();
+    parent.addClass(error ? 'failed' : 'passed');
 
     if (elem.hasClass('last')) {
-
 
         if (_error_counter == 0) {
 

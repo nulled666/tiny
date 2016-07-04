@@ -511,8 +511,8 @@ var tiny = (function () {
         off: route_mode_off,
         get: route_get,
         set: route_set,
-        add: route_add,
-        cut: route_cut
+        append: route_append,
+        remove: route_remove
     };
 
     add_to_tiny_definition({ route: _route });
@@ -802,15 +802,15 @@ var tiny = (function () {
     }
 
 
-    var TAG_RT_ADD = '_route.add()' + TAG_SUFFIX;
+    var TAG_RT_APPEND = '_route.append()' + TAG_SUFFIX;
     /**
      * Append sections to current route
      * ```
-     *   _route.add('name/4123');             // append a string
-     *   _route.add(['name','4123'], false);  // append without trigger event
+     *   _route.append('name/4123');             // append a string
+     *   _route.append(['name','4123'], false);  // append without trigger event
      * ```
      */
-    function route_add(str_or_arr, trigger) {
+    function route_append(str_or_arr, trigger) {
 
         var route = route_get();
         if (!route.endsWith('/')) route += '/';
@@ -833,7 +833,7 @@ var tiny = (function () {
     }
 
 
-    var TAG_RT_CUT = '_route.cut()' + TAG_SUFFIX;
+    var TAG_RT_REMOVE = '_route.remove()' + TAG_SUFFIX;
     /**
      * Remove child levels from section with given start string
      * ```
@@ -841,12 +841,12 @@ var tiny = (function () {
      *   _route.remove('name', false);
      * ```
      */
-    function route_cut(str, trigger) {
+    function route_remove(str, trigger) {
 
         var route = route_get();
 
         if (typeof str !== 'string') {
-            _error(TAG_RT_CUT, 'Expect a string. > Got "' + typeof str + '": ', str);
+            _error(TAG_RT_REMOVE, 'Expect a string. > Got "' + typeof str + '": ', str);
             throw new TypeError(SEE_ABOVE);
         }
 

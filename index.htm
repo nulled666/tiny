@@ -539,23 +539,23 @@
             ASSERT('_route.on() match', FLAT(data) === '[true]');
 
             // add something to current route
-            _route.add('id:123');
+            _route.append('id:123');
             ASSERT('_route.get()', _route.get() === '/books/id:123');
             // match '/books' and '/books/id:{id}' with the parameter
-            ASSERT('_route.add()', FLAT(data) === '[true,true,{"id":"123"}]');
+            ASSERT('_route.append()', FLAT(data) === '[true,true,{"id":"123"}]');
 
             // remove the 'id:123' section without trigger the event
-            _route.cut('/id:', false);
+            _route.remove('/id:', false);
             ASSERT('_route.get() after cut', _route.get() === '/books');
             // no change to the data
-            ASSERT('_route.cut()', FLAT(data) === '[true,true,{"id":"123"}]');
+            ASSERT('_route.remove()', FLAT(data) === '[true,true,{"id":"123"}]');
 
             data = [];
             // send an array to _route.add()
-            _route.add([123, 456]);
-            ASSERT('_route.add() array', _route.get() === '/books/123/456');
+            _route.append([123, 456]);
+            ASSERT('_route.append() array', _route.get() === '/books/123/456');
             // '/books' match, 'books/id:{id}' no match, 'books/{id}/{page}' match
-            ASSERT('_route.add() array result', FLAT(data) === '[true,false,{"id":"123","page":"456"}]');
+            ASSERT('_route.append() result', FLAT(data) === '[true,false,{"id":"123","page":"456"}]');
 
             // turn off event monitoring
             _route.off();
