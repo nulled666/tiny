@@ -49,7 +49,7 @@ function jump_to_error() {
 
     if (!target) target = $(objs.get(0));
 
-    if(target.hasClass('collapse')){
+    if (target.hasClass('collapse')) {
         expand_pre(target);
     }
 
@@ -65,9 +65,13 @@ function expand_pre(elem) {
 
 function smooth_scroll_to(obj, offset) {
 
+    var is_hash = false;
+    var hash ='';
     if (typeof obj == 'string') {
-        // hash
-        obj = $('a[name="' + obj + '"]');
+        is_hash = true;
+        hash = obj;
+        obj = $('a[name="' + hash + '"]');
+        if (obj.length < 1) return;
     }
 
     if (typeof offset !== 'number') {
@@ -79,7 +83,11 @@ function smooth_scroll_to(obj, offset) {
     $('html, body').animate(
         { scrollTop: obj.offset().top + offset },
         500,
-        "swing"
+        "swing",
+        function(){
+            if(is_hash)
+                window.location.hash = hash;
+        }
     );
 
 }
