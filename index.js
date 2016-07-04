@@ -2,17 +2,86 @@ function start() {
 
     build_content_table();
 
-    $('.content').on('click', 'pre.collapse', expand_pre);
-
     setTimeout(run_all_code, 100);
+    setTimeout(function () {
+        console.clear();
+    }, 1500);
+
+    // the smooth scroll effect
+    $(".content-table a").click(function () {
+        var hash = $.attr(this, 'href').substr(1);
+        smooth_scroll_to(hash);
+        return false;
+    });
+
+    $('#test-info').on('click', jump_to_error);
+
+    $('.content').on('click', 'pre.collapse', expand_pre);
 
 }
 
-$(start)
+$(start);
 
-function expand_pre() {
-    var elem = $(this);
+
+// ====== ui functions
+function jump_to_error() {
+
+    var objs = $('.failed');
+
+    if (objs.length < 1) return;
+
+    if (objs.length == 1) {
+        smooth_scroll_to(objs);
+        return;
+    }
+
+    var target;
+
+    objs.each(function (index, elem) {
+        elem = $(elem);
+        if (elem.hasClass('current')) {
+            elem.removeClass('current');
+            index = (index + 1) < objs.length ? index + 1 : 0;
+            target = $(objs.get(index));
+            return false;
+        }
+    });
+
+    if (!target) target = $(objs.get(0));
+
+    if(target.hasClass('collapse')){
+        expand_pre(target);
+    }
+
+    target.addClass('current');
+    smooth_scroll_to(target, -200);
+
+}
+
+function expand_pre(elem) {
+    var elem = $(elem);
     elem.removeClass('collapse');
+}
+
+function smooth_scroll_to(obj, offset) {
+
+    if (typeof obj == 'string') {
+        // hash
+        obj = $('a[name="' + obj + '"]');
+    }
+
+    if (typeof offset !== 'number') {
+        offset = 0;
+    }
+
+    obj = $(obj);
+
+    $('html, body').animate(
+        { scrollTop: obj.offset().top + offset },
+        500,
+        "swing"
+    );
+
 }
 
 // ====== content table builder
@@ -156,3 +225,4 @@ function show_run_code_result(elem, result, is_error) {
     }
 
 }
+
