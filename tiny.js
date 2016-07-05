@@ -1054,11 +1054,12 @@ var tiny = (function () {
     //////////////////////////////////////////////////////////
     // FORMAT FUNCTIONS
     //////////////////////////////////////////////////////////
-    var _format = format_template; // tricky
-    _format.number = format_number;
-    _format.date = format_date;
+    var _format = format_template;
 
     add_to_tiny_definition({ format: _format });
+    add_to_tiny_definition({ formatNumber: format_number });
+    add_to_tiny_definition({ formatDate: format_date });
+    add_to_tiny_definition({ htmlSafe: html_safe });
 
     add_to_prototype([Number, { _format: format_number_extension }]);
     add_to_prototype([Date, { _format: format_date_extension }]);
@@ -1083,11 +1084,13 @@ var tiny = (function () {
         return format_template(this.valueOf(), obj);
     }
 
+    var TAG_HTML_SAFE = '_htmlSafe()' + TAG_SUFFIX;
     /**
      * Make string HTML-safe
      * ```
      *   var str = 'task:\n   >> done';
      *   // escape special chars
+     *   _htmlSafe(str);
      *   str._htmlSafe() == 'task:<br/>   &gt;&gt; done'
      *   // set true to escape white spaces
      *   str._htmlSafe(true) == 'task:<br/>&nbsp;&nbsp;&nbsp;&gt;&gt;&nbsp;done'
@@ -1096,8 +1099,8 @@ var tiny = (function () {
     function html_safe(str, keep_spaces) {
 
         if (typeof str != 'string') {
-            _error(CONSOLE_TAG['htmlSafe'], 'Expect a string:', str);
-            return '';
+            _error(TAG_HTML_SAFE, 'Expect a string. > Got "' + typeof str + '": ', str);
+            throw new TypeError(SEE_ABOVE);
         }
 
         str = str.replace(/\&/g, '&amp;')
@@ -1115,37 +1118,43 @@ var tiny = (function () {
     }
 
 
+    var TAG_FORMAT_NUMBER = '_formatNumber()' + TAG_SUFFIX;
     /**
      * Number format function
      * ```
      *   var num = 123456.789;
      *   num._format() == '123456.789'
      *   num._format('.') == '123457' // round to point
-     *   num._format('.00') == '123456.78'
-     *   num._format(',') == '123,456'
-     *   num._format(',.00') == '123,456.78'
+     *   num._format('.00') == '123456.79'
+     *   num._format(',') == '123,456.789'
+     *   num._format(',.00') == '123,456.79'
      *   num._format(',.00%') == '12,345,678.90%'
      *   num._format('hex') == '1e240.c9fbe76c9'
-     *   num._format('HEX.') == '1E240' // uppercase & rounded
+     *   num._format('HEX.') == '1E241' // uppercase & rounded
      *   num._format('HEX.00') == '1E240.C9'
      * ```
      */
     function format_number(num, format) {
 
-        if (typeof num != 'number') {
-            _error(CONSOLE_TAG['format.number'], 'Expect a number:', num);
-            return '';
+        format = format || '';
+
+        if (typeof num !== 'number') {
+            _error(TAG_FORMAT_NUMBER, 'Expect a number. > Got "' + typeof num + '": ', num);
+            throw new TypeError(SEE_ABOVE);
         }
 
-        format = format || '';
+        if (typeof format !== 'string') {
+            _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
+            throw new TypeError(SEE_ABOVE);
+        }
 
         if (format.includes('hex') || format.includes('HEX')) {
             return format_hex_number(num, format);
         } else {
             return format_dec_number(num, format);
         }
-    }
 
+    }
 
     /**
      * Format Decimal Number
@@ -1224,7 +1233,7 @@ var tiny = (function () {
     // localizable date names for date formatting
     _format.dateNames = {
         day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-        dayAbbr: ['Sun', 'Mon', 'Tue', 'Wedy', 'Thu', 'Fri', 'Sat'],
+        dayAbbr: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
         month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
         monthAbbr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
         ap: ['AM', 'PM']
@@ -1233,6 +1242,7 @@ var tiny = (function () {
     // default format string for Date.prototype._format()
     _format.defaultDateFormat = 'datetime';
 
+    var TAG_FORMAT_DATE = '_formatDate()' + TAG_SUFFIX;
     /**
      * Format Date
      * ```
@@ -1245,7 +1255,9 @@ var tiny = (function () {
      *   d._format('date') == '2005-06-07' // yyyy-MM-dd
      *   d._format('time') == '08:09:10'   // HH:mm:ss
      *   d._format('iso') == '2005-06-07T00:09:10.753Z' // ISO 8601
-     *   // format string codes:
+     *   // You can use [txt] to output 'txt'
+     *   d._format('[D, d MMM yyyy H:m:s]') == 'D, d MMM yyyy H:m:s'
+     *   // FROMAT STRING CODES:
      *    'yyyy' = 2009, 'yy' = 09,   'y' = 9        // Year
      *    'M'    = 6,    'MM' = 06                   // Numeric month
      *    'MMM'  = Jun,  'MMMM' = June               // Month name
@@ -1259,15 +1271,27 @@ var tiny = (function () {
      *    't'    = AM,   // AM / PM
      * ```
      */
-    function format_date(date, format, names) {
+    function format_date(date_in, format, names) {
 
-        if (Object.prototype.toString.call(date) !== "[object Date]")
-            date = new Date();
+        var date = new Date(); // make a copy to manipulate
+        format = format || _format.defaultDateFormat;
+        names = names || _format.dateNames;
+
+        if (typeof date_in === 'number') {
+            date.setTime(date_in);
+        } else if (Object.prototype.toString.call(date_in) === "[object Date]") {
+            date.setTime(date_in.getTime());
+        } else {
+            _error(TAG_FORMAT_DATE, 'Expect a number or Date object. > Got "' + typeof date + '": ', date);
+            throw new TypeError(SEE_ABOVE);
+        }
+
+        if (typeof format != 'string') {
+            _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
+            throw new TypeError(SEE_ABOVE);
+        }
 
         // Make a copy of current date
-        date = new Date(date);
-        names = names || _format.dateNames;
-        format = format || _format.defaultDateFormat;
 
         if (format == 'iso') {
             format = 'yyyy-MM-ddTHH:mm:ss.sssZ';
@@ -1319,20 +1343,42 @@ var tiny = (function () {
         // this algorithm should be faster than regexp
         var result = '';
         var pos = 0;
+        var in_txt = false;
+        var chr = '';
+        var last_chr = '';
+        var token = '';
+
         while (pos < format.length) {
 
-            var currentChar = format.charAt(pos);
-            var currentToken = '';
+            chr = format.charAt(pos);
+            token = '';
 
-            while ((format.charAt(pos) == currentChar) && (pos < format.length)) {
-                currentToken += currentChar;
+            // preserve text
+            if (in_txt) {
+                if (chr == ']') {
+                    in_txt = false;
+                } else {
+                    result += chr;
+                }
+                pos++;
+                continue;
+            }
+            if (chr == '[') {
+                in_txt = true;
+                pos++;
+                continue;
+            }
+
+            // read token
+            while ((format.charAt(pos) == chr) && (pos < format.length)) {
+                token += chr;
                 pos++;
             }
 
-            if (tokens[currentToken]) {
-                result += tokens[currentToken];
+            if (tokens[token]) {
+                result += tokens[token];
             } else {
-                result += currentToken;
+                result += token;
             }
 
         }

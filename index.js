@@ -187,6 +187,7 @@ function run_code(elem) {
         func(elem);
     } catch (e) {
         _error_counter++;
+        _error('RUN CODE ERROR ===> ', e);
         show_run_code_result(elem, {}, true);
     }
 
