@@ -1341,17 +1341,19 @@ var tiny = (function () {
 
         // process tokens
         // this algorithm should be faster than regexp
+        format += '\x7f';  // manually add an ending char
+
         var result = '';
-        var pos = 0;
         var in_txt = false;
+
+        var token = '';
         var chr = '';
         var last_chr = '';
-        var token = '';
 
-        while (pos < format.length) {
+        for (var i = 0, len = format.length; i < len; i++) {
 
-            chr = format.charAt(pos);
-            token = '';
+            last_chr = chr;
+            chr = format.charAt(i);
 
             // preserve text
             if (in_txt) {
@@ -1360,25 +1362,30 @@ var tiny = (function () {
                 } else {
                     result += chr;
                 }
-                pos++;
-                continue;
-            }
-            if (chr == '[') {
-                in_txt = true;
-                pos++;
                 continue;
             }
 
             // read token
-            while ((format.charAt(pos) == chr) && (pos < format.length)) {
+            if (chr === last_chr) {
                 token += chr;
-                pos++;
+                continue;
             }
 
+            // resolve token
             if (tokens[token]) {
                 result += tokens[token];
             } else {
                 result += token;
+            }
+
+            token = chr;
+
+            // enter text mode
+            if (chr === '[') {
+                in_txt = true;
+                last_chr = '';
+                token = '';
+                continue;
             }
 
         }
