@@ -32,7 +32,7 @@ function jump_to_error() {
     if (objs.length < 1) return;
 
     if (objs.length == 1) {
-        smooth_scroll_to(objs, -200);
+        smooth_scroll_to(objs, -100);
         return;
     }
 
@@ -42,8 +42,8 @@ function jump_to_error() {
 
         elem = $(elem);
         
-        if (elem.prop("tagName") == 'PRE') {
-            elem.removeClass('collapse failed');
+        if (elem.prop("tagName") == 'PRE' && elem.find('.failed').length > 0) {
+            elem.removeClass('collapse');
         }else if (elem.hasClass('current')) {
             elem.removeClass('current');
             index = (index + 1) < objs.length ? index + 1 : 0;
@@ -57,11 +57,9 @@ function jump_to_error() {
     if (!target){
         target = $('.failed:first');
     }
-
-    _warn(target);
     
     target.addClass('current');
-    smooth_scroll_to(target, -200);
+    smooth_scroll_to(target, -100);
 
 }
 
@@ -206,7 +204,7 @@ function show_run_code_result(elem, result, is_error) {
 
     _each(result, function (item, label) {
 
-        if (item === false) {
+        if (!item) {
             error = true;
             _error_counter++;
         }

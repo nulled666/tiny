@@ -627,8 +627,100 @@
 
         <hr/>
 
-        <h2><a class="mark" name="storage-func">Storage Functions</a></h2>
+        <h2><a class="mark" name="storage-func">Storage Access</a></h2>
+
         <h3><a class="mark" name="storage">_storage()</a></h3>
+
+        <p>A handy function for <code>window.localStorage</code> access.</p>
+        <p>Integer, Boolean, Array, Date & Object types will be automatically converted on access.</p>
+        <p>Note: All local pages might share a same localStorage store in some browsers. You can use <code>keyPrefix</code> to avoid collisions.</p>
+        <pre><code class="language-javascript">
+            // filter keys by prefix, default is ''
+            tiny.storage.keyPrefix = 'your_prefix';
+
+            _storage()            // return all values as an Object
+            _storage(key)         // get value by key
+            _storage(key, value)  // set value by key
+            _storage(key, null)   // delete item of given key
+            _storage(null, null)  // delete all contents
+
+            // or send an object for batch operations
+            _storage({
+                key1: value1,
+                key2: null,
+                ...
+            })
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            // write a value
+            _storage('test', false);
+            ASSERT('_storage() no prefix', _storage('test') === false);
+
+            // set a prefix
+            tiny.storage.keyPrefix = 'tiny_lib';
+
+            // should not be able to read from previous key
+            ASSERT('_storage() with prefix', _storage('test') === undefined);
+
+            // write value - with prefix
+            _storage('test', true);
+            _storage('num', 123);
+            _storage('array', [4, 5, 6]);
+            _storage('date', new Date(1467190047725));
+            _storage('object', {x:1, y:2});
+
+            // read - with prefix
+            ASSERT('_storage() 1', _storage('test') === true);
+            ASSERT('_storage() 2', _storage('num') === 123);
+            ASSERT('_storage() 3', FLAT(_storage('array')) === '[4,5,6]');
+            ASSERT('_storage() 4', FLAT(_storage('date')) === '"2016-06-29T08:47:27.725Z"');
+            ASSERT('_storage() 5', FLAT(_storage('object')) === '{"x":1,"y":2}');
+
+            // read all - with prefix
+            var data = _storage();
+            ASSERT('_storage() all 1', data.test === true);
+            ASSERT('_storage() all 2', data.num === 123);
+            ASSERT('_storage() all 3', FLAT(data.array) === '[4,5,6]');
+            ASSERT('_storage() all 4', FLAT(data.date) === '"2016-06-29T08:47:27.725Z"');
+            ASSERT('_storage() all 5', FLAT(data.object) === '{"x":1,"y":2}');
+
+            // delete - with prefix
+            _storage('date', null);
+            ASSERT('_storage() delete', _storage('date') === undefined);
+
+            // batch operation
+            _storage({
+                bool: false,    // add
+                num: 789,       // modify
+                array: null     // delete
+            });
+            ASSERT('_storage() batch 1', _storage('bool') === false);
+            ASSERT('_storage() batch 2', _storage('num') === 789);
+            ASSERT('_storage() batch 3', _storage('array') === undefined);
+
+            // delete all - with prefix
+            _storage(null, null);
+            ASSERT('_storage() delete all', FLAT(_storage()) === '{}');
+
+            tiny.storage.keyPrefix = '';
+            // previous value with no prefix should still there
+            ASSERT('_storage() no prefix value', _storage('test') === false);
+        </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _storage(123);
+                FAIL('_storage() paramter 1 error');
+            }catch(err){
+                ASSERT('_storage() paramter 1 error', err instanceof TypeError );
+            }
+        </code></pre>
+
 
     </div>
 </body>

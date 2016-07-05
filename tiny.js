@@ -864,28 +864,59 @@ var tiny = (function () {
     var TAG_STORAGE = '_storage()' + TAG_SUFFIX;
     /**
      * Simple window.localStorage wrapper
+     * Integer, Boolean, Array, Date & Object types will be converted automatically
      * ```
      *   // filter keys by prefix, default is ''
-     *   _tiny.storage.keyPrefix = 'your_prefix'
-     *   _store()            // return all values as an Object
-     *   _store(key)         // get value
-     *   _store(key, value)  // set value
-     *   _store(key, null)   // delete value of given key
-     *   _store(null, null)  // delete all contents
-     *   // Integer, Boolean, Array, Date & Object types will be converted automatically
+     *   tiny.storage.keyPrefix = 'your_prefix'
+     *   _storage()            // return all values as an Object
+     *   _storage(key)         // get value
+     *   _storage(key, value)  // set value
+     *   _storage(key, null)   // delete value of given key
+     *   _storage(null, null)  // delete all contents
+     *   _storage({key1: value1, key2: null, ...})  // batch process
      * ```
      */
     function local_storage(key, value) {
 
         var storage = window.localStorage;
 
-        if (key === undefined) {
+        if (typeof key === 'string') {
 
-            // read all ----------
+            key = _storage.keyPrefix == '' ? key : _storage.keyPrefix + '_' + key;
 
+            if (value === undefined) {
+
+                // ==> READ
+                var result = storage[key];
+                result = storage_output_type_conversion(result);
+                return result;
+
+            } else if (value === null) {
+
+                // ==> DELETE
+                _log(TAG_STORAGE, 'Deleted window.localStorage item: "' + key + '"');
+                return storage.removeItem(key);
+
+            } else {
+
+                // ==> WRITE
+                value = storage_input_type_conversion(value);
+                storage.setItem(key, value);
+                _log(TAG_STORAGE, 'Set window.localStorage item: "' + key + '" = ', value);
+
+            }
+
+        } else if (key === undefined) {
+
+            // ==> READ ALL
+            var check_prefix = _storage.keyPrefix !== '';
             var result = {};
 
             _each(storage, function (item, label) {
+                if (check_prefix) {
+                    if (label.startsWith(_storage.keyPrefix + '_') == false) return;
+                    label = label.replace(_storage.keyPrefix + '_', '');
+                }
                 result[label] = storage_output_type_conversion(item);
             });
 
@@ -893,56 +924,36 @@ var tiny = (function () {
 
         } else if (key === null && value === null) {
 
-            // delete all ----------
+            // ==> DELETE ALL
+            if (_storage.keyPrefix == '') {
 
-            if (_storage.storageKeyPrefix == '') {
-
-                // the easy way
+                // the quick way
                 _warn(TAG_STORAGE, 'All items in window.localStorage are cleared');
                 storage.clear();
 
             } else {
 
                 // have to check every key for prefix
+                _each(storage, function (item, label) {
+                    if (label.startsWith(_storage.keyPrefix + '_'))
+                        storage.removeItem(label);
+                });
 
-                for (var i = 0; i < storage.length; i++) {
-                    var key = storage.key(i);
-                    if (key.starsWith(_storage.keyPrefix)) {
-                        storage.removeItem(key);
-                        i--;
-                    }
-                }
-
-                _warn(TAG_STORAGE, 'All items in window.localStorage with prefix "' + _storage.keyPrefix + '" arecleared');
+                _warn(TAG_STORAGE, 'All items in window.localStorage with prefix "' + _storage.keyPrefix + '" are cleared');
 
             }
+
+        } else if (typeof key === 'object') {
+
+            // ==> BATCH OPERATION
+            _each(key, function (item, label) {
+                _storage(label, item);
+            });
 
         } else {
 
-            // add prefix
-            key = _storage.keyPrefix + key;
-
-            if (value === undefined) {
-
-                // read ----------
-                var result = storage[key];
-                result = storage_output_type_conversion(result);
-                return result;
-
-            } else if (value === null) {
-
-                // delete ----------
-                _log(TAG_STORAGE, 'Deleted window.localStorage item: "' + key + '"');
-                return storage.removeItem(key);
-
-            } else {
-
-                // write ----------
-                value = storage_input_type_conversion(value);
-                storage.setItem(key, value);
-                _log(TAG_STORAGE, 'Set window.localStorage item: "' + key + '" = ', value);
-
-            }
+            _error(TAG_STORAGE, 'Expect a string, object or null. > Got "' + typeof key + '": ', key);
+            throw new TypeError(SEE_ABOVE);
 
         }
 
@@ -1013,76 +1024,6 @@ var tiny = (function () {
         }
 
         return value;
-
-    }
-
-
-    //////////////////////////////////////////////////////////
-    // COOKIES ACCESS
-    // This feature requires these functions above:
-    //     storage_input_type_conversion()
-    //     storage_output_type_conversion()
-    //////////////////////////////////////////////////////////
-
-    add_to_tiny_definition({ cookie: _cookie });
-
-    var TAG_COOKIE = '_cookie()' + TAG_SUFFIX;
-    /**
-     * Simple Cookie Manager
-     * ```
-     *   _cookie(key)                // get value
-     *   _cookie(key, value [, ttl]) // set value
-     *   _cookie(key, null)          // delete value of given key
-     *   _cookie(null, null)               // delete all cookies
-     *   // Integer, Boolean, Array, Date & Object types will be converted automatically
-     * ```
-     */
-    function _cookie(key, value, ttl) {
-
-        if (key === null && value === null) {
-
-            // clean all cookie
-            var cookieArray = document.cookie.split('; ');
-            for (var i = 0; i < cookieArray.length; i++) {
-                var item = cookieArray[i].split('=');
-                arguments.callee(item[0], null);
-            }
-            _warn(TAG_COOKIE, 'All cookies are deleted');
-
-        } else if (value === undefined) {
-
-            // get cookie
-            var cookieArray = document.cookie.split('; ');
-            for (var i = 0; i < cookieArray.length; i++) {
-                var item = cookieArray[i].split('=');
-                if (item[0] == key) {
-                    return storage_output_type_conversion(item[1]);
-                }
-            }
-
-            return undefined;
-
-        } else if (value === null) {
-
-            // delete cookie
-            document.cookie = key + '=;expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/';
-            _warn(TAG_COOKIE, 'Deleted cookie: ' + key);
-
-        } else {
-
-            // set cookie
-            ttl = ttl || 365; // default ttl 1 year
-
-            value = storage_input_type_conversion(value);
-
-            var date = new Date();
-            date.setTime(date.getTime() + (ttl * 24 * 60 * 60 * 1000));
-
-            document.cookie = key + '=' + value + '; expires=' + date.toGMTString() + '; path=/';
-
-            _log(TAG_COOKIE, 'Set cookie: "' + key + '" = ', value);
-
-        }
 
     }
 
