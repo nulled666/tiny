@@ -1,11 +1,10 @@
 function start() {
+    
+    tiny.import();
 
     build_content_table();
 
     setTimeout(run_all_code, 100);
-    setTimeout(function () {
-        console.clear();
-    }, 1500);
 
     // the smooth scroll effect
     $(".content-table a").click(function () {
@@ -33,28 +32,34 @@ function jump_to_error() {
     if (objs.length < 1) return;
 
     if (objs.length == 1) {
-        smooth_scroll_to(objs);
+        smooth_scroll_to(objs, -200);
         return;
     }
 
     var target;
 
     objs.each(function (index, elem) {
+
         elem = $(elem);
-        if (elem.hasClass('current')) {
+        
+        if (elem.prop("tagName") == 'PRE') {
+            elem.removeClass('collapse failed');
+        }else if (elem.hasClass('current')) {
             elem.removeClass('current');
             index = (index + 1) < objs.length ? index + 1 : 0;
             target = $(objs.get(index));
             return false;
         }
+
     });
 
-    if (!target) target = $(objs.get(0));
 
-    if (target.hasClass('collapse')) {
-        expand_pre(target);
+    if (!target){
+        target = $('.failed:first');
     }
 
+    _warn(target);
+    
     target.addClass('current');
     smooth_scroll_to(target, -200);
 
@@ -139,6 +144,7 @@ function check_and_append_link(sidebar, elem) {
 
 // ====== code runner for unit tests
 var _error_counter = 0;
+var _run_code_counter = 0;
 
 function run_all_code() {
 
@@ -150,11 +156,15 @@ function run_all_code() {
     _error_counter = 0;
 
     var codes = $('.run-code');
-    codes.last().addClass('last');
+
+    _run_code_counter = 100;
 
     codes.each(function (index, elem) {
+        _run_code_counter++;
         run_code(elem);
     });
+
+    _run_code_counter -= 100;
 
 }
 
@@ -188,6 +198,8 @@ function show_run_code_result(elem, result, is_error) {
 
     elem = $(elem);
 
+    _run_code_counter--;
+
     var result_index = 0;
     var assert_elems = elem.find(".function:contains(ASSERT)");
     var error = is_error === true;
@@ -208,10 +220,11 @@ function show_run_code_result(elem, result, is_error) {
 
     });
 
-    var parent = $(elem).parent();
-    parent.addClass(error ? 'failed' : 'passed');
+    elem.addClass(error ? 'failed' : 'passed');
 
-    if (elem.hasClass('last')) {
+
+    // last code block returned
+    if (_run_code_counter == 0) {
 
         if (_error_counter == 0) {
 

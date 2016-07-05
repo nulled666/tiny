@@ -34,16 +34,18 @@
         <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace
             (the <code>window</code> object).</p>
         <p>To use those short function names, pleas call <code>tiny.import()</code> ahead of all calls.</p>
-        <pre><code class="run-code language-javascript">
-           tiny.import();  // register global function names for tiny methods
+        <pre><code class="language-javascript">
+           // register global function names for tiny methods
+           tiny.import();
         </code></pre>
 
         <h3><a class="mark" name="show-me">tiny.me()</a></h3>
 
         <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global
             functions and prototype methods.</p>
-        <pre><code class="run-code language-javascript">
-           tiny.me();  // show tiny definitions in console
+        <pre><code class="language-javascript">
+           // show tiny definitions in console
+           tiny.me();
         </code></pre>
 
         <hr/>
@@ -56,10 +58,15 @@
             <code>_warn()</code> and <code>_error()</code>.</p>
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
-        <pre class="usage"><code class="language-javascript">
-            tiny.verbose(true);        // enable log output
+        <pre><code class="language-javascript">
+            // enable log output
+            tiny.verbose(true);
 
-            _log(param1, param2, ...);  // == console.log(param1, param2)
+            _log(param1, param2, ...);    // == console.log(param1, param2, ...)
+            _dir(param1, param2, ...);    // == console.dir(param1, param2, ...)
+            _info(param1, param2, ...);   // == console.info(param1, param2, ...)
+            _warn(param1, param2, ...);   // == console.warn(param1, param2, ...)
+            _error(param1, param2, ...);  // == console.error(param1, param2, ...)
         </code></pre>
         <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
             logs.
@@ -69,7 +76,7 @@
         </p>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             // enable _log() output when you need them
             tiny.verbose(true);
 
@@ -91,7 +98,7 @@
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var obj = {
                 id: 123,
                 view: { loaded: true,
@@ -118,7 +125,7 @@
         <p>Its syntax is just like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break
             with a return value.</p>
         <p>If you called <code>tiny.import()</code>, an method named <code>Array._each()</code> will be available.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _each(array_or_object, callback[, this_arg]) : any
             // array_or_object : Array or Object to loop
             // callback        : callback function for the loop
@@ -134,7 +141,7 @@
             </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             //==== Work with Array ================
             var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
             _each(numbers, function (value, index, array) {
@@ -161,7 +168,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="collapse"><code class="error-test run-code language-javascript">
+        <pre class="run-code collapse"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -190,7 +197,7 @@
             // overwrite  : whether overwrite existing properties, default is true
         </code></pre>
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var point = { x: 1, y: 2 };
             var point_3d = _extend(point, {z: 3});
             ASSERT('_extend()', FLAT(point_3d) === '{"x":1,"y":2,"z":3}' );
@@ -205,7 +212,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="collapse"><code class="error-test run-code language-javascript">
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -227,14 +234,14 @@
 
         <p>Create a namespace and return the object.</p>
         <p>You can't create namespace with Javascript preserved keywords. The result might appear like nothing has happened.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _namespace(namespace, obj) : object
             // namespace  - a string which represent the namespace path
             // obj        - the object which will be bind to that namespace
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             // just create a blank namespace
             _namespace('my.project');
             ASSERT('_namespace() create blank', FLAT(my.project) === '{}' );
@@ -246,7 +253,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="collapse"><code class="error-test run-code language-javascript">
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -276,7 +283,7 @@
         <p>Register a message listener.</p>
         <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking internal flag
             (and you definitely will have an internal flag in such case).</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _message.listen(message_name, handler) : _message
 
             function handler(msg_name, param_1, param_2 ...){ ... }
@@ -285,7 +292,7 @@
         <h3><a class="mark" name="message-post">_message.post()</a></h3>
 
         <p>Post a message to listeners.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _message.post(msg_name, param_1, param_2 ...) : _message
         </code></pre>
 
@@ -294,14 +301,14 @@
         <p>Post a message to listeners after a specified delay in milliseconds.</p>
         <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement Type-n-Search
             like features.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _message.postDelayed(delay_time, msg_name, param_1, param_2 ...) : _message
         </code></pre>
 
         <p>All these methods will return the <code>_message</code> object. You can chain methods if required.</p>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var list = [];
 
             // define the message handler
@@ -329,7 +336,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="collapse"><code class="error-test run-code language-javascript">
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -385,7 +392,7 @@
             you definitely will have an internal flag in such case).</p>
         <p>The <code>route</code> parameter can be a string or a RegExp object.</p>
 
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _route.watch(route, handler) : _route
             
             function handler(current_route, param_object){ ... }
@@ -411,7 +418,7 @@
         <p>The <code>current_route</code> parameter of the callback function will be current hash string without starting '#'.</p>
         <p>And the <code>param_object</code> will be <code>true</code> or an <code>Object</code> contains paramters mateched
             in URL. Like:</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             // route match
             -> handler('current/route', true);
 
@@ -419,7 +426,7 @@
             -> handler('current/route/noname/123', {name: 'noname', id: '123'});
         </code></pre>
         <p>If watched route was matched last time but not this time, the <code>param_object</code> will be <code>false</code>.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             // route not match
             -> handler('current/route', false);
         </code></pre>
@@ -428,13 +435,13 @@
 
         <p>Check a route string or window.location.hash for route matching. Returns true if match found.</p>
         <p>If you want Tiny to check automatically on window.location.hash changes, please use <code>_route.on()</code>.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _route.check([route_string]) : boolean
             // route_string : if not given, window.location.hash will be checked
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var data = [];
             function save_data(route, params){
                 data.push(params);
@@ -487,7 +494,7 @@
         <h3><a class="mark" name="route-on">_route.on/off()</a></h3>
 
         <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _route.on() : _route
             _route.off() : _route
         </code></pre>
@@ -495,7 +502,7 @@
         <h3><a class="mark" name="route-append">_route.append()</a></h3>
 
         <p>Append sections to route string.</p>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _route.append(string_or_array[, trigger]) : _route
             // string_or_array : a string or an array of items to append
             // trigger         : whether trigger route change event, default is true
@@ -511,13 +518,13 @@
             <li><code>'key/'</code> -'/my_key_chain/car_key/key:1' -> '/my_key_chain/car_'.</li>
             <li><code>'/key/'</code> -'/my_key_chain/key/id:1' -> '/my_key_chain'.</li>
         </ul>
-        <pre class="usage"><code class="language-javascript">
+        <pre><code class="language-javascript">
             _route.remove(section[, trigger]) : _route
             // section : from which the route string will be removed
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre><code class="run-code language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var data = [];
             function save_data(route, params){
                 data.push(params);
@@ -580,7 +587,7 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="collapse"><code class="error-test run-code language-javascript">
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{

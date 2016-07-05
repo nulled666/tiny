@@ -114,7 +114,7 @@ body{
 .content{
 	margin-left: 240px;
 	padding: 20px;
-	width: 800px;
+	width: 720px;
 }
 
 h1{
@@ -125,11 +125,12 @@ h2{
 	font-size: 2em;
 }
 h3{
-	color: #a3a;
-	font-size: 1.4em;
+	margin-top: 2em;
+	font-size: 1.5em;
 }
 h4{
 	font-size: .8em;
+	color: #666;
 }
 
 
@@ -138,33 +139,29 @@ h4{
 }
 pre{
 	position: relative;
+	font-size: 12px;
+	border: 1px solid #eee;
+	border-radius: 4px;
 }
-pre.usage{
-	background: #fff !important;
-	border-left: 4px solid #f3f3f3;
-	border-radius: 0;
-}
-pre.failed::before{
-	display: block;
-	margin: -14px -14px 10px -14px;
-	padding: 10px;
-	color: #fff;
-	background: #c00;
-	content: 'TEST FAILED';
+pre.run-code{
+	background: #f9f9f9;
 }
 
 pre.collapse{
 	cursor: pointer;
+	color: #fff;
+}
+pre.collapse.failed{
+	background: #c00;
 }
 pre.collapse.failed::before{
-	margin-bottom: -14px;
+	content: 'TEST FAILED';
 }
-
 pre.collapse.passed{
-	color: #fff;
-	background: #aca;
+	background: #e6f3e6;
 }
 pre.collapse.passed::before{
+	color: #696;
 	content: 'TEST PASSED';
 }
 
