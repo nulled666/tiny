@@ -122,8 +122,8 @@
         <h3><a class="mark" name="each">_each()</a></h3>
 
         <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
-        <p>Its syntax is just like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break
-            with a return value.</p>
+        <p>The syntax just likes <code>Array.forEach()</code> method, but you can use it on Objects, Strings and Numbers. And you can continue or break with a return value.</p>
+        <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you add  items to or remove items from the array.</p>
         <pre><code class="language-javascript">
             _each(object, callback[, this_arg]) : any
             // object    : Array, Object, String or Number to loop
