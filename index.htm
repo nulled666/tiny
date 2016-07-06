@@ -1042,7 +1042,7 @@
         <pre class="run-code html"><code class="language-html">
             &lt;!--
             ****** HTML FILE ******
-            Template string must be placed inside &lt;script> tag to keep indents and tags
+            Template strings must be placed inside &lt;script> tag to keep indents and tags
             -->
 
             &lt;!-- HTML Template in HTML File -->
@@ -1066,6 +1066,7 @@
             &lt;!--
                 Indents are important in shorthand templates
                 a tab is count as one indent, and don't mix tabs and spaces
+                and conditional {} tokens should start with : to output as text
             -->
             &lt;script type="text/x-template" id="tpl-sh-block">
             ...
@@ -1080,6 +1081,7 @@
                     :{/?plans}
             &lt;/script>
 
+            &lt;!-- List item template -->
             &lt;script type="text/x-template" id="tpl-sh-li">
             ...
             li .item [id={id}]

@@ -1,5 +1,5 @@
 function start() {
-    
+
     tiny.import();
 
     build_content_table();
@@ -15,7 +15,7 @@ function start() {
 
     $('#test-info').on('click', jump_to_error);
 
-    $('.content').on('click', 'pre.collapse', function(){
+    $('.content').on('click', 'pre.collapse', function () {
         expand_pre(this);
     });
 
@@ -41,10 +41,10 @@ function jump_to_error() {
     objs.each(function (index, elem) {
 
         elem = $(elem);
-        
+
         if (elem.prop("tagName") == 'PRE' && elem.find('.failed').length > 0) {
             elem.removeClass('collapse');
-        }else if (elem.hasClass('current')) {
+        } else if (elem.hasClass('current')) {
             elem.removeClass('current');
             index = (index + 1) < objs.length ? index + 1 : 0;
             target = $(objs.get(index));
@@ -54,10 +54,10 @@ function jump_to_error() {
     });
 
 
-    if (!target){
+    if (!target) {
         target = $('.failed:first');
     }
-    
+
     target.addClass('current');
     smooth_scroll_to(target, -100);
 
@@ -71,7 +71,7 @@ function expand_pre(elem) {
 function smooth_scroll_to(obj, offset) {
 
     var is_hash = false;
-    var hash ='';
+    var hash = '';
     if (typeof obj == 'string') {
         is_hash = true;
         hash = obj;
@@ -89,8 +89,8 @@ function smooth_scroll_to(obj, offset) {
         { scrollTop: obj.offset().top + offset },
         500,
         "swing",
-        function(){
-            if(is_hash)
+        function () {
+            if (is_hash)
                 window.location.hash = hash;
         }
     );
@@ -158,7 +158,6 @@ function run_all_code() {
     _run_code_counter = 100;
 
     codes.each(function (index, elem) {
-        _run_code_counter++;
         run_code(elem);
     });
 
@@ -168,12 +167,15 @@ function run_all_code() {
 
 
 function run_code(elem) {
+
+    _run_code_counter++;
     
     var code = $(elem).text();
 
-    if($(elem).hasClass('html')){
+    if ($(elem).hasClass('html')) {
         var html_fragment = $(code);
         $(document.body).append(html_fragment);
+        _run_code_counter--;
         return;
     }
 
