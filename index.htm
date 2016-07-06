@@ -893,9 +893,9 @@
 
         <h3><a class="mark" name="format-format">_format()</a></h3>
 
-        <p>Template format function.</p>
-        <p>This function support both the full html template and the shorthand template.</p>
-        <p>Expanded shorthand templates will be cached for better performance.</p>
+        <p>Simply powerful enough format function with template support.</p>
+        <p>This function support both normal html templates and the shorthand templates.</p>
+        <p>Expanded shorthand templates will be cached in memory and their original &lt;script> tags for performance.</p>
         <pre><code class="language-javascript">
             _format(template, data_object);
             // template    : the template string
@@ -1013,7 +1013,9 @@
                 ' &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '&lt;/li>\n');
             
-            // complex shorthand template - indents and end-of-lines '\n' are important
+            // complex shorthand template
+            //   indents('\t' or ' ') and end-of-lines('\n') are important
+            //   you can choose to use tabs or spaces, mixing them might result chaos
             template = '...' +
                 'li.item[id={id}]\n'+
                 '  .title :{title}\n' +
@@ -1041,11 +1043,13 @@
         <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
         <pre class="run-code html"><code class="language-html">
             &lt;!--
-            ****** HTML FILE ******
-            Template strings must be placed inside &lt;script> tag to keep indents and tags
+            ****** TEMPLATES IN HTML FILE ******
+            Templates must be placed inside &lt;script> tags to keep indents, tags and invisible.
+            And it's better to place them after the body tag to avoid being translated by
+            the _lang.translate() function before usage.
             -->
 
-            &lt;!-- HTML Template in HTML File -->
+            &lt;!-- Normal HTML Template -->
             &lt;script type="text/x-template" id="tpl-html-block">
                 &lt;div class="content">
                     &lt;h2>

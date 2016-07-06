@@ -169,12 +169,12 @@ function run_all_code() {
 function run_code(elem) {
 
     _run_code_counter++;
-    
+
     var code = $(elem).text();
 
     if ($(elem).hasClass('html')) {
         var html_fragment = $(code);
-        $(document.body).append(html_fragment);
+        $(document.body).after(html_fragment);
         _run_code_counter--;
         return;
     }
