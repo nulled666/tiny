@@ -124,47 +124,64 @@
         <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
         <p>Its syntax is just like <code>Array.forEach()</code> method, but you can use it on Objects and do continue or break
             with a return value.</p>
-        <p>If you called <code>tiny.import()</code>, an method named <code>Array._each()</code> will be available.</p>
         <pre><code class="language-javascript">
-            _each(array_or_object, callback[, this_arg]) : any
-            // array_or_object : Array or Object to loop
-            // callback        : callback function for the loop
-            // this_arg        : set the value of 'this' inside the scope
+            _each(object, callback[, this_arg]) : any
+            // object    : Array, Object, String or Number to loop
+            // callback  : callback function for the loop
+            // this_arg  : set the value of 'this' inside the scope
+
+            // extended method for Array and String
+            Array._each(callback[, this_arg]) : any
+            String._each(callback[, this_arg]) : any
 
             function callback(value, index, array) {
                 return;              // continue to next item in array_or_object
                 return any_value;    // break out, and _each() will return any_value
             }
-
-            // extended method for Array
-            Array._each(callback[, this_arg]) : any
             </code></pre>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
-            //==== Work with Array ================
-            var numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-            _each(numbers, function (value, index, array) {
+            var arr = [];
+
+            // ==> Number
+            // value: 1 -> 6, index: 0 -> 5
+            _each(6, function (value, index) {
+                arr[index] = value;
+            });
+            ASSERT('_each() on number', arr.join() === '1,2,3,4,5,6');
+
+            // ==> String
+            // value: a -> c, index: 0 -> 2
+            'abc'._each(function (value) {
+                arr.push(value);
+            });
+            ASSERT('_each() on string', arr.join() === '1,2,3,4,5,6,a,b,c');
+
+            // ==> Array
+            _each(arr, function (value, index, array) {
                 if (value < 4) return;       // continue
-                if (value > 6) return true;  // break
+                if (value > 5) return true;  // break
                 array[index] = value * 10;
             });
-            ASSERT('_each() on array', numbers.join() === '1,2,3,40,50,60,7,8,9' );
+            ASSERT('_each() on array', arr.join() === '1,2,3,40,50,6,a,b,c' );
 
-            // you can get returned value like this
-            var big = numbers._each(function (value, index, array) {
-                if (value > 10)
-                    return value;  // return first number bigger than 10
+            // return a value
+            var chr = arr._each(function (value, index, array) {
+                if (typeof value !== 'number')
+                    return value;    // return first non-number value
             });
-            ASSERT('Array._each() & return value', big === 40 );
+            ASSERT('Array._each() & return value', chr === 'a' );
 
-            //==== Work with Object ================
-            var list = { book: 'book', pen: 'pen' };
+            // ==> Object
+            var list = { action: 'test', animal: 'duck' };
             var my_string = '';
             _each(list, function (value, label) {
-                my_string += 'It\'s my ' + value + '. ';
+                my_string += 'This is a ' + value + '. ';
             });
-            ASSERT('_each() on object', my_string === 'It\'s my book. It\'s my pen. ' );
+            ASSERT('_each() on object', my_string === 'This is a test. This is a duck. ' );
+
+
         </code></pre>
 
         <h4>ERROR TESTS</h4>
@@ -172,7 +189,7 @@
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
-                _each('error test 1');
+                _each(false, function(){});
                 FAIL('_each() paramter 1 error');
             }catch(err){
                 ASSERT('_each() paramter 1 error', err instanceof TypeError );
@@ -627,11 +644,11 @@
 
         <hr/>
 
-        <h2><a class="mark" name="storage-func">Storage Access</a></h2>
+        <h2><a class="mark" name="storage-func">Local Storage</a></h2>
 
         <h3><a class="mark" name="storage">_storage()</a></h3>
 
-        <p>A handy function for <code>window.localStorage</code> access.</p>
+        <p>A handy function for accessing <code>window.localStorage</code>.</p>
         <p>Integer, Boolean, Array, Date & Object types will be automatically converted on access.</p>
         <p>Note: All local pages might share a same localStorage store in some browsers. You can use <code>keyPrefix</code>            to avoid collisions.</p>
         <pre><code class="language-javascript">
@@ -744,6 +761,18 @@
             ASSERT('4', txt._htmlSafe(true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
         </code></pre>
 
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _htmlSafe(123);
+                FAIL('_htmlSafe() paramter 1 error');
+            }catch(err){
+                ASSERT('_htmlSafe() paramter 1 error', err instanceof TypeError );
+            }
+        </code></pre>
+
         <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
 
         <p>Number format function.</p>
@@ -767,6 +796,24 @@
             ASSERT('9', num._format('HEX.00') == '1E240.C9');
         </code></pre>
 
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _formatNumber('123');
+                FAIL('_formatNumber() paramter 1 error');
+            }catch(err){
+                ASSERT('_formatNumber() paramter 1 error', err instanceof TypeError );
+            }
+            try{
+                _formatNumber(123, 456);
+                FAIL('_formatNumber() paramter 2 error');
+            }catch(err){
+                ASSERT('_formatNumber() paramter 2 error', err instanceof TypeError );
+            }
+        </code></pre>
+
         <h3><a class="mark" name="format-date">_formatDate()</a></h3>
 
         <p>Date format function.</p>
@@ -775,7 +822,8 @@
             _format.dateNames = {
                 day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                 dayAbbr: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                month: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                    'August', 'September', 'October', 'November', 'December'],
                 monthAbbr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 ap: ['AM', 'PM']
             };
@@ -794,17 +842,18 @@
             Date._format([format]);
 
             // FORMAT STRING CODES:
-            // 'yyyy' = 2009,    'yy' = 09,     'y' = 9        // Year
-            // 'M'    = 6,       'MM' = 06                     // Numeric month
-            // 'MMM'  = Jun,     'MMMM' = June                 // Month name
-            // 'd'    = 7,       'dd' = 07                     // Day of the month
-            // 'D'    = Tue,     'DD' = Tuesday                // Day of the week
-            // 'h'    = 8,       'hh' = 08                     // 12 Hour clock
-            // 'H'    = 8,       'HH' = 08                     // 24 Hour clock 
-            // 'm'    = 9,       'mm' = 09                     // Minutes
-            // 's'    = 10,      'ss' = 10,      'sss' = 753   // Seconds & Milliseconds
-            // 'z'    = +08,     'zz' = +0800,   'ZZ' = +08:00 // Timezone
-            // 't'    = AM,      // AM / PM
+            // Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
+            // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
+            // 'M'    = 6,     'MM' = 06                     // Numeric month
+            // 'MMM'  = Jun,   'MMMM' = June                 // Month name
+            // 'd'    = 7,     'dd' = 07                     // Day of the month
+            // 'D'    = Tue,   'DD' = Tuesday                // Day of the week
+            // 'h'    = 8,     'hh' = 08                     // 12 Hour clock
+            // 'H'    = 8,     'HH' = 08                     // 24 Hour clock 
+            // 'm'    = 9,     'mm' = 09                     // Minutes
+            // 's'    = 10,    'ss' = 10,     'sss' = 753    // Seconds & Milliseconds
+            // 'z'    = +08,   'zz' = +0800,  'ZZ' = +08:00  // Timezone
+            // 't'    = AM,    // AM / PM
         </code></pre>
 
         <h4>EXAMPLES</h4>
@@ -815,12 +864,31 @@
             ASSERT('2', d._format('date') == '2005-06-07');
             ASSERT('3', d._format('time') == '08:09:10');
             ASSERT('4', d._format('iso') == '2005-06-07T00:09:10.753Z');
-            
-            // keep text
-            ASSERT('5', d._format('[Today is] DD') == 'Today is Tuesday');
 
+            // also accept date number from Date.getTime()
+            // text inside [] will be kept
+            ASSERT('5',  _formatDate(1118102950753, '[Today is] DD') == 'Today is Tuesday');
+            
             // mix token and text
             ASSERT('6', d._format('D, d MMM yyyy H:m:s [GMT]zz') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
+        </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _formatDate('123');
+                FAIL('_formatDate() paramter 1 error');
+            }catch(err){
+                ASSERT('_formatDate() paramter 1 error', err instanceof TypeError );
+            }
+            try{
+                _formatDate(new Date(), 456);
+                FAIL('_formatDate() paramter 2 error');
+            }catch(err){
+                ASSERT('_formatDate() paramter 2 error', err instanceof TypeError );
+            }
         </code></pre>
 
     </div>

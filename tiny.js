@@ -260,6 +260,7 @@ var tiny = (function () {
     });
 
     add_to_prototype([Array, { _each: each_extension }]);
+    add_to_prototype([String, { _each: each_extension }]);
 
     function each_extension(func, this_arg) {
         return _each(this.valueOf(), func, this_arg);
@@ -283,29 +284,52 @@ var tiny = (function () {
      */
     function _each(obj, func, this_arg) {
 
-        if (typeof obj !== 'object') {
-            _error(TAG_EACH, 'Only Array and Object can be iterated. > Got "' + typeof obj + '": ', obj);
-            throw new TypeError(SEE_ABOVE);
-        }
         if (typeof func !== 'function') {
             _error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
             throw new TypeError(SEE_ABOVE);
         }
 
+        var type = typeof obj;
+
         var result;
 
         if (Array.isArray(obj)) {
-            // -> Array
+
+            // ==> Array
             for (var i = 0, len = obj.length; i < len; i++) {
                 result = func.call(this_arg, obj[i], i, obj);
                 if (result !== undefined) return result;
             }
-        } else {
-            // -> Object
+
+        } else if (type === 'object') {
+
+            // ==> Object
             for (var label in obj) {
                 result = func.call(this_arg, obj[label], label, obj);
                 if (result !== undefined) return result;
             }
+
+        } else if (type === 'string') {
+
+            // ==> String
+            for (var i = 0, len = obj.length; i < len; i++) {
+                result = func.call(this_arg, obj.charAt(i), i, obj);
+                if (result !== undefined) return result;
+            }
+
+        } else if (type === 'number') {
+
+            // ==> Number
+            for (var i = 0; i < obj; i++) {
+                result = func.call(this_arg, i + 1, i, obj);
+                if (result !== undefined) return result;
+            }
+
+        } else {
+
+            _error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
+            throw new TypeError(SEE_ABOVE);
+
         }
 
     }
@@ -1084,6 +1108,7 @@ var tiny = (function () {
         return format_template(this.valueOf(), obj);
     }
 
+
     var TAG_HTML_SAFE = '_htmlSafe()' + TAG_SUFFIX;
     /**
      * Make string HTML-safe
@@ -1098,7 +1123,7 @@ var tiny = (function () {
      */
     function html_safe(str, keep_spaces) {
 
-        if (typeof str != 'string') {
+        if (typeof str !== 'string') {
             _error(TAG_HTML_SAFE, 'Expect a string. > Got "' + typeof str + '": ', str);
             throw new TypeError(SEE_ABOVE);
         }
@@ -1255,9 +1280,8 @@ var tiny = (function () {
      *   d._format('date') == '2005-06-07' // yyyy-MM-dd
      *   d._format('time') == '08:09:10'   // HH:mm:ss
      *   d._format('iso') == '2005-06-07T00:09:10.753Z' // ISO 8601
-     *   // You can use [txt] to output 'txt'
-     *   d._format('[D, d MMM yyyy H:m:s]') == 'D, d MMM yyyy H:m:s'
      *   // FROMAT STRING CODES:
+     *    Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
      *    'yyyy' = 2009, 'yy' = 09,   'y' = 9        // Year
      *    'M'    = 6,    'MM' = 06                   // Numeric month
      *    'MMM'  = Jun,  'MMMM' = June               // Month name
@@ -1282,7 +1306,7 @@ var tiny = (function () {
         } else if (Object.prototype.toString.call(date_in) === "[object Date]") {
             date.setTime(date_in.getTime());
         } else {
-            _error(TAG_FORMAT_DATE, 'Expect a number or Date object. > Got "' + typeof date + '": ', date);
+            _error(TAG_FORMAT_DATE, 'Expect a Date.getTime() number or Date object. > Got "' + typeof date + '": ', date);
             throw new TypeError(SEE_ABOVE);
         }
 
