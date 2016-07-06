@@ -1089,7 +1089,7 @@ var tiny = (function () {
     add_to_prototype([Date, { _format: format_date_extension }]);
     add_to_prototype([String, {
         _htmlSafe: html_safe_extension,
-        _formatWith: format_extension
+        _format: format_extension
     }]);
 
     function format_number_extension(format) {
@@ -1420,72 +1420,6 @@ var tiny = (function () {
     }
 
 
-    /*
-      >> Shorthand Template
-      
-        // direct call
-        _format('>> ul#main-list.active > li.item > .title :{}', 'text content');
-      
-        // read template from HTML <script> tag
-        _format('#template-id');
-      
-        // in html file
-        <script type="x-template" id="template-id">
-          >>
-          li .item [id={id}]
-            .title :{title}
-            .tags
-              :{plans} PLANS
-              i :/
-              :{people} PEOPLE
-        </script>
-      
-      >> Shorthand syntax
-        >> - mark of a shorthand template
-        # - mark start of an ID
-        . - mark start of a class
-        : - all string after this mark will be treated as content until a newline char is encountered
-        > - indicate an inline nest indent (won't work after :)
-      
-      >> Normal HTML Template
-      
-        _format('#template-id');
-      
-        <script type="x-template" id="template-id">
-          <li class="item" id="{id}">
-            <div class="title">{title}</div>
-            <div class="tags">
-              {plans} PLANS <i>/</i> {people} PEOPLE
-            </div>
-          </li>
-        </script>
-      
-      >> Template Tokens for value fill-in
-        {index} - refer to Array[index] item by index
-        {key} - refer to Object[key] property by key
-        {key|format} - set format string for obj[key]
-        {} - replace with whole object, format with default style
-        {|format} - format whole object with given 'format' string
-        {(output text)} - don't process, simple output content inside curl brackets
-      
-      >> Special Formats
-        {key|!html} - don't encode special html chars
-        {$key} - refer to a language string by calling _t(key)
-        {key|5} - output first 5 chars from beginning
-        {key|-5} - output last 5 chars from ending
-      
-      >> Conditional Block
-        {?key}				Show block if Object[key] is not empty or false
-          {subkey}		Tokens inside block will be filled will data[key][subkey]
-        {/?key}
-        
-        {^key}				Show block if Object[key] is empty or false
-          {other_key}		Tokens inside block will be filled will data[other_key]
-        {/^key}
-          
-      >> Reference to template
-        {#template-id}		Same format like refer to template in html file. Beware of circular reference
-    */
     /**
      * Template Format function
      * ```
@@ -1723,10 +1657,11 @@ var tiny = (function () {
                 continue;
             }
 
+            var indent = ' '.repeat(level);
             if (level < last_level) {
-                result = '\t'.repeat(level) + tag.start + '\n' + result + '\t'.repeat(level) + tag.end + '\n';
+                result = indent + tag.start + '\n' + result + indent + tag.end + '\n';
             } else {
-                result = '\t'.repeat(level) + tag.start + tag.end + '\n' + result;
+                result = indent + tag.start + tag.end + '\n' + result;
             }
 
             last_level = level;

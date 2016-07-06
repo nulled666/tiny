@@ -895,19 +895,20 @@
 
         <p>Template format function.</p>
         <p>This function support both the full html template and the shorthand template.</p>
+        <p>Expanded shorthand templates will be cached for better performance.</p>
         <pre><code class="language-javascript">
             _format(template, data_object);
             // template    : the template string
             // data_object : an object contains data you want to fill into the template
 
-            String._formatWith(data_object);
+            String._format(data_object);
 
             // format html template string
             _format('&lt;span class="date-tag">Today is {date}&lt;/span>', {date: new Date()});
             // format shorthand template string (starts with '...')
             _format('span.date-tag :Today is {date}', new Date());
             // get template for HTML tag with id 'date-tag-template'
-            '#date-tag-template'._formatWith(obj_date);
+            '#date-tag-template'._format(obj_date);
 
             /*
             >> Template Token format for value fill-in
@@ -929,7 +930,8 @@
                 {key|-5.}   : output last 5 chars and add ... at beginning
             
             >> Conditional Block
-                {?key}        : Show block if data_object[key] is not empty or false
+                {?key}        : Show block if data_object[key] is not empty or false, 
+                                and if it is an Array, loop throught it to build a list
                     {subkey}  : Tokens inside block will be filled with data_object[key][subkey]
                 {/?key}
                 
@@ -951,49 +953,49 @@
             */
         </code></pre>
 
-        <h4>FORMAT EXAMPLES</h4>
+        <h4>EXAMPLES - SIMPLE FORMAT</h4>
         <pre class="run-code"><code class="language-javascript">
             // use whole data object and format with 'DD'
-            var result = 'Today is {|DD}.'._formatWith(new Date(1118102950753));
+            var result = _format('Today is {|DD}.', new Date(1118102950753));
             ASSERT('date', result === 'Today is Tuesday.');
             
             // cut long string
             var str = 'This is a very very loooooooong string';
-            result = 'It says: "{|14.}"'._formatWith(str);
+            result = 'It says: "{|14.}"'._format(str);
             ASSERT('cut end', result === 'It says: "This is a very..."');
-            result = 'It says: "{|-14.}"'._formatWith(str);
+            result = 'It says: "{|-14.}"'._format(str);
             ASSERT('cut start', result === 'It says: "...ooooong string"');
 
             // keep {}
-            result = 'Use {{token}} to fill value {token}'._formatWith({token: 123});
+            result = 'Use {{token}} to fill value {token}'._format({token: 123});
             ASSERT('keep {}', result === 'Use {token} to fill value 123');
 
             // output text directly
-            result = '{(Output {token} or any text)}'._formatWith({token: 123});
+            result = '{(Output {token} or any text)}'._format({token: 123});
             ASSERT('{(output text)}', result === 'Output {token} or any text');
 
-            var items = {
+            var my_items = {
                 book: { price: 1299.99,
                         name: "my book" }
             };
             // refer to a sub key of data object
-            result = 'The price is {book.price|,}'._formatWith(items);
+            result = 'The price is {book.price|,}'._format(my_items);
             ASSERT('sub key', result === 'The price is 1,299.99');
 
             var arr = [10, 20, 30];
             // array index - starts at 0
-            result = 'Refer to {1}'._formatWith(arr);
+            result = 'Refer to {1}'._format(arr);
             ASSERT('array index', result === 'Refer to 20');
 
             // special chars will be escaped
-            result = 'Click {}'._formatWith('&lt;a href="#">HERE&lt;/a>');
+            result = 'Click {}'._format('&lt;a href="#">HERE&lt;/a>');
             ASSERT('escape html', result === 'Click &amp;lt;a href=&amp;quot;#&amp;quot;&amp;gt;HERE&amp;lt;/a&amp;gt;');
             // don't escape
-            result = 'Click {|!html}'._formatWith('&lt;a href="#">HERE&lt;/a>');
+            result = 'Click {|!html}'._format('&lt;a href="#">HERE&lt;/a>');
             ASSERT('keep html', result === 'Click &lt;a href="#">HERE&lt;/a>');
         </code></pre>
 
-        <h4>SHORTHAND TEMPLATE EXAMPLES</h4>
+        <h4>EXAMPLES - SHORTHAND TEMPLATE</h4>
         <pre class="run-code"><code class="language-javascript">
             var data = {
                 id: 123456,
@@ -1004,62 +1006,81 @@
 
             // shorthand template is short and clear
             var template = '... li.item[id={id}] > .title :{title}';
-            var result = template._formatWith(data);
+            var result = template._format(data);
             ASSERT('inline shorthand 1',
                 result ===
                 '&lt;li class="item" id="123456">\n' +
-                '	&lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                ' &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '&lt;/li>\n');
             
             // complex shorthand template - indents and end-of-lines '\n' are important
             template = '...' +
                 'li.item[id={id}]\n'+
-                '	.title :{title}\n' +
-                '	.tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE\n';
+                '  .title :{title}\n' +
+                '  .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE\n';
 
             // format without data - returns template
-            result = template._formatWith();
+            result = template._format();
             ASSERT('shorthand -> html template',
                 result ===
                 '&lt;li class="item" id="{id}">\n' +
-                '	&lt;div class="title">{title}&lt;/div>\n' +
-                '	&lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
+                '  &lt;div class="title">{title}&lt;/div>\n' +
+                '  &lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
 
             // fill in data
-            result = result._formatWith(data);
+            result = result._format(data);
             ASSERT('html template -> output',
                 result ===
                 '&lt;li class="item" id="123456">\n' +
-                '	&lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
-                '	&lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
+                '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
         </code></pre>
         
-        <h4>COMPLEX TEMPLATE EXAMPLES</h4>
+        <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
         <pre class="html-fragment"><code class="language-html">
             &lt;!--
-                HTML FILE CONTENT
-                Template string must be placed inside &lt;script> tag to keep indents and tags
+            ****** HTML FILE ******
+            Template string must be placed inside &lt;script> tag to keep indents and tags
             -->
 
             &lt;!-- HTML Template in HTML File -->
-            &lt;script type="text/x-template" id="tpl-html-1">
-                &lt;li class="item" id="{id}">
-                    &lt;div class="title">{title}&lt;/div>
-                    &lt;div class="tags">
-                        {plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
-                    &lt;/div>
-                &lt;/li>
+            &lt;script type="text/x-template" id="tpl-html-block">
+                &lt;div class="content">
+                    &lt;h2>Plan List of {project}&lt;/h2>
+                    &lt;ul class="plan-list">
+                        {?plans}
+                            {#tpl-sh-li} &lt;!-- refer to another template below -->
+                        {/?plans}
+                    &lt;/ul>
+                &lt;/div>
             &lt;/script>
 
-            &lt;!-- Shorthand Template equivalent to above template -->
-            &lt;script type="text/x-template" id="tpl-sh-1">
+            &lt;!-- Shorthand Equilavent of above -->
+            &lt;!--
+                Indents are important in shorthand templates
+                a tab is count as one indent, and don't mix tabs and spaces
+            -->
+            &lt;script type="text/x-template" id="tpl-sh-block">
+            ...
+            .content
+                h2 :Plan List of {project}
+                ul.plan-list
+                    :{?plans}
+                        :{#tpl-sh-li}
+                    :{/?plans}
+            &lt;/script>
+
+            &lt;script type="text/x-template" id="tpl-sh-li">
             ...
             li .item [id={id}]
                 .title :{title}
                 .tags :{plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
+        </code></pre>
+        <pre class="run-code"><code class="language-javascript">
+        /****** Javascript File ******/
         </code></pre>
 
 
