@@ -891,6 +891,130 @@
             }
         </code></pre>
 
+        <h3><a class="mark" name="format-format">_format()</a></h3>
+
+        <p>Template format function.</p>
+        <p>This function support both the full html template and the shorthand template.</p>
+        <pre><code class="language-javascript">
+            _format(template, data_object);
+            // template    : the template string
+            // data_object : an object contains data you want to fill into the template
+
+            String._formatWith(data_object);
+
+            // format html template string
+            _format('&lt;span class="date-tag">Today is {date}&lt;/span>', {date: new Date()});
+            // format shorthand template string (starts with '...')
+            _format('span.date-tag :Today is {date}', new Date());
+            // get template for HTML tag with id 'date-tag-template'
+            '#date-tag-template'._formatWith(obj_date);
+
+            /*
+            >> Template Token format for value fill-in
+                {index}      : refer to data_object[index] item by index
+                {key}        : refer to data_object[key] property by key
+                {key|format} : set format string for data_object[key]
+                {}           : fill with whole object, format with default style
+                {|format}    : fill with whole object with given 'format' string
+                {(any text)} : contents inside brackets will be output directly
+            
+            >> Special Formats
+                {key|!html} : don't encode special html chars
+                {$key}      : refer to a language string by calling _t(key)
+                {key|5}     : output first 5 chars from beginning
+                {key|-5}    : output last 5 chars from ending
+            
+            >> Conditional Block
+                {?key}        : Show block if data_object[key] is not empty or false
+                    {subkey}  : Tokens inside block will be filled with data_object[key][subkey]
+                {/?key}
+                
+                {^key}           : Show block if data_object[key] is empty or false
+                    {other_key}	 : Tokens inside block will be filled with data_object[other_key]
+                {/^key}
+                
+            >> Reference to template
+                {#template-id}   : refer to a template block inside html file with id
+
+            >> Shorthand Template Syntax
+                ...   : always starts with three dots mark
+                tag   : start a tag with tag name, DIV can be ommitted
+                #     : mark start of an ID
+                .     : mark start of a class
+                :     : all string between this mark to next newline char will be treated as tag content
+                >     : indicate an inline nested indent (won't work after ':' mark)
+            
+            */
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            var data = {
+                id: 123456,
+                title: 'Plan A & B',
+                tasks: 7,
+                people: 9
+            };
+
+            // shorthand template is short and clear
+            var template = '... li.item[id={id}] > .title :{title}';
+            var result = template._formatWith(data);
+            ASSERT('inline shorthand 1',
+                result ===
+                '&lt;li class="item" id="123456">\n' +
+                '	&lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                '&lt;/li>\n');
+            
+            // complex shorthand template - indents and end-of-lines '\n' are important
+            template = '...' +
+                'li.item[id={id}]\n'+
+                '	.title :{title}\n' +
+                '	.tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE\n';
+
+            // format without data - returns template
+            result = template._formatWith();
+            ASSERT('shorthand -> html template',
+                result ===
+                '&lt;li class="item" id="{id}">\n' +
+                '	&lt;div class="title">{title}&lt;/div>\n' +
+                '	&lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
+                '&lt;/li>\n');
+
+            // fill in data
+            result = result._formatWith(data);
+            ASSERT('html template -> output',
+                result ===
+                '&lt;li class="item" id="123456">\n' +
+                '	&lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                '	&lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
+                '&lt;/li>\n');
+        </code></pre>
+        <pre class="html-fragment"><code class="language-html">
+            &lt;!--
+                Template string must be placed inside &lt;script> tag to keep indents and tags
+            -->
+
+            &lt;!-- HTML Template in HTML File -->
+            &lt;script type="text/x-template" id="tpl-html-1">
+                &lt;li class="item" id="{id}">
+                    &lt;div class="title">{title}&lt;/div>
+                    &lt;div class="tags">
+                        {plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
+                    &lt;/div>
+                &lt;/li>
+            &lt;/script>
+
+            &lt;!-- Shorthand Template equivalent to above template -->
+            &lt;script type="text/x-template" id="tpl-sh-1">
+            ...
+            li .item [id={id}]
+                .title :{title}
+                .tags :{plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
+            &lt;/script>
+        </code></pre>
+
+
+
     </div>
 </body>
 

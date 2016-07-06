@@ -1631,7 +1631,7 @@ var tiny = (function () {
 
             // detect line start and indent
             if (token == '') {
-                if (chr == '\t') {
+                if (chr == '\t' || chr == ' ') {
                     indent_counter++;
                     continue;
                 } else {

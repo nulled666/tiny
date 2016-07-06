@@ -144,7 +144,8 @@ pre{
 	border: 1px solid #eee;
 	border-radius: 4px;
 }
-pre.run-code{
+pre.run-code,
+pre.html-fragment{
 	background: #f9f9f9;
 }
 pre.failed{
