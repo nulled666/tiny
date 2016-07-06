@@ -1538,7 +1538,6 @@ var tiny = (function () {
 
         // trim end to place our ending mark
         template = template.replace(/[\s\uFEFF\xA0]+$/ig, '');
-
         // add ending mark (0x7f = DEL)
         template += '\x7f';
 
@@ -1642,7 +1641,6 @@ var tiny = (function () {
 
         while (item = lines.pop()) {
 
-
             level = item[0];
 
             if (level < limit_level) {
@@ -1658,9 +1656,15 @@ var tiny = (function () {
             }
 
             var indent = ' '.repeat(level);
-            if (level < last_level) {
+
+            if(tag.end == ''){
+                // singleton tags or text content
+                result = indent + tag.start + '\n' + result;
+            }else if (level < last_level) {
+                // tags which have children
                 result = indent + tag.start + '\n' + result + indent + tag.end + '\n';
             } else {
+                // tags without children
                 result = indent + tag.start + tag.end + '\n' + result;
             }
 
@@ -1695,7 +1699,7 @@ var tiny = (function () {
         var in_content_block = false;
         var in_mustache = 0;
 
-        tag_str += '\x7f'; // add an ending char for it (0x7F = DEL)
+        tag_str += '\n'; // add an ending char for it (0x7F = DEL)
 
         var pos = 0;
         var len = tag_str.length;
@@ -1707,6 +1711,7 @@ var tiny = (function () {
 
             // output content block 
             if (in_content_block) {
+                if(chr == '\n') break; // end of string
                 content += chr;
                 continue;
             } else if (chr == ':') {
@@ -1723,13 +1728,13 @@ var tiny = (function () {
             }
 
             // attribute block
-            if (in_attribute && !',=]'.includes(chr)) {
+            if (in_attribute && !',=]\n'.includes(chr)) {
                 open_tag += chr;
                 continue;
             }
 
             // general checks
-            if ('#.:[\x7f'.includes(chr)) {
+            if ('#.:[\n'.includes(chr)) {
 
                 // check for tag name
                 if (open_tag == '' && chr != ':') // content block don't need a wrapper tag
@@ -1749,11 +1754,10 @@ var tiny = (function () {
                 }
 
                 // end the process
-                if (chr == '\x7f')
+                if (chr == '\n')
                     break;
 
             }
-
 
             switch (chr) {
 

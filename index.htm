@@ -1010,7 +1010,7 @@
             ASSERT('inline shorthand 1',
                 result ===
                 '&lt;li class="item" id="123456">\n' +
-                ' &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                ' &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '&lt;/li>\n');
             
             // complex shorthand template - indents and end-of-lines '\n' are important
@@ -1024,8 +1024,8 @@
             ASSERT('shorthand -> html template',
                 result ===
                 '&lt;li class="item" id="{id}">\n' +
-                '  &lt;div class="title">{title}&lt;/div>\n' +
-                '  &lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
+                '  &lt;div class="title">{title}&lt;/div>\n' +
+                '  &lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
 
             // fill in data
@@ -1033,13 +1033,13 @@
             ASSERT('html template -> output',
                 result ===
                 '&lt;li class="item" id="123456">\n' +
-                '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
-                '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
+                '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
         </code></pre>
         
         <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
-        <pre class="html-fragment"><code class="language-html">
+        <pre class="run-code html"><code class="language-html">
             &lt;!--
             ****** HTML FILE ******
             Template string must be placed inside &lt;script> tag to keep indents and tags
@@ -1048,7 +1048,12 @@
             &lt;!-- HTML Template in HTML File -->
             &lt;script type="text/x-template" id="tpl-html-block">
                 &lt;div class="content">
-                    &lt;h2>Plan List of {project}&lt;/h2>
+                    &lt;h2>
+                        &lt;a href="#/project/{id}">
+                            &lt;img src="img/project.png"/>
+                            Plan List of {project}
+                        &lt;/a>
+                    &lt;/h2>
                     &lt;ul class="plan-list">
                         {?plans}
                             {#tpl-sh-li} &lt;!-- refer to another template below -->
@@ -1065,8 +1070,11 @@
             &lt;script type="text/x-template" id="tpl-sh-block">
             ...
             .content
-                h2 :Plan List of {project}
-                ul.plan-list
+                h2
+                    a [href=#/project/{id}]
+                        img [src=img/project.png]
+                        :Plan List of {project}
+                ul .plan-list
                     :{?plans}
                         :{#tpl-sh-li}
                     :{/?plans}
@@ -1081,9 +1089,23 @@
         </code></pre>
         <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
+        var result = _format('#tpl-sh-block');
+        ASSERT('sh -> html',
+            result ===
+            '&lt;div class="content">\n'+
+            '    &lt;h2>\n'+
+            '        &lt;a href="#/project/{id}">\n'+
+            '            &lt;img src="img/project.png"/>\n'+
+            '            Plan List of {project}\n'+
+            '        &lt;/a>\n'+
+            '    &lt;/h2>\n'+
+            '    &lt;ul class="plan-list">\n'+
+            '        {?plans}\n'+
+            '            {#tpl-sh-li}\n'+
+            '        {/?plans}\n'+
+            '    &lt;/ul>\n'+
+            '&lt;/div>\n');
         </code></pre>
-
-
 
     </div>
 </body>

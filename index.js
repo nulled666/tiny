@@ -168,8 +168,15 @@ function run_all_code() {
 
 
 function run_code(elem) {
-
+    
     var code = $(elem).text();
+
+    if($(elem).hasClass('html')){
+        var html_fragment = $(code);
+        $(document.body).append(html_fragment);
+        return;
+    }
+
     code = 'var test_elem = arguments[0]; var test_result = {};\
         var FLAT = function(obj){ return JSON.stringify(obj)};\
         var ASSERT = function(txt, value){ test_result[txt] = value };\
