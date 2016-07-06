@@ -1131,7 +1131,7 @@ var tiny = (function () {
         str = str.replace(/\&/g, '&amp;')
             .replace(/\>/g, '&gt;')
             .replace(/\</g, '&lt;')
-            .replace(/\'/g, '&quot;')
+            .replace(/\"/g, '&quot;')
             .replace(/\'/g, '&#39;')
             .replace(/\n/g, '<br/>');
 
@@ -2132,11 +2132,15 @@ var tiny = (function () {
 
             case 'string':
                 if (format != '' && format != '!html') {
+                    // cut string
+                    var add_dot = format.indexOf('.') > -1;
                     var len = parseInt(format);
                     if (!isNaN(len)) {
                         var str_len = value.length;
                         if (Math.abs(len) < str_len) {
                             value = len > 0 ? value.substr(0, len) : value.substr(len);
+                            if(add_dot)
+                                value = len > 0 ?  value + '...' : '...' + value;
                         }
                     }
                 }

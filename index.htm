@@ -917,12 +917,16 @@
                 {}           : fill with whole object, format with default style
                 {|format}    : fill with whole object with given 'format' string
                 {(any text)} : contents inside brackets will be output directly
+                {{           : output { char
+                }}           : output } char
             
             >> Special Formats
                 {key|!html} : don't encode special html chars
                 {$key}      : refer to a language string by calling _t(key)
                 {key|5}     : output first 5 chars from beginning
+                {key|5.}    : output first 5 chars and add ... at end
                 {key|-5}    : output last 5 chars from ending
+                {key|-5.}   : output last 5 chars and add ... at beginning
             
             >> Conditional Block
                 {?key}        : Show block if data_object[key] is not empty or false
@@ -947,7 +951,49 @@
             */
         </code></pre>
 
-        <h4>EXAMPLES</h4>
+        <h4>FORMAT EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            // use whole data object and format with 'DD'
+            var result = 'Today is {|DD}.'._formatWith(new Date(1118102950753));
+            ASSERT('date', result === 'Today is Tuesday.');
+            
+            // cut long string
+            var str = 'This is a very very loooooooong string';
+            result = 'It says: "{|14.}"'._formatWith(str);
+            ASSERT('cut end', result === 'It says: "This is a very..."');
+            result = 'It says: "{|-14.}"'._formatWith(str);
+            ASSERT('cut start', result === 'It says: "...ooooong string"');
+
+            // keep {}
+            result = 'Use {{token}} to fill value {token}'._formatWith({token: 123});
+            ASSERT('keep {}', result === 'Use {token} to fill value 123');
+
+            // output text directly
+            result = '{(Output {token} or any text)}'._formatWith({token: 123});
+            ASSERT('{(output text)}', result === 'Output {token} or any text');
+
+            var items = {
+                book: { price: 1299.99,
+                        name: "my book" }
+            };
+            // refer to a sub key of data object
+            result = 'The price is {book.price|,}'._formatWith(items);
+            ASSERT('sub key', result === 'The price is 1,299.99');
+
+            var arr = [10, 20, 30];
+            // array index - starts at 0
+            result = 'Refer to {1}'._formatWith(arr);
+            ASSERT('array index', result === 'Refer to 20');
+
+            // special chars will be escaped
+            result = 'Click {}'._formatWith('&lt;a href="#">HERE&lt;/a>');
+            ASSERT('escape html', result === 'Click &amp;lt;a href=&amp;quot;#&amp;quot;&amp;gt;HERE&amp;lt;/a&amp;gt;');
+            // don't escape
+            result = 'Click {|!html}'._formatWith('&lt;a href="#">HERE&lt;/a>');
+            ASSERT('keep html', result === 'Click &lt;a href="#">HERE&lt;/a>');
+        </code></pre>
+
+        <h4>SHORTHAND TEMPLATE EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             var data = {
                 id: 123456,
@@ -989,8 +1035,11 @@
                 '	&lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
         </code></pre>
+        
+        <h4>COMPLEX TEMPLATE EXAMPLES</h4>
         <pre class="html-fragment"><code class="language-html">
             &lt;!--
+                HTML FILE CONTENT
                 Template string must be placed inside &lt;script> tag to keep indents and tags
             -->
 
