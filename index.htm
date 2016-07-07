@@ -185,7 +185,7 @@
 
         <h4>NOTES</h4>
         <p>Always use <code>for()</code> for Arrays on performance critical operations.</p>
-        <p>Below is the test result on an Array:</p>
+        <p>Below is a test result on an Array:</p>
         <pre><code class="language-javascript">
         for()               54.274ms      // best performance
         _each()             161.280ms     // implement with for() loop 
@@ -194,15 +194,14 @@
         for...in            1620.357ms
         </code></pre>
 
-        <p>For loop through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project. The performance
-            can be 50 times faster. And this method allows <code>continue</code> and <code>break</code>.</p>
-        <p>Below is the test result on an Object:</p>
+        <p>For loop through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project, the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code> to control code flow.</p>
+        <p>Below is a test result on an Object:</p>
         <pre><code class="language-javascript">
-        Object.keys() + for()       1064.989ms    // not sure why it's slower than forEach()
+        Object.keys() + for()       1064.989ms    // not sure why this slow
         Object.keys().forEach()     145.356ms     // browser support &amp; flow control issues
-        _each()                     822.088ms     // implement with for...in
+        _each()                     822.088ms     // implement with for...in loop
         for...in                    802.236ms
-        for...of                    213.247ms     // best choice
+        for...of                    213.247ms     // best choice - just a little slower than forEach()
         </code></pre>
 
         <h4>EXAMPLES</h4>
