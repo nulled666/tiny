@@ -1,10 +1,12 @@
 function start() {
 
     tiny.import();
+    tiny.verbose(true);
 
     build_content_table();
 
-    setTimeout(run_all_code, 100);
+    if (test_code() != true)
+        setTimeout(run_all_code, 100);
 
     // the smooth scroll effect
     $(".content-table a").click(function () {
@@ -22,6 +24,10 @@ function start() {
 }
 
 $(start);
+
+function test_code() {
+    // return true;
+}
 
 
 // ====== ui functions
@@ -159,6 +165,7 @@ function run_all_code() {
 
     codes.each(function (index, elem) {
         run_code(elem);
+        if ($(elem).hasClass('stop')) return false;
     });
 
     _run_code_counter -= 100;
@@ -184,19 +191,19 @@ function run_code(elem) {
         var ASSERT = function(txt, value){ test_result[txt] = value };\
         var FAIL = function(txt){ test_result[txt] = false };\n' + code;
     if (code.indexOf('setTimeout(') > -1) {
-        code += ';setTimeout(function(){\
+        code += '\n;setTimeout(function(){\
             show_run_code_result(test_elem, test_result);\
             }, 1500);';
     } else {
-        code += ';show_run_code_result(test_elem, test_result);';
+        code += '\n;show_run_code_result(test_elem, test_result);';
     }
 
     try {
         var func = new Function(code);
-        func(elem);
+        func(elem, 'this', 'is', 'a', 'test');
     } catch (e) {
         _error_counter++;
-        _error('RUN CODE ERROR ===> ', e);
+        _error('=== RUN CODE ERROR ===> ', e);
         show_run_code_result(elem, {}, true);
     }
 

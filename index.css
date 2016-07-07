@@ -136,6 +136,7 @@ h4{
 
 
 :not(pre) > code{
+	font-family: Consolas, 'Courier New', Courier, monospace;
 	color: #03c;
 }
 pre{
@@ -191,4 +192,8 @@ hr{
 	height: 1px;
 	background: #ccc;
 	border: 0;
+}
+
+.note{
+	color: #cc3300;
 }

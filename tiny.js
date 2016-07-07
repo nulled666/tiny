@@ -13,12 +13,12 @@
 
 var tiny = (function () {
 
-    var _verbose_mode_ = false;
+    var _verbose_mode = false;
     var _injected_globals = false;
 
-    var _tiny_definition_ = {};
-    var _prototype_extensions_ = [];
-    var _skip_global_ = ',import,me,verbose,';
+    var _tiny_definition = {};
+    var _prototype_extensions = [];
+    var _skip_global = ',import,me,verbose,';
 
     var TAG_TINY = 'tiny ::';
     var TAG_SUFFIX = ' :: ';
@@ -29,7 +29,7 @@ var tiny = (function () {
      */
     function _exports() {
 
-        return _tiny_definition_;
+        return _tiny_definition;
 
     }
 
@@ -48,9 +48,9 @@ var tiny = (function () {
         }
 
         // inject global functions
-        _each(_tiny_definition_, function (item, label) {
+        _each(_tiny_definition, function (item, label) {
 
-            if (_skip_global_.includes(label)) return;
+            if (_skip_global.includes(label)) return;
 
             if (win['_' + label] !== undefined) {
                 _error(TAG_TINY, 'global function name already taken : ', '_' + label);
@@ -62,7 +62,7 @@ var tiny = (function () {
         });
 
         // inject object prototype extensions
-        _each(_prototype_extensions_, function (item, index) {
+        _each(_prototype_extensions, function (item, index) {
 
             if (typeof item[0] !== 'function') {
                 _error(TAG_TINY, 'Prototype not found : ', item[0]);
@@ -85,7 +85,7 @@ var tiny = (function () {
     function show_tiny_definition() {
 
         // show the namespace
-        _warn('tiny = ' + inspect_object(_tiny_definition_));
+        _warn('tiny = ' + inspect_object(_tiny_definition));
 
         // show global objects
         if (_injected_globals !== true) return;
@@ -93,9 +93,9 @@ var tiny = (function () {
         var win = window;
         var result = 'Injected global objects:';
 
-        _each(_tiny_definition_, function (item, label) {
+        _each(_tiny_definition, function (item, label) {
 
-            if (_skip_global_.includes(label)) return;
+            if (_skip_global.includes(label)) return;
 
             var value = win['_' + label];
             value = _inspect(value);
@@ -107,7 +107,7 @@ var tiny = (function () {
         // show prototype extensions
         result = 'Injected prototype extensions:';
 
-        _each(_prototype_extensions_, function (item, label) {
+        _each(_prototype_extensions, function (item, label) {
 
             var name = get_function_name(item[0]);
             var value = _inspect(item[1]);
@@ -124,14 +124,14 @@ var tiny = (function () {
      * Add entry to _tiny_definition
      */
     function add_to_tiny_definition(ext) {
-        _tiny_definition_ = _extend(_tiny_definition_, ext);
+        _tiny_definition = _extend(_tiny_definition, ext);
     }
 
     /**
      * Add entry to Prototype list
      */
     function add_to_prototype(ext) {
-        _prototype_extensions_.push(ext);
+        _prototype_extensions.push(ext);
     }
 
     /**
@@ -172,7 +172,7 @@ var tiny = (function () {
         _info = console.info.bind(window.console);
         _warn = console.warn.bind(window.console);
         _error = console.error.bind(window.console);
-        verbose_output(_verbose_mode_);
+        verbose_output(_verbose_mode);
 
     }
     // execute immediately
@@ -254,6 +254,7 @@ var tiny = (function () {
     // BASE FUNCTIONS
     //////////////////////////////////////////////////////////
     add_to_tiny_definition({
+        type: _type,
         each: _each,
         extend: _extend,
         namespace: _namespace
@@ -262,16 +263,28 @@ var tiny = (function () {
     add_to_prototype([Array, { _each: each_extension }]);
     add_to_prototype([String, { _each: each_extension }]);
 
-    function each_extension(func, this_arg) {
-        return _each(this.valueOf(), func, this_arg);
+    function each_extension(start, func, this_arg) {
+        return _each(this.valueOf(), start, func, this_arg);
     }
 
+    /**
+     * Get exact type of an object
+     * ```
+     *   _type([]) == 'Array'
+     *   _type({}) == 'Object'
+     *   _type() == 'Undefined'
+     * ```
+     */
+    function _type(obj) {
+        return Object.prototype.toString.call(obj)
+            .replace('[object ', '').replace(']', '');
+    }
 
     var TAG_EACH = '_each()' + TAG_SUFFIX
     /**
      * Simply iteration helper function
      * ```
-     *   _each( array_or_object , function(value, index, array_or_object){
+     *   _each( array_or_object, [start_index,] function(value, index, array_or_object){
      *     return;     // continue to next item
      *   }, this_arg); // this_arg is optional
      *   var result = _each([5, 9, 4], function(val){
@@ -282,26 +295,36 @@ var tiny = (function () {
      *   // and you'll recieve the value as _each()'s return value
      * ```
      */
-    function _each(obj, func, this_arg) {
+    function _each(obj, start, func, this_arg) {
+
+        var start_index = typeof start == 'number' ? start : 0;
+
+        if (typeof start == 'function') {
+            // shift parameters
+            this_arg = func;
+            func = start;
+        }
 
         if (typeof func !== 'function') {
             _error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
             throw new TypeError(SEE_ABOVE);
         }
 
-        var type = typeof obj;
+        var ARRAY_LIKE = ',Arguments,HTMLCollection,NodeList,';
+        var OBJECT_LIKE = ',Object,Map,Function,Storage,';
+        var type = _type(obj);
 
         var result;
 
-        if (Array.isArray(obj)) {
+        if (Array.isArray(obj) || ARRAY_LIKE.includes(type)) {
 
             // ==> Array
-            for (var i = 0, len = obj.length; i < len; i++) {
+            for (var i = start_index, len = obj.length; i < len; i++) {
                 result = func.call(this_arg, obj[i], i, obj);
                 if (result !== undefined) return result;
             }
 
-        } else if (type === 'object') {
+        } else if (OBJECT_LIKE.includes(type)) {
 
             // ==> Object
             for (var label in obj) {
@@ -309,18 +332,18 @@ var tiny = (function () {
                 if (result !== undefined) return result;
             }
 
-        } else if (type === 'string') {
+        } else if (type === 'String') {
 
             // ==> String
-            for (var i = 0, len = obj.length; i < len; i++) {
+            for (var i = start_index, len = obj.length; i < len; i++) {
                 result = func.call(this_arg, obj.charAt(i), i, obj);
                 if (result !== undefined) return result;
             }
 
-        } else if (type === 'number') {
+        } else if (type === 'Number') {
 
             // ==> Number
-            for (var i = 0; i < obj; i++) {
+            for (var i = start_index, len = obj; i < len; i++) {
                 result = func.call(this_arg, i + 1, i, obj);
                 if (result !== undefined) return result;
             }
@@ -1057,6 +1080,7 @@ var tiny = (function () {
     //////////////////////////////////////////////////////////
     var _lang = get_lang_string;
     _lang.strings = {};
+    _lang.set = set_language;
 
     add_to_tiny_definition({ lang: _lang });
 
@@ -1071,6 +1095,10 @@ var tiny = (function () {
         }
 
         return lang_str;
+
+    }
+
+    function set_language(lang) {
 
     }
 
@@ -2076,7 +2104,7 @@ var tiny = (function () {
      */
     function fetch_value_by_key(obj, key) {
 
-        if(typeof obj !== 'object'){
+        if (typeof obj !== 'object') {
             _error(TAG_FORMAT, 'Expect a data Object. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(SEE_ABOVE);
         }

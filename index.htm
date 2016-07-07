@@ -39,6 +39,20 @@
            tiny.import();
         </code></pre>
 
+        <p>A typical initialization code with Tiny sequence looks like this:</p>
+        <pre><code class="language-javascript">
+           tiny.import();                        // import functions & methods
+           tiny.verbose(false);                  // disable _log() & _dir() output in production environment
+           _storage.keyPrefix = 'my_app';        // set storage key prefix
+
+           var lang = _storage('lang');          // get user language setting
+           _lang.strings = LANG_STRINGS;         // bind translation data
+           _lang.set(lang);                      // load correspond language strings
+           _lang.translate(document.body);       // translate {$label} tags in document.body
+
+           app.start();                          // start your app script
+        </code></pre>
+
         <h3><a class="mark" name="show-me">tiny.me()</a></h3>
 
         <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global
@@ -119,26 +133,77 @@
             ASSERT('_inspect()', result == expected_result);
         </code></pre>
 
+        <h3><a class="mark" name="type">_type()</a></h3>
+        <p>Returns detailed object type.</p>
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            ASSERT('0', _type() == 'Undefined');
+            ASSERT('1', _type(123) == 'Number');
+            ASSERT('2', _type('test') == 'String');
+            ASSERT('3', _type(/\s\t\n/) == 'RegExp');
+            ASSERT('4', _type(new Date()) == 'Date');
+            ASSERT('5', _type(function(){}) == 'Function');
+            ASSERT('6', _type({test: true}) == 'Object');
+            ASSERT('7', _type([1,2,3]) == 'Array');
+            ASSERT('8', _type(arguments) == 'Arguments');
+            ASSERT('9', _type(window) == 'Window');
+            ASSERT('10', _type(document.forms) == 'HTMLCollection');
+            ASSERT('11', _type(document.querySelectorAll('.run-code')) == 'NodeList');
+        </code></pre>
+
+
         <h3><a class="mark" name="each">_each()</a></h3>
 
-        <p>A handy replacement to the <code>for(;;)</code> and <code>for...in</code> loop.</p>
-        <p>The syntax just likes <code>Array.forEach()</code> method, but you can use it on Objects, Strings and Numbers. And you can continue or break with a return value.</p>
-        <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you add  items to or remove items from the array.</p>
+        <p>A handy replacement to the <code>for()</code> and <code>for...in</code> loop.</p>
+        <p>The syntax looks like Array.forEach() method, but you can also use it on <code>Array</code>, <code>Object</code>,
+            <code>Function</code>, <code>String</code>, <code>Number</code> and some Array-like objects:</p>
+        <ul>
+            <li><code>Arguments</code> - the <code>arguments</code> object inside a function</li>
+            <li><code>Storage</code> - the <code>window.localStorage</code> object</li>
+            <li><code>HTMLCollection</code> - like <code>document.forms</code></li>
+            <li><code>NodeList</code> - result of <code>document.querySelectorAll</code></li>
+        </ul>
+        <p>And you can continue or break with a return value.</p>
+        <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you add
+            items to or remove items from the array.</p>
         <pre><code class="language-javascript">
-            _each(object, callback[, this_arg]) : any
+            _each(object, [start,] callback [,this_arg]) : any
             // object    : Array, Object, String or Number to loop
+            // start     : you can set the start index of the loop (Array-like only)
             // callback  : callback function for the loop
             // this_arg  : set the value of 'this' inside the scope
 
             // extended method for Array and String
-            Array._each(callback[, this_arg]) : any
-            String._each(callback[, this_arg]) : any
+            Array._each([start,] callback [,this_arg]) : any
+            String._each([start,] callback [,this_arg]) : any
 
             function callback(value, index, array) {
                 return;              // continue to next item in array_or_object
                 return any_value;    // break out, and _each() will return any_value
             }
             </code></pre>
+
+        <h4>NOTES</h4>
+        <p>Always use <code>for()</code> for Arrays on performance critical operations.</p>
+        <p>Below is the test result on an Array:</p>
+        <pre><code class="language-javascript">
+        for()               54.274ms      // best performance
+        _each()             161.280ms     // implement with for() loop 
+        Array.forEach()     323.626ms
+        for...of            332.318ms
+        for...in            1620.357ms
+        </code></pre>
+
+        <p>For loop through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project. The performance
+            can be 50 times faster. And this method allows <code>continue</code> and <code>break</code>.</p>
+        <p>Below is the test result on an Object:</p>
+        <pre><code class="language-javascript">
+        Object.keys() + for()       1064.989ms    // not sure why it's slower than forEach()
+        Object.keys().forEach()     145.356ms     // browser support &amp; flow control issues
+        _each()                     822.088ms     // implement with for...in
+        for...in                    802.236ms
+        for...of                    213.247ms     // best choice
+        </code></pre>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
@@ -152,11 +217,11 @@
             ASSERT('_each() on number', arr.join() === '1,2,3,4,5,6');
 
             // ==> String
-            // value: a -> c, index: 0 -> 2
-            'abc'._each(function (value) {
+            // value: a -> c, index: 1 -> 2
+            'abc'._each(1, function (value) {
                 arr.push(value);
             });
-            ASSERT('_each() on string', arr.join() === '1,2,3,4,5,6,a,b,c');
+            ASSERT('_each() on string', arr.join() === '1,2,3,4,5,6,b,c');
 
             // ==> Array
             _each(arr, function (value, index, array) {
@@ -164,24 +229,38 @@
                 if (value > 5) return true;  // break
                 array[index] = value * 10;
             });
-            ASSERT('_each() on array', arr.join() === '1,2,3,40,50,6,a,b,c' );
+            ASSERT('_each() on array', arr.join() === '1,2,3,40,50,6,b,c' );
 
             // return a value
             var chr = arr._each(function (value, index, array) {
                 if (typeof value !== 'number')
                     return value;    // return first non-number value
             });
-            ASSERT('Array._each() & return value', chr === 'a' );
+            ASSERT('Array._each() & return value', chr === 'b' );
 
             // ==> Object
             var list = { action: 'test', animal: 'duck' };
             var my_string = '';
-            _each(list, function (value, label) {
+            _each(list, 'action', function (value, label) {
                 my_string += 'This is a ' + value + '. ';
             });
-            ASSERT('_each() on object', my_string === 'This is a test. This is a duck. ' );
+            ASSERT('_each() on object', my_string === 'This is a test. This is a duck. ');
 
+            // ==> Elements
+            var elems = document.querySelectorAll('h3');
+            var count = 0;
+            _each(elems, function (elem, index) {
+                if(elem.tagName != 'H3') count += index;
+            });
+            ASSERT('_each() on NodeList', count === 0 );
 
+            // ==> Arguments
+            // this code block is called as func(elem, 'this', 'is', 'a', 'test');
+            count = 0;
+            _each(arguments, function (arg, index) {
+                if(arg == 'test') count = index;
+            });
+            ASSERT('_each() on arguments', count === 4 );
         </code></pre>
 
         <h4>ERROR TESTS</h4>
@@ -1039,7 +1118,7 @@
                 '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
         </code></pre>
-        
+
         <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
         <pre class="run-code html"><code class="language-html">
             &lt;!--
