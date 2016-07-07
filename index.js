@@ -188,8 +188,8 @@ function run_code(elem) {
 
     code = 'var test_elem = arguments[0]; var test_result = {};\
         var FLAT = function(obj){ return JSON.stringify(obj)};\
-        var ASSERT = function(txt, value){ test_result[txt] = value };\
-        var FAIL = function(txt){ test_result[txt] = false };\n' + code;
+        var ASSERT = function(txt, value){ _info(value, " <<<< ASSERT " + txt); test_result[txt] = value };\
+        var FAIL = function(txt){ _warn(false, " <<<< FAIL " + txt); test_result[txt] = false };\n' + code;
     if (code.indexOf('setTimeout(') > -1) {
         code += '\n;setTimeout(function(){\
             show_run_code_result(test_elem, test_result);\

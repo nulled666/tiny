@@ -280,7 +280,7 @@ var tiny = (function () {
             .replace('[object ', '').replace(']', '');
     }
 
-    var TAG_EACH = '_each()' + TAG_SUFFIX
+    var TAG_EACH = '_each()' + TAG_SUFFIX;
     /**
      * Simply iteration helper function
      * ```
