@@ -1092,15 +1092,6 @@
                 .title :{title}
                 .tags :{plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
-
-            &lt;!-- Missing close '}' => SyntaxError -->
-            &lt;script type="text/x-template" id="tpl-missing-mustache">
-                &lt;div class="{state">{title} &lt;/div>
-            &lt;/script>
-            &lt;!-- Missing close ')}' => SyntaxError -->
-            &lt;script type="text/x-template" id="tpl-missing-bracket">
-                &lt;div class="{state}">{(Use {token} to replace} &lt;/div>
-            &lt;/script>
         </code></pre>
         <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
@@ -1123,6 +1114,28 @@
         </code></pre>
 
         <h4>ERROR TESTS</h4>
+        <pre class="run-code html"><code class="language-html">
+            &lt;!-- HTML CONTENT FOR ERROR TESTS -->
+
+            &lt;!-- Missing close '}' => SyntaxError -->
+            &lt;script type="text/x-template" id="tpl-missing-mustache">
+                &lt;div class="{state">{title} &lt;/div>
+            &lt;/script>
+            &lt;!-- Missing close ')}' => SyntaxError -->
+            &lt;script type="text/x-template" id="tpl-missing-bracket">
+                &lt;div class="{state}">{(Use {token} to replace} &lt;/div>
+            &lt;/script>
+            &lt;!-- Missing close '{/?token}' => SyntaxError -->
+            &lt;script type="text/x-template" id="tpl-missing-close-token">
+                {?has_state}
+                &lt;div class="{state}">
+                    {?has_state}
+                    {(Use {token} to replace)}
+                    {/?has_state}
+                &lt;/div>
+                {/?has_token}  &lt;!-- wrong close token -->
+            &lt;/script>
+        </code></pre>
         <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
@@ -1149,7 +1162,7 @@
                 ASSERT('_format() circular reference', err instanceof ReferenceError );
             }
             
-            // A SyntaxError will be thrown when a close '}' is missing
+            // SyntaxError : a close '}' is missing
             try{
                 _format('#tpl-missing-mustache', {});
                 FAIL('_format() missing }');
@@ -1157,12 +1170,20 @@
                 ASSERT('_format() missing }', err instanceof SyntaxError );
             }
 
-            // A SyntaxError will be thrown when a close ')}' is missing
+            // SyntaxError : a close ')}' is missing
             try{
                 _format('#tpl-missing-bracket', {});
                 FAIL('_format() missing )}');
             }catch(err){
                 ASSERT('_format() missing )}', err instanceof SyntaxError );
+            }
+
+            // SyntaxError : a close '{/?token}' is missing
+            try{
+                _format('#tpl-missing-close-token', {});
+                FAIL('_format() missing clsoe {/?token}');
+            }catch(err){
+                ASSERT('_format() missing close {/?token}}', err instanceof SyntaxError );
             }
         </code></pre>
     </div>
