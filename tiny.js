@@ -1919,7 +1919,7 @@ var tiny = (function () {
             throw new SyntaxError(SEE_ABOVE);
         }
 
-        if (in_mustache){
+        if (in_mustache) {
             _error(TAG_FORMAT, 'Missing close "}" in template string.');
             throw new SyntaxError(SEE_ABOVE);
         }
@@ -2015,7 +2015,7 @@ var tiny = (function () {
         } else if (key.startsWith('$')) {
 
             // language string
-            value = tiny(key.replace('$'), '');
+            value = _lang(key.replace('$'), '');
 
         } else {
 
@@ -2076,9 +2076,9 @@ var tiny = (function () {
      */
     function fetch_value_by_key(obj, key) {
 
-        if (obj === undefined) {
-            _error(CONSOLE_TAG.format, 'Empty data object');
-            return '';
+        if(typeof obj !== 'object'){
+            _error(TAG_FORMAT, 'Expect a data Object. > Got "' + typeof obj + '": ', obj);
+            throw new TypeError(SEE_ABOVE);
         }
 
         // single level key
@@ -2096,7 +2096,7 @@ var tiny = (function () {
             if (child_obj !== undefined) {
                 sub_obj = child_obj;
             } else {
-                _error(CONSOLE_TAG.format, 'Template token value is undefined: {' + key + '}');
+                _log(TAG_FORMAT, 'Template token value is undefined: {' + key + '}');
                 sub_obj = '';
                 return false;
             }

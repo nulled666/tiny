@@ -1137,16 +1137,24 @@
             &lt;/script>
         </code></pre>
         <pre class="collapse run-code"><code class="error-test language-javascript">
-            // A TypeError will be thrown on invalid parameter types
-            // Detailed information can be found in console
+            // Detailed error information can be found in console
+
+            // TypeError : invalid parameter types
             try{
                 _format({obj: "obj"});
                 FAIL('_format() paramter error');
             }catch(err){
                 ASSERT('_format() paramter error', err instanceof TypeError );
             }
-
-            // A ReferenceError will be thrown when element of given id is not found
+            // TypeError : data object is not an object
+            try{
+                _format('{key}', 'test');
+                FAIL('_format() invalid data object');
+            }catch(err){
+                ASSERT('_format() invalid data object', err instanceof TypeError );
+            }
+            
+            // ReferenceError : element of given id is not found
             try{
                 _format('#test-id-here');
                 FAIL('_format() id not found');
@@ -1154,7 +1162,7 @@
                 ASSERT('_format() id not found', err instanceof ReferenceError );
             }
 
-            // A ReferenceError will be thrown when circular reference is detected
+            // ReferenceError : circular reference is detected
             try{
                 _format('#tpl-circular-ref');
                 FAIL('_format() circular reference');
