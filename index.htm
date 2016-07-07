@@ -1050,7 +1050,7 @@
             -->
 
             &lt;!-- Normal HTML Template -->
-            &lt;script type="text/x-template" id="tpl-html-block">
+            &lt;script type="text/x-template" id="tpl-circular-ref">
                 &lt;div class="content">
                     &lt;h2>
                         &lt;a href="#/project/{id}">
@@ -1060,7 +1060,7 @@
                     &lt;/h2>
                     &lt;ul class="plan-list">
                         {?plans}
-                            {#tpl-sh-li} &lt;!-- refer to another template below -->
+                            {#tpl-circular-ref} &lt;!-- Circular Reference to self => ReferenceError -->
                         {/?plans}
                     &lt;/ul>
                 &lt;/div>
@@ -1092,6 +1092,15 @@
                 .title :{title}
                 .tags :{plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
+
+            &lt;!-- Missing close '}' => SyntaxError -->
+            &lt;script type="text/x-template" id="tpl-missing-mustache">
+                &lt;div class="{state">{title} &lt;/div>
+            &lt;/script>
+            &lt;!-- Missing close ')}' => SyntaxError -->
+            &lt;script type="text/x-template" id="tpl-missing-bracket">
+                &lt;div class="{state}">{(Use {token} to replace} &lt;/div>
+            &lt;/script>
         </code></pre>
         <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
@@ -1113,6 +1122,49 @@
             '&lt;/div>\n');
         </code></pre>
 
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _format({obj: "obj"});
+                FAIL('_format() paramter error');
+            }catch(err){
+                ASSERT('_format() paramter error', err instanceof TypeError );
+            }
+
+            // A ReferenceError will be thrown when element of given id is not found
+            try{
+                _format('#test-id-here');
+                FAIL('_format() id not found');
+            }catch(err){
+                ASSERT('_format() id not found', err instanceof ReferenceError );
+            }
+
+            // A ReferenceError will be thrown when circular reference is detected
+            try{
+                _format('#tpl-circular-ref');
+                FAIL('_format() circular reference');
+            }catch(err){
+                ASSERT('_format() circular reference', err instanceof ReferenceError );
+            }
+            
+            // A SyntaxError will be thrown when a close '}' is missing
+            try{
+                _format('#tpl-missing-mustache', {});
+                FAIL('_format() missing }');
+            }catch(err){
+                ASSERT('_format() missing }', err instanceof SyntaxError );
+            }
+
+            // A SyntaxError will be thrown when a close ')}' is missing
+            try{
+                _format('#tpl-missing-bracket', {});
+                FAIL('_format() missing )}');
+            }catch(err){
+                ASSERT('_format() missing )}', err instanceof SyntaxError );
+            }
+        </code></pre>
     </div>
 </body>
 

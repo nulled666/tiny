@@ -1420,6 +1420,7 @@ var tiny = (function () {
     }
 
 
+    var TAG_FORMAT = '_format()' + TAG_SUFFIX;
     /**
      * Template Format function
      * ```
@@ -1440,8 +1441,8 @@ var tiny = (function () {
     function format_template(template_str, obj) {
 
         if (typeof template_str != 'string') {
-            _error(CONSOLE_TAG.format, 'Please supply a string as template. Recieved: ', template);
-            return '[ERROR]';
+            _error(TAG_FORMAT, 'Expect a template string. > Got "' + typeof template_str + '": ', template_str);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var template_container;
@@ -1452,13 +1453,13 @@ var tiny = (function () {
             var id = template.replace('#', '');
             template_container = document.getElementById(id);
             if (!template_container) {
-                _error(CONSOLE_TAG.format, 'Template container not found: #' + id);
-                return '';
+                _error(TAG_FORMAT, 'Template container not found: #' + id);
+                throw new ReferenceError(SEE_ABOVE);
             }
             template = template_container.innerHTML;
             if (template.includes('{#' + id + '}')) {
-                _error(CONSOLE_TAG.format, 'Circular reference to self detected.');
-                return '';
+                _error(TAG_FORMAT, 'Circular reference to self detected : #' + id);
+                throw new ReferenceError(SEE_ABOVE);
             }
         }
 
@@ -1494,35 +1495,11 @@ var tiny = (function () {
      * Fast Hash function for cache id - https://github.com/darkskyapp/string-hash
      */
     function __fast_hash(str) {
-
-        var hash = 5381,
-            i = str.length;
-
+        var hash = 5381, i = str.length;
         while (i) {
             hash = (hash * 33) ^ str.charCodeAt(--i);
         }
-
         return hash;
-
-    }
-
-    /**
-     * Helper function for error display
-     */
-    function get_string_fragment(str, pos) {
-
-        var end = pos + 20;
-        var start = start < 0 ? 0 : start;
-        end = end > str.length ? str.length : end;
-
-        start = str.substring(0, pos);
-        end = str.substring(pos + 1, end);
-
-        start = start + ' ^' + str.charAt(pos) + '^ ' + end + '...';
-        start = start.replace(/[\n\r]/g, '').replace(/\s+/g, ' ');
-
-        return start;
-
     }
 
     /**
@@ -1657,10 +1634,10 @@ var tiny = (function () {
 
             var indent = ' '.repeat(level);
 
-            if(tag.end == ''){
+            if (tag.end == '') {
                 // singleton tags or text content
                 result = indent + tag.start + '\n' + result;
-            }else if (level < last_level) {
+            } else if (level < last_level) {
                 // tags which have children
                 result = indent + tag.start + '\n' + result + indent + tag.end + '\n';
             } else {
@@ -1681,11 +1658,6 @@ var tiny = (function () {
      * Render shorthand token to full tag string
      */
     function expand_shorthand_token(tag_str) {
-
-        if (typeof tag_str != 'string') {
-            _error(CONSOLE_TAG.format, 'Expecting a string: ', tag_str);
-            return { start: '[ERROR]', end: '[/ERROR]' };
-        }
 
         var tag = '';
         var open_tag = '';
@@ -1711,7 +1683,7 @@ var tiny = (function () {
 
             // output content block 
             if (in_content_block) {
-                if(chr == '\n') break; // end of string
+                if (chr == '\n') break; // end of string
                 content += chr;
                 continue;
             } else if (chr == ':') {
@@ -1827,11 +1799,6 @@ var tiny = (function () {
      */
     function render_template(template, data_obj, parsed_token) {
 
-        if (typeof template != 'string') {
-            _error(CONSOLE_TAG.format, 'Expect a string for template. Recieved:', template);
-            return '[ERROR]';
-        }
-
         var parsed_token = parsed_token || {}; // Processed token cache
 
         var result = '';
@@ -1846,7 +1813,6 @@ var tiny = (function () {
         var token = '';
         var in_mustache = 0;
         var in_bracket = false;
-        var in_format = false;
 
         // 1-pass loop, should be faster than RegExp
         for (pos = -1; pos < len; pos++) {
@@ -1855,7 +1821,7 @@ var tiny = (function () {
             chr = next_chr;
             next_chr = template.charAt(pos);
 
-            // support for {(preserved text)}
+            // {(preserved text)}
             if (chr == '{' && next_chr == '(') {
                 in_bracket = true;
                 next_chr = '';
@@ -1868,6 +1834,11 @@ var tiny = (function () {
             if (in_bracket) {
                 result += chr;
                 continue;
+            }
+
+            if (in_mustache && '{\n'.includes(chr)) {
+                _error(TAG_FORMAT, 'Missing close "}" at ' + pos + '. token: "' + token + '"');
+                throw new SyntaxError(SEE_ABOVE);
             }
 
             // 2/ process tokens
@@ -1893,9 +1864,7 @@ var tiny = (function () {
                         if (token.startsWith('?') || token.startsWith('^')) {
 
                             // -> conditional block: {?key}{/?key} & {^key}{/^key}
-
                             var r = parse_conditional_template_block(token, pos, template, data_obj);
-
                             if (r.ok) {
                                 result += r.output;
                                 pos = r.end; // skip to block ending
@@ -1906,26 +1875,21 @@ var tiny = (function () {
                         } else if (token.startsWith('#')) {
 
                             // -> refer to other template by id: {#template-id}
-
                             result += format_template(token, data_obj, parsed_token);
 
                         } else {
 
                             // -> common tokens
-
                             // ignore block close token
                             if (!token.startsWith('/')) {
-
                                 // render token
                                 result += render_token(token, data_obj, parsed_token);
-
                             }
 
                         }
 
                         token = '';
                         in_mustache--;
-                        in_format = false;
 
                         continue;
 
@@ -1938,20 +1902,9 @@ var tiny = (function () {
                     }
                     break;
 
-                case '|':
-                    // format string
-                    if (in_mustache)
-                        in_format = true;
-                    token += chr;
-                    break;
-
                 default:
 
                     if (in_mustache) {
-                        if (!in_format && '<>\n'.includes(chr)) {
-                            _error(CONSOLE_TAG.format, 'Missing close "}" at ' + pos + '\n' + get_string_fragment(template, pos - 1));
-                            return result;
-                        }
                         token += chr;
                     } else {
                         result += chr;
@@ -1961,8 +1914,15 @@ var tiny = (function () {
 
         }
 
-        if (in_mustache)
-            _warn(CONSOLE_TAG.format, 'Possible missing close "}" in template string.');
+        if (in_bracket) {
+            _error(TAG_FORMAT, 'Missing close ")}" in template string.');
+            throw new SyntaxError(SEE_ABOVE);
+        }
+
+        if (in_mustache){
+            _error(TAG_FORMAT, 'Missing close "}" in template string.');
+            throw new SyntaxError(SEE_ABOVE);
+        }
 
         return result;
 
@@ -1992,9 +1952,8 @@ var tiny = (function () {
         }
 
         if (end < 0) {
-            _error(CONSOLE_TAG.format, 'Missing close token ' + close_tag + '.');
-            result.end = pos + open_tag.length;
-            return result;
+            _error(TAG_FORMAT, 'Missing close token: ' + close_tag);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         result.end = end + close_tag.length;
@@ -2078,8 +2037,8 @@ var tiny = (function () {
                         var str_len = value.length;
                         if (Math.abs(len) < str_len) {
                             value = len > 0 ? value.substr(0, len) : value.substr(len);
-                            if(add_dot)
-                                value = len > 0 ?  value + '...' : '...' + value;
+                            if (add_dot)
+                                value = len > 0 ? value + '...' : '...' + value;
                         }
                     }
                 }
