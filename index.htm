@@ -197,7 +197,7 @@
         <p>For loop through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project, the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code> to control code flow.</p>
         <p>Below is a test result on an Object:</p>
         <pre><code class="language-javascript">
-        Object.keys() + for()       1064.989ms    // not sure why this slow
+        Object.keys() + for()       1064.989ms    // not sure why this is slow
         Object.keys().forEach()     145.356ms     // browser support &amp; flow control issues
         _each()                     822.088ms     // implement with for...in loop
         for...in                    802.236ms
@@ -1168,11 +1168,13 @@
             ...
             li .item [id={id}]
                 .title :{title}
-                .tags :{plans} TASKS &lt;i>/&lt;/i> {people} PEOPLE
+                .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
         </code></pre>
         <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
+
+        // returns expanded HTML template string if no data object is given
         var result = _format('#tpl-sh-block');
         ASSERT('sh -> html',
             result ===
@@ -1189,10 +1191,47 @@
             '        {/?plans}\n'+
             '    &lt;/ul>\n'+
             '&lt;/div>\n');
+        
+        // and the expanded template should be cached inside the original tag
+        var cache = document.getElementById('tpl-sh-block').innerHTML;
+        ASSERT('cached', cache == result);
+
+        var data = {
+            id: 789,
+            project: 'Tiny Project',
+            plans: [
+                {id: 1, title: 'Sprint 1', tasks: 2, people: 5},
+                {id: 2, title: 'Sprint 2', tasks: 15, people: 3},
+            ]
+        };
+        result = result._format(data);
+        _log(result);
+        ASSERT('output',
+            result ==
+            '&lt;div class="content">\n' +
+            '    &lt;h2>\n' +
+            '        &lt;a href="#/project/789">\n' +
+            '            &lt;img src="img/project.png"/>\n' +
+            '            Plan List of Tiny Project\n' +
+            '        &lt;/a>\n' +
+            '    &lt;/h2>\n' +
+            '    &lt;ul class="plan-list">\n' +
+            '\n' +  // {?plans}
+            '&lt;li class="item" id="1">\n' +
+            '    &lt;div class="title">Sprint 1&lt;/div>\n' +
+            '    &lt;div class="tags">2 TASKS &lt;i>/&lt;/i> 5 PEOPLE&lt;/div>\n' +
+            '&lt;/li>\n' +
+            '&lt;li class="item" id="2">\n' +
+            '    &lt;div class="title">Sprint 2&lt;/div>\n' +
+            '    &lt;div class="tags">15 TASKS &lt;i>/&lt;/i> 3 PEOPLE&lt;/div>\n' +
+            '&lt;/li>\n' +
+            '\n' +  // {/?plans}
+            '    &lt;/ul>\n' +
+            '&lt;/div>\n');
         </code></pre>
 
         <h4>ERROR TESTS</h4>
-        <pre class="run-code html"><code class="language-html">
+        <pre class="collapse run-code html"><code class="error-test language-html">
             &lt;!-- HTML CONTENT FOR ERROR TESTS -->
 
             &lt;!-- Missing close '}' => SyntaxError -->

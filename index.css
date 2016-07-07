@@ -170,6 +170,10 @@ pre.collapse.passed::before{
 	color: #696;
 	content: 'TEST PASSED';
 }
+pre.collapse.html::before{
+	color: #696;
+	content: 'HTML CONTENT';
+}
 
 pre.collapse .error-test{
 	display: none;

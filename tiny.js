@@ -1832,7 +1832,7 @@ var tiny = (function () {
         var result = '';
 
         var pos = 0;
-        var len = template.length + 1;
+        var len = template.length + 1; // process beyond end, chr == ''
 
         var chr = '';
         var last_chr = '';
@@ -1893,13 +1893,9 @@ var tiny = (function () {
 
                             // -> conditional block: {?key}{/?key} & {^key}{/^key}
                             var r = parse_conditional_template_block(token, pos, template, data_obj);
-                            if (r.ok) {
-                                result += r.output;
-                                pos = r.end; // skip to block ending
-                            } else {
-                                return result; // found error
-                            }
-
+                            result = result.trim() + '\n\n' + r.output;
+                            pos = r.end; // skip to block ending
+                            
                         } else if (token.startsWith('#')) {
 
                             // -> refer to other template by id: {#template-id}
@@ -1962,7 +1958,6 @@ var tiny = (function () {
     function parse_conditional_template_block(token, pos, template, data_obj) {
 
         var result = {
-            ok: false,
             end: pos,
             output: ''
         };
@@ -1990,7 +1985,7 @@ var tiny = (function () {
         var mark = token.slice(0, 1);
         var real_token = token.substr(1);
         var child_data = fetch_value_by_key(data_obj, real_token);
-        var child_template = template.substring(pos, end);
+        var child_template = template.substring(pos, end).trim();
 
         if (mark == '?' && child_data) {
 
