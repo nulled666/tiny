@@ -1132,7 +1132,7 @@
                 &lt;div class="content">
                     &lt;h2>
                         &lt;a href="#/project/{id}">
-                            &lt;img src="img/project.png"/>
+                            &lt;img src="img/project_{logo}.png"/>
                             Plan List of {project}
                         &lt;/a>
                     &lt;/h2>
@@ -1155,7 +1155,7 @@
             .content
                 h2
                     a [href=#/project/{id}]
-                        img [src=img/project.png]
+                        img [src=img/project_{logo}.png]
                         :Plan List of {project}
                 ul .plan-list
                     :{?plans}
@@ -1181,7 +1181,7 @@
             '&lt;div class="content">\n'+
             '    &lt;h2>\n'+
             '        &lt;a href="#/project/{id}">\n'+
-            '            &lt;img src="img/project.png"/>\n'+
+            '            &lt;img src="img/project_{logo}.png"/>\n'+
             '            Plan List of {project}\n'+
             '        &lt;/a>\n'+
             '    &lt;/h2>\n'+
@@ -1199,6 +1199,7 @@
         var data = {
             id: 789,
             project: 'Tiny Project',
+            logo: 'panda',
             plans: [
                 {id: 1, title: 'Sprint 1', tasks: 2, people: 5},
                 {id: 2, title: 'Sprint 2', tasks: 15, people: 3},
@@ -1211,7 +1212,7 @@
             '&lt;div class="content">\n' +
             '    &lt;h2>\n' +
             '        &lt;a href="#/project/789">\n' +
-            '            &lt;img src="img/project.png"/>\n' +
+            '            &lt;img src="img/project_panda.png"/>\n' +
             '            Plan List of Tiny Project\n' +
             '        &lt;/a>\n' +
             '    &lt;/h2>\n' +
