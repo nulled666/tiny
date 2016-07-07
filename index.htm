@@ -134,7 +134,7 @@
         </code></pre>
 
         <h3><a class="mark" name="type">_type()</a></h3>
-        <p>Returns detailed object type.</p>
+        <p>Get detailed object type.</p>
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             ASSERT('0', _type() == 'Undefined');
@@ -187,11 +187,11 @@
         <p>Always use <code>for()</code> for Arrays on performance critical operations.</p>
         <p>Below is a test result on an Array:</p>
         <pre><code class="language-javascript">
-        for()               54.274ms      // best performance
-        _each()             161.280ms     // implement with for() loop 
-        Array.forEach()     323.626ms
-        for...of            332.318ms
-        for...in            1620.357ms
+        for()               109.114ms      // best performance
+        _each()             792.093ms      // implement with for() loop 
+        Array.forEach()     2052.318ms
+        for...of            1501.836ms
+        for...in            9032.005ms
         </code></pre>
 
         <p>For loop through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project, the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code> to control code flow.</p>
