@@ -819,161 +819,11 @@
 
         <h2><a class="mark" name="format-func">Format &amp; Template</a></h2>
 
-        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
-        <p>Make a string HTML-safe.</p>
-        <pre><code class="language-javascript">
-            _htmlSafe(str [, keep_spaces]);
-
-            String._htmlSafe([keep_spaces]);
-        </code></pre>
-
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
-            var txt = 'task:\n  >> done';
-
-            ASSERT('1', _htmlSafe(txt) === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
-            ASSERT('2', txt._htmlSafe() === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
-
-            // keep white spaces in html
-            ASSERT('3', _htmlSafe(txt, true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
-            ASSERT('4', txt._htmlSafe(true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
-        </code></pre>
-
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
-            // A TypeError will be thrown on invalid parameter types
-            // Detailed information can be found in console
-            try{
-                _htmlSafe(123);
-                FAIL('_htmlSafe() paramter 1 error');
-            }catch(err){
-                ASSERT('_htmlSafe() paramter 1 error', err instanceof TypeError );
-            }
-        </code></pre>
-
-        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
-
-        <p>Number format function.</p>
-        <pre><code class="language-javascript">
-            _formatNumber(num[, format]);
-            
-            Number._format([format]);
-        </code></pre>
-
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
-            var num = 123456.789;
-            ASSERT('1', num._format() == '123456.789');
-            ASSERT('2', num._format('.') == '123457'); // round to point
-            ASSERT('3', num._format('.00') == '123456.79');
-            ASSERT('4', num._format(',') == '123,456.789');
-            ASSERT('5', num._format(',.00') == '123,456.79');
-            ASSERT('6', num._format(',.00%') == '12,345,678.90%');
-            ASSERT('7', num._format('hex') == '1e240.c9fbe76c9');
-            ASSERT('8', num._format('HEX.') == '1E241'); // uppercase & rounded
-            ASSERT('9', num._format('HEX.00') == '1E240.C9');
-        </code></pre>
-
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
-            // A TypeError will be thrown on invalid parameter types
-            // Detailed information can be found in console
-            try{
-                _formatNumber('123');
-                FAIL('_formatNumber() paramter 1 error');
-            }catch(err){
-                ASSERT('_formatNumber() paramter 1 error', err instanceof TypeError );
-            }
-            try{
-                _formatNumber(123, 456);
-                FAIL('_formatNumber() paramter 2 error');
-            }catch(err){
-                ASSERT('_formatNumber() paramter 2 error', err instanceof TypeError );
-            }
-        </code></pre>
-
-        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
-
-        <p>Date format function.</p>
-        <pre><code class="language-javascript">
-            // you can use localized date names by replacing this data object
-            _format.dateNames = {
-                day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                dayAbbr: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                month: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-                    'August', 'September', 'October', 'November', 'December'],
-                monthAbbr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                ap: ['AM', 'PM']
-            };
-
-            // and set default format
-            _format.defaultDateFormat = 'datetime';
-            // 'datetime' => '2005-06-07 08:09:10'
-            // 'date'     => '2005-06-07' // yyyy-MM-dd
-            // 'time'     => '08:09:10'   // HH:mm:ss
-            // 'iso'      => '2005-06-07T00:09:10.753Z' // ISO 8601
-
-            // call the function
-            _formatDate(date[, format]);
-
-            // or use extended method
-            Date._format([format]);
-
-            // FORMAT STRING CODES:
-            // Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
-            // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
-            // 'M'    = 6,     'MM' = 06                     // Numeric month
-            // 'MMM'  = Jun,   'MMMM' = June                 // Month name
-            // 'd'    = 7,     'dd' = 07                     // Day of the month
-            // 'D'    = Tue,   'DD' = Tuesday                // Day of the week
-            // 'h'    = 8,     'hh' = 08                     // 12 Hour clock
-            // 'H'    = 8,     'HH' = 08                     // 24 Hour clock 
-            // 'm'    = 9,     'mm' = 09                     // Minutes
-            // 's'    = 10,    'ss' = 10,     'sss' = 753    // Seconds & Milliseconds
-            // 'z'    = +08,   'zz' = +0800,  'ZZ' = +08:00  // Timezone
-            // 't'    = AM,    // AM / PM
-        </code></pre>
-
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
-            var d = new Date(1118102950753);
-            ASSERT('0', d._format() === '2005-06-07 08:09:10');
-            ASSERT('1', d._format('datetime') === '2005-06-07 08:09:10');
-            ASSERT('2', d._format('date') == '2005-06-07');
-            ASSERT('3', d._format('time') == '08:09:10');
-            ASSERT('4', d._format('iso') == '2005-06-07T00:09:10.753Z');
-
-            // also accept date number from Date.getTime()
-            // text inside [] will be kept
-            ASSERT('5',  _formatDate(1118102950753, '[Today is] DD') == 'Today is Tuesday');
-            
-            // mix token and text
-            ASSERT('6', d._format('D, d MMM yyyy H:m:s [GMT]zz') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
-        </code></pre>
-
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
-            // A TypeError will be thrown on invalid parameter types
-            // Detailed information can be found in console
-            try{
-                _formatDate('123');
-                FAIL('_formatDate() paramter 1 error');
-            }catch(err){
-                ASSERT('_formatDate() paramter 1 error', err instanceof TypeError );
-            }
-            try{
-                _formatDate(new Date(), 456);
-                FAIL('_formatDate() paramter 2 error');
-            }catch(err){
-                ASSERT('_formatDate() paramter 2 error', err instanceof TypeError );
-            }
-        </code></pre>
-
         <h3><a class="mark" name="format-format">_format()</a></h3>
 
         <p>Simply powerful enough format function with template support.</p>
         <p>This function support both normal html templates and the shorthand templates.</p>
-        <p>Expanded shorthand templates will be cached in memory and their original &lt;script> tags for performance.</p>
+        <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
         <pre><code class="language-javascript">
             _format(template, data_object);
             // template    : the template string
@@ -1312,6 +1162,157 @@
                 ASSERT('_format() missing close {/?token}}', err instanceof SyntaxError );
             }
         </code></pre>
+        
+        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
+        <p>Make a string HTML-safe.</p>
+        <pre><code class="language-javascript">
+            _htmlSafe(str [, keep_spaces]);
+
+            String._htmlSafe([keep_spaces]);
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            var txt = 'task:\n  >> done';
+
+            ASSERT('1', _htmlSafe(txt) === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
+            ASSERT('2', txt._htmlSafe() === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
+
+            // keep white spaces in html
+            ASSERT('3', _htmlSafe(txt, true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
+            ASSERT('4', txt._htmlSafe(true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
+        </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _htmlSafe(123);
+                FAIL('_htmlSafe() paramter 1 error');
+            }catch(err){
+                ASSERT('_htmlSafe() paramter 1 error', err instanceof TypeError );
+            }
+        </code></pre>
+
+        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
+
+        <p>Number format function.</p>
+        <pre><code class="language-javascript">
+            _formatNumber(num[, format]);
+            
+            Number._format([format]);
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            var num = 123456.789;
+            ASSERT('1', num._format() == '123456.789');
+            ASSERT('2', num._format('.') == '123457'); // round to point
+            ASSERT('3', num._format('.00') == '123456.79');
+            ASSERT('4', num._format(',') == '123,456.789');
+            ASSERT('5', num._format(',.00') == '123,456.79');
+            ASSERT('6', num._format(',.00%') == '12,345,678.90%');
+            ASSERT('7', num._format('hex') == '1e240.c9fbe76c9');
+            ASSERT('8', num._format('HEX.') == '1E241'); // uppercase & rounded
+            ASSERT('9', num._format('HEX.00') == '1E240.C9');
+        </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _formatNumber('123');
+                FAIL('_formatNumber() paramter 1 error');
+            }catch(err){
+                ASSERT('_formatNumber() paramter 1 error', err instanceof TypeError );
+            }
+            try{
+                _formatNumber(123, 456);
+                FAIL('_formatNumber() paramter 2 error');
+            }catch(err){
+                ASSERT('_formatNumber() paramter 2 error', err instanceof TypeError );
+            }
+        </code></pre>
+
+        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
+
+        <p>Date format function.</p>
+        <pre><code class="language-javascript">
+            // you can use localized date names by replacing this data object
+            _format.dateNames = {
+                day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                dayAbbr: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                month: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+                    'August', 'September', 'October', 'November', 'December'],
+                monthAbbr: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                ap: ['AM', 'PM']
+            };
+
+            // and set default format
+            _format.defaultDateFormat = 'datetime';
+            // 'datetime' => '2005-06-07 08:09:10'
+            // 'date'     => '2005-06-07' // yyyy-MM-dd
+            // 'time'     => '08:09:10'   // HH:mm:ss
+            // 'iso'      => '2005-06-07T00:09:10.753Z' // ISO 8601
+
+            // call the function
+            _formatDate(date[, format]);
+
+            // or use extended method
+            Date._format([format]);
+
+            // FORMAT STRING CODES:
+            // Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
+            // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
+            // 'M'    = 6,     'MM' = 06                     // Numeric month
+            // 'MMM'  = Jun,   'MMMM' = June                 // Month name
+            // 'd'    = 7,     'dd' = 07                     // Day of the month
+            // 'D'    = Tue,   'DD' = Tuesday                // Day of the week
+            // 'h'    = 8,     'hh' = 08                     // 12 Hour clock
+            // 'H'    = 8,     'HH' = 08                     // 24 Hour clock 
+            // 'm'    = 9,     'mm' = 09                     // Minutes
+            // 's'    = 10,    'ss' = 10,     'sss' = 753    // Seconds & Milliseconds
+            // 'z'    = +08,   'zz' = +0800,  'ZZ' = +08:00  // Timezone
+            // 't'    = AM,    // AM / PM
+        </code></pre>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            var d = new Date(1118102950753);
+            ASSERT('0', d._format() === '2005-06-07 08:09:10');
+            ASSERT('1', d._format('datetime') === '2005-06-07 08:09:10');
+            ASSERT('2', d._format('date') == '2005-06-07');
+            ASSERT('3', d._format('time') == '08:09:10');
+            ASSERT('4', d._format('iso') == '2005-06-07T00:09:10.753Z');
+
+            // also accept date number from Date.getTime()
+            // text inside [] will be kept
+            ASSERT('5',  _formatDate(1118102950753, '[Today is] DD') == 'Today is Tuesday');
+            
+            // mix token and text
+            ASSERT('6', d._format('D, d MMM yyyy H:m:s [GMT]zz') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
+        </code></pre>
+
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
+            // A TypeError will be thrown on invalid parameter types
+            // Detailed information can be found in console
+            try{
+                _formatDate('123');
+                FAIL('_formatDate() paramter 1 error');
+            }catch(err){
+                ASSERT('_formatDate() paramter 1 error', err instanceof TypeError );
+            }
+            try{
+                _formatDate(new Date(), 456);
+                FAIL('_formatDate() paramter 2 error');
+            }catch(err){
+                ASSERT('_formatDate() paramter 2 error', err instanceof TypeError );
+            }
+        </code></pre>
+
     </div>
 </body>
 
