@@ -2024,7 +2024,7 @@ var tiny = (function () {
         }
 
         // remove space-only lines
-        result = result.replace(/\n[\s]+\n/g, '\n\n');
+        result = result.replace(/\n[\t ]+\n/g, '\n\n');
 
         return result;
 
