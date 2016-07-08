@@ -310,13 +310,10 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-
         var ARRAY_LIKE = ',NodeList,Arguments,HTMLCollection,';
         var OBJECT_LIKE = ',Object,Map,Function,Storage,';
         var type = _type(obj);
 
-        // treat jquery object as array
-        if (type == 'Object' && obj.jquery) type = 'NodeList';
 
         var result;
 
@@ -329,6 +326,18 @@ var tiny = (function () {
             }
 
         } else if (OBJECT_LIKE.includes(type)) {
+
+            if (obj.jquery && typeof obj.get == 'function') {
+
+                // ==> jQuery Object
+                for (var i = start_index, len = obj.length; i < len; i++) {
+                    result = func.call(this_arg, obj.get(i), i, obj);
+                    if (result !== undefined) return result;
+                }
+
+                return;
+
+            }
 
             // ==> Object
             for (var label in obj) {
@@ -1214,7 +1223,7 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        
+
         var result = '';
         var in_txt = format.includes('['); // check if mixed content
 
@@ -1255,7 +1264,7 @@ var tiny = (function () {
             token += chr;
 
         }
-        
+
         return result;
     }
 
