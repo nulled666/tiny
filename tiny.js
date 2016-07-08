@@ -1889,13 +1889,14 @@ var tiny = (function () {
 
                         // end a token
 
-                        if (token.startsWith('?') || token.startsWith('^')) {
+                        if (token.startsWith('?') || token.startsWith('!')) {
 
-                            // -> conditional block: {?key}{/?key} & {^key}{/^key}
+                            // -> conditional block: {?key}{/?key} & {!key}{/!key}
                             var r = parse_conditional_template_block(token, pos, template, data_obj);
-                            result = result.trim() + '\n\n' + r.output;
-                            pos = r.end; // skip to block ending
-                            
+                            result = result + '\n' + r.output + '\n';
+                            pos = r.end;   // skip to block ending
+                            next_chr = ''; // skip next char - it's inside the block
+
                         } else if (token.startsWith('#')) {
 
                             // -> refer to other template by id: {#template-id}
@@ -1953,7 +1954,7 @@ var tiny = (function () {
     }
 
     /**
-     * Parse condition block {?token}{/?token} {^token}{/^token}
+     * Parse condition block {?token}{/?token} {!token}{/!token}
      */
     function parse_conditional_template_block(token, pos, template, data_obj) {
 
@@ -1989,6 +1990,7 @@ var tiny = (function () {
 
         if (mark == '?' && child_data) {
 
+            // ==> {?token}
             if (!(child_data instanceof Array))
                 child_data = [child_data];
 
@@ -1996,8 +1998,9 @@ var tiny = (function () {
                 result.output += render_template(child_template, item);
             });
 
-        } else if (mark == '^' && !child_data) {
+        } else if (mark == '!' && !child_data) {
 
+            // ==> {!token}
             result.output = render_template(child_template, data_obj);
 
         }
