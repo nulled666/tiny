@@ -1051,7 +1051,6 @@ var tiny = (function () {
 
             // integer
             if (/^[0-9]+$/.test(value)) {
-
                 return parseInt(value, 10);
             }
 

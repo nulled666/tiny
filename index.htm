@@ -879,6 +879,7 @@
 
         <p>Simply yet powerful enough format function with template support.</p>
         <p>This function support both normal html templates and the shorthand templates.</p>
+        <p>Templates are parsed in a one-time loop over the string. In favor of performance, no RegExp is used.</p>
         <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
         <pre><code class="language-javascript">
             _format(template, data_object);
