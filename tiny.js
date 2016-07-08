@@ -1176,7 +1176,7 @@ var tiny = (function () {
 
 
     // defaults for _formatNumber()
-    _format.currencyFormat = '$(,.00)';
+    _format.currencyFormat = '$[,.00]';
     _format.decimalDelimiter = '.';
     _format.thousandsDelimiter = ',';
 
@@ -1190,11 +1190,13 @@ var tiny = (function () {
      *   num._format('.00') == '123456.79'
      *   num._format(',') == '123,456.789'
      *   num._format(',.00') == '123,456.79'
-     *   num._format(',.00%') == '12,345,678.90%'
+     *   num._format('[,.00%] * 100') == '12,345,678.90% * 100'
+     *   num._format('Pad: [,00000000.00]') == 'Pad: 00,012,345.68'
+     *   num._format('$') == '$123,456.79'  // currency format
      *   num._format('x') == '1e240.c9fbe76c9'
      *   num._format('X.') == '1E241' // uppercase & rounded
      *   num._format('X.00') == '1E240.C9'
-     *   num._format('$') == '$123,456.79'  // currency format
+     *   num._format('X0000000000,.') == '00 0001 E240'
      * ```
      */
     function format_number(num, format) {
@@ -1213,26 +1215,49 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        var token_start = format.indexOf('(');
-        var token_end = format.indexOf(')');
-        var token;
-        if (token_start > -1 && token_end > -1 && token_end > token_start) {
-            token_start++;
-            token = format.substring(token_start, token_end);
-            format = format.substring(0, token_start) + format.substr(token_end);
-        } else {
-            token = format;
-            format = '()';
-        }
+        
+        var result = '';
+        var in_txt = format.includes('['); // check if mixed content
 
-        var result;
-        if (token.includes('x') || token.includes('X')) {
-            result = format_hex_number(num, token);
-        } else {
-            result = format_decimal_number(num, token);
-        }
+        var token = '';
+        var chr = '';
 
-        return format.replace('()', result);
+        for (var i = 0, len = format.length + 1; i < len; i++) {
+
+            chr = format.charAt(i);
+
+            // preserve text
+            if (in_txt) {
+                if (chr == '[') {
+                    in_txt = false;
+                } else {
+                    result += chr;
+                }
+                continue;
+            }
+
+            // end of token
+            if (chr === ']' || chr == '') {
+
+                // parse token
+                if (token.includes('x') || token.includes('X')) {
+                    result += format_hex_number(num, token);
+                } else {
+                    result += format_decimal_number(num, token);
+                }
+
+                in_txt = true;
+                token = '';
+                continue;
+
+            }
+
+            // build token
+            token += chr;
+
+        }
+        _log(result);
+        return result;
     }
 
     /**
@@ -1369,7 +1394,7 @@ var tiny = (function () {
      *   d._format('time') == '08:09:10'   // HH:mm:ss
      *   d._format('iso') == '2005-06-07T00:09:10.753Z' // ISO 8601
      *   // FROMAT STRING CODES:
-     *    '[]'   = keep raw text, '[yyyy]-M-d' => 'yyyy-6-7'
+     *    '[]'   = indicates format token, 'yyyy[-M-d]' => 'yyyy-6-7'
      *    'yyyy' = 2009, 'yy' = 09,   'y' = 9        // Year
      *    'M'    = 6,    'MM' = 06                   // Numeric month
      *    'MMM'  = Jun,  'MMMM' = June               // Month name
@@ -1402,8 +1427,6 @@ var tiny = (function () {
             _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
             throw new TypeError(SEE_ABOVE);
         }
-
-        // Make a copy of current date
 
         if (format == 'iso') {
             format = 'yyyy-MM-ddTHH:mm:ss.sssZ';
@@ -1451,10 +1474,8 @@ var tiny = (function () {
         tokens.zz = tokens.z + '00';
         tokens.ZZ = tokens.z + ':00';
 
-        if (!format.includes('[')) format = '[' + format;
-
         var result = '';
-        var in_txt = true;
+        var in_txt = format.includes('['); // check if mixed content
 
         var token = '';
         var chr = '';

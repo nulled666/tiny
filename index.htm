@@ -839,7 +839,7 @@
                     // these options will be set to format functions on _lang.set() call if exist
                     'decimalDelimiter' : '.',
                     'thousandsDelimiter' : ' ',
-                    'currencyFormat' : '¥ (.00)',
+                    'currencyFormat' : '¥ [.00]',
                     'dateFormat' : 'datetime',
                     'dateNames' : {
                         day: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
@@ -1266,14 +1266,14 @@
             Number._format([format]);
 
             // you can set the default curreny format
-            _format.currencyFormat = '$(,.00)';
+            _format.currencyFormat = '$[,.00]';
             
             // and default delimiter characters
             _format.decimalDelimiter = '.';
             _format.thousandsDelimiter = ',';
 
             // FORMAT STRING CODES:
-            // '()'   = indicate format string, '$ (.).00' => '$ 99.00'
+            // '[]'   = indicate format token, '$ [.].00' => '$ 99.00'
             // ','    = add thousand delimiter, hex will add ' ' every 4 digits
             // '0000' = pad number to given width with '0'
             // '.00'  = set decimal place by number of '0'
@@ -1288,23 +1288,23 @@
             var num = 123456.789;
 
             ASSERT('1', num._format() == '123456.789');
-            ASSERT('2', num._format('Round to (.)') == 'Round to 123457');
+            ASSERT('2', num._format('Round to [.]') == 'Round to 123457');
             ASSERT('3', num._format('.00') == '123456.79');
             ASSERT('4', num._format(',') == '123,456.789');
-            ASSERT('5', num._format('(,.00)') == '123,456.79');
-            ASSERT('6', num._format('(,.00%) * 100') == '12,345,678.90% * 100');
+            ASSERT('5', num._format('[,.00]') == '123,456.79');
+            ASSERT('6', num._format('[,.00%] * 100') == '12,345,678.90% * 100');
             ASSERT('7', num._format('$') == '$123,456.79');
 
             // pad zero
             num = 12345.678;
             ASSERT('pad 1', num._format('00000000') == '00012345.678');
             ASSERT('pad 2', num._format('00000000.') == '00012346');
-            ASSERT('pad 3', num._format('Padded: (,00000000.00)') == 'Padded: 00,012,345.68');
+            ASSERT('pad 3', num._format('Padded: [,00000000.00]') == 'Padded: 00,012,345.68');
 
             // change delimiters & currency format
             _format.decimalDelimiter = ',';
             _format.thousandsDelimiter = ' ';
-            _format.currencyFormat = '(,.00) €';
+            _format.currencyFormat = '[,.00] €';
 
             ASSERT('currency', num._format('$') == '12 345,68 €');
             
@@ -1363,7 +1363,7 @@
             Date._format([format]);
 
             // FORMAT STRING CODES:
-            // '()'   = indicate format string, 'yyyy(-M-d)' => 'yyyy-6-7'
+            // '[]'   = indicate format token, 'yyyy[-M-d]' => 'yyyy-6-7'
             // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
             // 'M'    = 6,     'MM' = 06                     // Numeric month
             // 'MMM'  = Jun,   'MMMM' = June                 // Month name
