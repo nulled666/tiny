@@ -26,9 +26,46 @@ function start() {
 $(start);
 
 function test_code() {
+    // var str = '                                                                            {';
+    // var char = '';
+
+    // console.time('find');
+    // _each(1000000, function () {
+    //     find_it(str);
+    // })
+    // console.timeEnd('find');
+
+    // console.time('find2');
+    // _each(1000000, function () {
+    //     find_it2(str);
+    // })
+    // console.timeEnd('find2');
+    
+    // console.time('indexOf');
+    // _each(1000000, function () {
+    //     str.indexOf(/[^ \t]/);
+    // })
+    // console.timeEnd('indexOf');
+
     // return true;
 }
 
+function find_it(str) {
+    var char = '', i = 0;
+    for (; ;) {
+        char = str.charAt(i);
+        if (char !== ' ') return i;
+        i++;
+    }
+}
+
+function find_it2(str) {
+    var char = '', i = 0;
+    while (char = str.charAt(i)) {
+        if (char !== ' ') return i;
+        i++;
+    }
+}
 
 // ====== ui functions
 function jump_to_error() {
@@ -222,9 +259,9 @@ function show_run_code_result() {
         elem = $(elem);
         var count = elem.find('.failed').length;
 
-        if (count > 0){
+        if (count > 0) {
             elem.addClass("failed");
-        }else{
+        } else {
             elem.addClass("passed");
         }
 

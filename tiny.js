@@ -1256,7 +1256,7 @@ var tiny = (function () {
             token += chr;
 
         }
-        _log(result);
+        
         return result;
     }
 
@@ -2023,6 +2023,9 @@ var tiny = (function () {
             _error(TAG_FORMAT, 'Missing close "}" in template string.');
             throw new SyntaxError(SEE_ABOVE);
         }
+
+        // remove space-only lines
+        result = result.replace(/\n[\s]+\n/g, '\n\n');
 
         return result;
 
