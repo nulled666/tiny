@@ -1451,25 +1451,23 @@ var tiny = (function () {
         tokens.zz = tokens.z + '00';
         tokens.ZZ = tokens.z + ':00';
 
-        // process tokens
-        // this algorithm should be faster than regexp
-        format += '\x7f';  // manually add an ending char
+        if (!format.includes('[')) format = '[' + format;
 
         var result = '';
-        var in_txt = false;
+        var in_txt = true;
 
         var token = '';
         var chr = '';
         var last_chr = '';
 
-        for (var i = 0, len = format.length; i < len; i++) {
+        for (var i = 0, len = format.length + 1; i < len; i++) {
 
             last_chr = chr;
             chr = format.charAt(i);
 
             // preserve text
             if (in_txt) {
-                if (chr == ']') {
+                if (chr == '[') {
                     in_txt = false;
                 } else {
                     result += chr;
@@ -1493,7 +1491,7 @@ var tiny = (function () {
             token = chr;
 
             // enter text mode
-            if (chr === '[') {
+            if (chr === ']') {
                 in_txt = true;
                 last_chr = '';
                 token = '';
@@ -1603,8 +1601,6 @@ var tiny = (function () {
 
         // trim end to place our ending mark
         template = template.replace(/[\s\uFEFF\xA0]+$/ig, '');
-        // add ending mark (0x7f = DEL)
-        template += '\x7f';
 
         var result = '';
         var chr = '';
@@ -1612,7 +1608,7 @@ var tiny = (function () {
         var token = '';
 
         var pos = 0;
-        var len = template.length;
+        var len = template.length + 1;
 
         var tag_lines = [];
         var last_line_indent = 0;
@@ -1643,7 +1639,7 @@ var tiny = (function () {
             }
 
             // line end
-            if ('\r\n\x7f'.includes(chr) || (chr == '>' && !in_content)) {
+            if ('\r\n'.includes(chr) || chr == '' || (chr == '>' && !in_content)) {
 
                 // drop blank line
                 if (token == '') {
@@ -1675,8 +1671,8 @@ var tiny = (function () {
                     indent_counter = line_indent + 1;
                 }
 
-                // end with \x7f
-                if (chr == '\x7f')
+                // end
+                if (chr == '')
                     result = build_result_to_level(0, tag_lines);
 
                 continue;
@@ -1759,10 +1755,8 @@ var tiny = (function () {
         var in_content_block = false;
         var in_mustache = 0;
 
-        tag_str += '\n'; // add an ending char for it (0x7F = DEL)
-
         var pos = 0;
-        var len = tag_str.length;
+        var len = tag_str.length + 1;
 
         // 1-pass loop, should be faster than RegExp
         for (pos = 0; pos < len; pos++) {
@@ -1771,7 +1765,7 @@ var tiny = (function () {
 
             // output content block 
             if (in_content_block) {
-                if (chr == '\n') break; // end of string
+                if (chr == '') break; // end of string
                 content += chr;
                 continue;
             } else if (chr == ':') {

@@ -1273,7 +1273,7 @@
             _format.thousandsDelimiter = ',';
 
             // FORMAT STRING CODES:
-            // '()'   = enclose number format string, '$ (.).00' => '$ 99.00'
+            // '()'   = indicate format string, '$ (.).00' => '$ 99.00'
             // ','    = add thousand delimiter, hex will add ' ' every 4 digits
             // '0000' = pad number to given width with '0'
             // '.00'  = set decimal place by number of '0'
@@ -1284,7 +1284,7 @@
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre class="run-code stop"><code class="language-javascript">
+        <pre class="run-code"><code class="language-javascript">
             var num = 123456.789;
 
             ASSERT('1', num._format() == '123456.789');
@@ -1363,7 +1363,7 @@
             Date._format([format]);
 
             // FORMAT STRING CODES:
-            // '[]'   = keep text inside, '[yyyy]-M-d' => 'yyyy-6-7'
+            // '()'   = indicate format string, 'yyyy(-M-d)' => 'yyyy-6-7'
             // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
             // 'M'    = 6,     'MM' = 06                     // Numeric month
             // 'MMM'  = Jun,   'MMMM' = June                 // Month name
@@ -1385,13 +1385,14 @@
             ASSERT('2', d._format('date') == '2005-06-07');
             ASSERT('3', d._format('time') == '08:09:10');
             ASSERT('4', d._format('iso') == '2005-06-07T00:09:10.753Z');
+            ASSERT('5', d._format('D, d MMM yyyy H:m:s') == 'Tue, 7 Jun 2005 8:9:10');
 
             // also accept date number from Date.getTime()
             // text inside [] will be kept
-            ASSERT('5',  _formatDate(1118102950753, '[Today is] DD') == 'Today is Tuesday');
+            ASSERT('[] token',  _formatDate(1118102950753, 'Today is [DD]') == 'Today is Tuesday');
             
             // mix token and text
-            ASSERT('6', d._format('D, d MMM yyyy H:m:s [GMT]zz') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
+            ASSERT('mix', d._format('[D, d MMM yyyy H:m:s] GMT[zz]') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
         </code></pre>
 
         <h4>ERROR TESTS</h4>
