@@ -1274,7 +1274,7 @@
 
             // FORMAT STRING CODES:
             // '()'   = enclose number format string, '$ (.).00' => '$ 99.00'
-            // ','    = add thousand delimiter, hex will always add ' ' every 4 digits
+            // ','    = add thousand delimiter, hex will add ' ' every 4 digits
             // '0000' = pad number to given width with '0'
             // '.00'  = set decimal place by number of '0'
             // '$'    = use default currency format
@@ -1294,11 +1294,6 @@
             ASSERT('5', num._format('(,.00)') == '123,456.79');
             ASSERT('6', num._format('(,.00%) * 100') == '12,345,678.90% * 100');
             ASSERT('7', num._format('$') == '$123,456.79');
-            
-            ASSERT('hex 1', num._format('x') == '1e240.c9fbe76c9');
-            ASSERT('hex 2', num._format('X.') == '1E241');
-            ASSERT('hex 3', num._format('X.00') == '1E240.C9');
-            ASSERT('hex 2', num._format('X,.') == '1E241');
 
             // pad zero
             num = 12345.678;
@@ -1306,13 +1301,19 @@
             ASSERT('pad 2', num._format('00000000.') == '00012346');
             ASSERT('pad 3', num._format('Padded: (,00000000.00)') == 'Padded: 00,012,345.68');
 
-            // set delimiters & currency format
+            // change delimiters & currency format
             _format.decimalDelimiter = ',';
             _format.thousandsDelimiter = ' ';
             _format.currencyFormat = '(,.00) €';
 
             ASSERT('currency', num._format('$') == '12 345,68 €');
-
+            
+            // hex - won't affect by above settings
+            num = 123456.789;
+            ASSERT('hex 1', num._format('x') == '1e240.c9fbe76c9');
+            ASSERT('hex 2', num._format('X.') == '1E240');
+            ASSERT('hex 3', num._format('X.00') == '1E240.C9');
+            ASSERT('hex 4', num._format('X0000000000,.') == '00 0001 E240');
             
         </code></pre>
 

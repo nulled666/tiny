@@ -316,7 +316,7 @@ var tiny = (function () {
         var type = _type(obj);
 
         // treat jquery object as array
-        if(type == 'Object' && obj.jquery) type = 'NodeList';
+        if (type == 'Object' && obj.jquery) type = 'NodeList';
 
         var result;
 
@@ -1271,12 +1271,8 @@ var tiny = (function () {
         integer_part = pad_start_with_zero(target_width, integer_part);
 
         // add commas
-        if (add_comma) {
-            var regex = /(\d+)(\d{3})/;
-            while (regex.test(integer_part)) {
-                integer_part = integer_part.replace(regex, '$1' + _format.thousandsDelimiter + '$2');
-            }
-        }
+        if (add_comma)
+            integer_part = insert_char_every(3, _format.thousandsDelimiter, integer_part);
 
         num = integer_part + decimal_part;
 
@@ -1295,29 +1291,51 @@ var tiny = (function () {
         var add_comma = format.includes(',');
         var to_uppercase = format.includes('X');
 
-        var dot_pos = format.indexOf('.');
-        var float_len = -1;
+        var parts = num.toString(16).split('.');
+        var integer_part = parts[0];
+        var decimal_part = parts.length > 1 ? parts[1] : '';
 
-        if (dot_pos > -1) {
-            float_len = format.length - 1 - dot_pos;
+        parts = format.replace(/[^0\.]/g, '').split('.');
+        var target_width = 0;
+
+        if (parts.length > 1) {
+            target_width = parts[1].length;
+            if (target_width > decimal_part.length) {
+                decimal_part += '0'.repeat(target_width - decimal_part.length);
+            } else if (target_width < decimal_part.length) {
+                decimal_part = decimal_part.substring(0, target_width);
+            }
+            target_width = parts[0].length;
         }
 
-        if (float_len == 0) {
-            num = Math.round(num);
-        }
+        // pad 0
+        integer_part = pad_start_with_zero(target_width, integer_part);
 
-        num = num.toString(16);
+        // add commas
+        if (add_comma)
+            integer_part = insert_char_every(4, ' ', integer_part);
 
-        if (float_len > 0) {
-            num = num.substring(0, num.indexOf('.') + float_len + 1);
-        }
+        if (decimal_part != '') decimal_part = '.' + decimal_part;
 
-        if (to_uppercase)
-            num = num.toUpperCase();
+        num = integer_part + decimal_part;
+
+        if (to_uppercase) num = num.toUpperCase();
 
         return num;
+
     }
 
+    // helper function
+    function insert_char_every(width, char, str) {
+        var index = str.length;
+        while (index > width) {
+            index -= width;
+            str = str.substring(0, index) + char + str.substring(index);
+        }
+        return str;
+    }
+
+    // helper function
     function pad_start_with_zero(width, str) {
         width -= str.length;
         if (width < 1) return str;
