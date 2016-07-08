@@ -1306,15 +1306,13 @@
             ASSERT('pad 2', num._format('00000000.') == '00012346');
             ASSERT('pad 3', num._format('Padded: (,00000000.00)') == 'Padded: 00,012,345.68');
 
-            // set delimiters & currency Format
+            // set delimiters & currency format
             _format.decimalDelimiter = ',';
             _format.thousandsDelimiter = ' ';
-            _format.currencyFormat = '¥ (.00)';
+            _format.currencyFormat = '(,.00) €';
 
-            ASSERT('currency', num._format('$') == '¥ 12345.68');
+            ASSERT('currency', num._format('$') == '12 345,68 €');
 
-            num = 123456789.01;
-            ASSERT('delimiter', num._format(',') == '123 456 789,01');
             
         </code></pre>
 
@@ -1364,7 +1362,7 @@
             Date._format([format]);
 
             // FORMAT STRING CODES:
-            // Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
+            // '[]'   = keep text inside, '[yyyy]-M-d' => 'yyyy-6-7'
             // 'yyyy' = 2009,  'yy' = 09,    'y' = 9         // Year
             // 'M'    = 6,     'MM' = 06                     // Numeric month
             // 'MMM'  = Jun,   'MMMM' = June                 // Month name
