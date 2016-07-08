@@ -162,6 +162,7 @@
             <li><code>Storage</code> - the <code>window.localStorage</code> object</li>
             <li><code>HTMLCollection</code> - like <code>document.forms</code></li>
             <li><code>NodeList</code> - result of <code>document.querySelectorAll</code></li>
+            <li><code>jQuery</code> - result of <code>$()</code> function</li>
         </ul>
         <p>And you can continue or break with a return value.</p>
         <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you add
@@ -588,7 +589,7 @@
 
         <h3><a class="mark" name="route-on">_route.on/off()</a></h3>
 
-        <p>Start or Stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
+        <p>Start or stop monitoring window.onhashchange event and check current window.location.hash immediately.</p>
         <pre><code class="language-javascript">
             _route.on() : _route
             _route.off() : _route
