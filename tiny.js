@@ -310,9 +310,13 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        var ARRAY_LIKE = ',Arguments,HTMLCollection,NodeList,';
+
+        var ARRAY_LIKE = ',NodeList,Arguments,HTMLCollection,';
         var OBJECT_LIKE = ',Object,Map,Function,Storage,';
         var type = _type(obj);
+
+        // treat jquery object as array
+        if(type == 'Object' && obj.jquery) type = 'NodeList';
 
         var result;
 
@@ -1171,6 +1175,11 @@ var tiny = (function () {
     }
 
 
+    // defaults for _formatNumber()
+    _format.currencyFormat = '$(,.00)';
+    _format.decimalDelimiter = '.';
+    _format.thousandsDelimiter = ',';
+
     var TAG_FORMAT_NUMBER = '_formatNumber()' + TAG_SUFFIX;
     /**
      * Number format function
@@ -1182,14 +1191,17 @@ var tiny = (function () {
      *   num._format(',') == '123,456.789'
      *   num._format(',.00') == '123,456.79'
      *   num._format(',.00%') == '12,345,678.90%'
-     *   num._format('hex') == '1e240.c9fbe76c9'
-     *   num._format('HEX.') == '1E241' // uppercase & rounded
-     *   num._format('HEX.00') == '1E240.C9'
+     *   num._format('x') == '1e240.c9fbe76c9'
+     *   num._format('X.') == '1E241' // uppercase & rounded
+     *   num._format('X.00') == '1E240.C9'
+     *   num._format('$') == '$123,456.79'  // currency format
      * ```
      */
     function format_number(num, format) {
 
         format = format || '';
+
+        if (format == '$') format = _format.currencyFormat;
 
         if (typeof num !== 'number') {
             _error(TAG_FORMAT_NUMBER, 'Expect a number. > Got "' + typeof num + '": ', num);
@@ -1201,18 +1213,32 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        if (format.includes('hex') || format.includes('HEX')) {
-            return format_hex_number(num, format);
+        var token_start = format.indexOf('(');
+        var token_end = format.indexOf(')');
+        var token;
+        if (token_start > -1 && token_end > -1 && token_end > token_start) {
+            token_start++;
+            token = format.substring(token_start, token_end);
+            format = format.substring(0, token_start) + format.substr(token_end);
         } else {
-            return format_dec_number(num, format);
+            token = format;
+            format = '()';
         }
 
+        var result;
+        if (token.includes('x') || token.includes('X')) {
+            result = format_hex_number(num, token);
+        } else {
+            result = format_decimal_number(num, token);
+        }
+
+        return format.replace('()', result);
     }
 
     /**
      * Format Decimal Number
      */
-    function format_dec_number(num, format) {
+    function format_decimal_number(num, format) {
 
         // Add commas
         var add_comma = format.includes(',');
@@ -1224,33 +1250,39 @@ var tiny = (function () {
             is_percent = true;
         }
 
-        var parts = format.replace(/[^\d\.]/g, '').split('.');
+        // leave only number and dot chars
+        var parts = format.replace(/[^0\.]/g, '').split('.');
+        var target_width = 0;
 
-        // compute precision
+        // set precision
         if (parts.length > 1) {
-            // fix number precision - ignore further portions
             num = num.toFixed(parts[1].length);
+            target_width = parts[0].length;
+        } else {
+            num = num.toString();
+            target_width = format.length;
         }
 
-        num = num.toString();
+        parts = num.split('.');
+        var integer_part = parts[0];
+        var decimal_part = parts.length > 1 ? _format.decimalDelimiter + parts[1] : '';
 
-        // format has comma, then compute commas
+        // pad zero
+        integer_part = pad_start_with_zero(target_width, integer_part);
+
+        // add commas
         if (add_comma) {
-
-            parts = num.split('.');
-
-            var x1 = parts[0];
-            var x2 = parts.length > 1 ? '.' + parts[1] : '';
-            var rgx = /(\d+)(\d{3})/;
-            while (rgx.test(x1)) {
-                x1 = x1.replace(rgx, '$1' + ',' + '$2');
+            var regex = /(\d+)(\d{3})/;
+            while (regex.test(integer_part)) {
+                integer_part = integer_part.replace(regex, '$1' + _format.thousandsDelimiter + '$2');
             }
-
-            num = x1 + x2;
-
         }
 
-        return num + (is_percent ? '%' : '');
+        num = integer_part + decimal_part;
+
+        if (is_percent) num += '%';
+
+        return num;
 
     }
 
@@ -1258,6 +1290,10 @@ var tiny = (function () {
      * Format number to hex string
      */
     function format_hex_number(num, format) {
+
+        // Add commas
+        var add_comma = format.includes(',');
+        var to_uppercase = format.includes('X');
 
         var dot_pos = format.indexOf('.');
         var float_len = -1;
@@ -1276,10 +1312,16 @@ var tiny = (function () {
             num = num.substring(0, num.indexOf('.') + float_len + 1);
         }
 
-        if (format.includes('HEX'))
+        if (to_uppercase)
             num = num.toUpperCase();
 
         return num;
+    }
+
+    function pad_start_with_zero(width, str) {
+        width -= str.length;
+        if (width < 1) return str;
+        return '0'.repeat(width) + str;
     }
 
 
@@ -1293,7 +1335,7 @@ var tiny = (function () {
     }
 
     // default format string for Date.prototype._format()
-    _format.defaultDateFormat = 'datetime';
+    _format.dateFormat = 'datetime';
 
     var TAG_FORMAT_DATE = '_formatDate()' + TAG_SUFFIX;
     /**
@@ -1302,14 +1344,14 @@ var tiny = (function () {
      *   // set custom localized date name strings
      *   _tiny.format.dateNames = custom_names
      *   // set default format string
-     *   _tiny.format.defaultDateFormat = 'datetime'
+     *   _tiny.format.dateFormat = 'datetime'
      *   var d = new Date(1118102950753)
      *   d._format() == d._format('datetime') == '2005-06-07 08:09:10'
      *   d._format('date') == '2005-06-07' // yyyy-MM-dd
      *   d._format('time') == '08:09:10'   // HH:mm:ss
      *   d._format('iso') == '2005-06-07T00:09:10.753Z' // ISO 8601
      *   // FROMAT STRING CODES:
-     *    Text inside [] will be kept: '[yyyy]-M-d' => 'yyyy-6-7'
+     *    '[]'   = keep raw text, '[yyyy]-M-d' => 'yyyy-6-7'
      *    'yyyy' = 2009, 'yy' = 09,   'y' = 9        // Year
      *    'M'    = 6,    'MM' = 06                   // Numeric month
      *    'MMM'  = Jun,  'MMMM' = June               // Month name
@@ -1326,7 +1368,7 @@ var tiny = (function () {
     function format_date(date_in, format, names) {
 
         var date = new Date(); // make a copy to manipulate
-        format = format || _format.defaultDateFormat;
+        format = format || _format.dateFormat;
         names = names || _format.dateNames;
 
         if (typeof date_in === 'number') {

@@ -1,4 +1,4 @@
-<html>
+﻿<html>
 
 <head>
     <title>The Tiny Library</title>
@@ -423,11 +423,11 @@
             ASSERT( '_message.post()', FLAT(list) == '["me",123]' );
 
             // post a delayed message
-            _message.postDelayed(1000, 'list::add', 'you', 456);
-            // check result after 1 second
+            _message.postDelayed(50, 'list::add', 'you', 456);
+            // check result after 100 milliseconds
             setTimeout(function(){
                 ASSERT( '_message.postDelayed()', FLAT(list) == '["me",123,"you",456]' );
-            }, 1000);
+            }, 100);
         </code></pre>
 
         <h4>ERROR TESTS</h4>
@@ -816,12 +816,68 @@
             }
         </code></pre>
 
+        <h2><a class="mark" name="i18n">Internationalize</a></h2>
+        <p>Tiny provides a set of simple functions to make i18n easier.</p>
+
+        <h3><a class="mark" name="lang-strings">_lang.strings</a></h3>
+        <p>The language strings object.</p>
+        <p><code>_lang()</code> function will read string from it, you can modify it whatever you want.</p>
+        <p>The section with the same value of <code>_lang.default</code> must exist.</p>
+        <pre><code class="language-javascript">
+            // default languague
+            _lang.default = 'en';
+
+            // language string set object
+            _lang.strings = {
+
+                // default = 'en'
+                "en" : { "hello" : "Hello!" },
+
+                // Simplified Chinese - 'zh-cn'
+                "zh-cn" : {
+
+                    // these options will be set to format functions on _lang.set() call if exist
+                    'decimalDelimiter' : '.',
+                    'thousandsDelimiter' : ' ',
+                    'currencyFormat' : '¥ (.00)',
+                    'dateFormat' : 'datetime',
+                    'dateNames' : {
+                        day: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
+                        dayAbbr: ['日', '一', '二', '三', '四', '五', '六'],
+                        month: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                        monthAbbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
+                        ap: ['上午', '下午']
+                    },
+
+                    // here goes your language strings
+                    'hello' : "你好!"
+                }
+            }
+        </pre></code>
+
+        <h3><a class="mark" name="lang-set">_lang.set()</a></h3>
+        <p>Get a string from language string set.</p>
+        <pre><code class="language-javascript">
+            _lang.set([lang_code])
+            // lang_code : the language code
+        </pre></code>
+
+        <h3><a class="mark" name="lang">_lang()</a></h3>
+        <p>Get a string from language string set.</p>
+        <pre><code class="language-javascript">
+            _lang(str [,lang_code])
+            // str       : the string to lookup in current language string set
+            // lang_code : the language code
+        </pre></code>
+
+
+        <hr/>
 
         <h2><a class="mark" name="format-func">Format Template</a></h2>
 
         <h3><a class="mark" name="format-format">_format()</a></h3>
 
-        <p>Simply powerful enough format function with template support.</p>
+        <p>Simply yet powerful enough format function with template support.</p>
         <p>This function support both normal html templates and the shorthand templates.</p>
         <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
         <pre><code class="language-javascript">
@@ -1208,20 +1264,58 @@
             _formatNumber(num[, format]);
             
             Number._format([format]);
+
+            // you can set the default curreny format
+            _format.currencyFormat = '$(,.00)';
+            
+            // and default delimiter characters
+            _format.decimalDelimiter = '.';
+            _format.thousandsDelimiter = ',';
+
+            // FORMAT STRING CODES:
+            // '()'   = enclose number format string, '$ (.).00' => '$ 99.00'
+            // ','    = add thousand delimiter, hex will always add ' ' every 4 digits
+            // '0000' = pad number to given width with '0'
+            // '.00'  = set decimal place by number of '0'
+            // '$'    = use default currency format
+            // '%'    = convert to percent, decimal only
+            // 'x'    = lowercase hex
+            // 'X'    = uppercase HEX
         </code></pre>
 
         <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
+        <pre class="run-code stop"><code class="language-javascript">
             var num = 123456.789;
+
             ASSERT('1', num._format() == '123456.789');
-            ASSERT('2', num._format('.') == '123457'); // round to point
+            ASSERT('2', num._format('Round to (.)') == 'Round to 123457');
             ASSERT('3', num._format('.00') == '123456.79');
             ASSERT('4', num._format(',') == '123,456.789');
-            ASSERT('5', num._format(',.00') == '123,456.79');
-            ASSERT('6', num._format(',.00%') == '12,345,678.90%');
-            ASSERT('7', num._format('hex') == '1e240.c9fbe76c9');
-            ASSERT('8', num._format('HEX.') == '1E241'); // uppercase & rounded
-            ASSERT('9', num._format('HEX.00') == '1E240.C9');
+            ASSERT('5', num._format('(,.00)') == '123,456.79');
+            ASSERT('6', num._format('(,.00%) * 100') == '12,345,678.90% * 100');
+            ASSERT('7', num._format('$') == '$123,456.79');
+            
+            ASSERT('hex 1', num._format('x') == '1e240.c9fbe76c9');
+            ASSERT('hex 2', num._format('X.') == '1E241');
+            ASSERT('hex 3', num._format('X.00') == '1E240.C9');
+            ASSERT('hex 2', num._format('X,.') == '1E241');
+
+            // pad zero
+            num = 12345.678;
+            ASSERT('pad 1', num._format('00000000') == '00012345.678');
+            ASSERT('pad 2', num._format('00000000.') == '00012346');
+            ASSERT('pad 3', num._format('Padded: (,00000000.00)') == 'Padded: 00,012,345.68');
+
+            // set delimiters & currency Format
+            _format.decimalDelimiter = ',';
+            _format.thousandsDelimiter = ' ';
+            _format.currencyFormat = '¥ (.00)';
+
+            ASSERT('currency', num._format('$') == '¥ 12345.68');
+
+            num = 123456789.01;
+            ASSERT('delimiter', num._format(',') == '123 456 789,01');
+            
         </code></pre>
 
         <h4>ERROR TESTS</h4>

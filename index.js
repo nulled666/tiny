@@ -147,8 +147,7 @@ function check_and_append_link(sidebar, elem) {
 
 
 // ====== code runner for unit tests
-var _error_counter = 0;
-var _run_code_counter = 0;
+var _error_count = 0;
 
 function run_all_code() {
 
@@ -157,108 +156,95 @@ function run_all_code() {
         .removeClass('pass fail')
         .addClass('show');
 
-    _error_counter = 0;
-
     var codes = $('.run-code');
-
-    _run_code_counter = 100;
 
     codes.each(function (index, elem) {
         run_code(elem);
         if ($(elem).hasClass('stop')) return false;
     });
 
-    _run_code_counter -= 100;
+    setTimeout(show_run_code_result, 500);
 
 }
 
 
 function run_code(elem) {
 
-    _run_code_counter++;
-
     var code = $(elem).text();
 
     if ($(elem).hasClass('html')) {
         var html_fragment = $(code);
         $(document.body).after(html_fragment);
-        _run_code_counter--;
         return;
     }
 
-    code = 'var test_elem = arguments[0]; var test_result = {};\
-        var FLAT = function(obj){ return JSON.stringify(obj)};\
-        var ASSERT = function(txt, value){ _info(value, " <<<< ASSERT " + txt); test_result[txt] = value };\
-        var FAIL = function(txt){ _warn(false, " <<<< FAIL " + txt); test_result[txt] = false };\n' + code;
-    if (code.indexOf('setTimeout(') > -1) {
-        code += '\n;setTimeout(function(){\
-            show_run_code_result(test_elem, test_result);\
-            }, 1500);';
-    } else {
-        code += '\n;show_run_code_result(test_elem, test_result);';
-    }
+    code = '\
+        var code_block = $(arguments[0]);\
+        var assert_index = 0;\
+        var assert_list = code_block.find(".function:contains(ASSERT)");\
+        var test_result = true;\
+        var get_assert = function(){\
+            var elem = $(assert_list.get(assert_index));\
+            assert_index++;\
+            return elem;\
+        };\
+        var FLAT = function(obj){ return JSON.stringify(obj) };\
+        var ASSERT = function(txt, value){\
+            _info(value, " <<<< ASSERT " + txt);\
+            var elem = get_assert();\
+            if(value){\
+                elem.addClass("passed");\
+            }else{\
+                elem.addClass("failed");\
+                _error_count++;\
+            }\
+        };\
+        var FAIL = function(txt){ ASSERT(txt, false); };\
+        ' + code;
 
     try {
         var func = new Function(code);
         func(elem, 'this', 'is', 'a', 'test');
     } catch (e) {
-        _error_counter++;
+        _error_count++;
         _error('=== RUN CODE ERROR ===> ', e);
-        show_run_code_result(elem, {}, true);
     }
 
 }
 
-function show_run_code_result(elem, result, is_error) {
+function show_run_code_result() {
 
-    elem = $(elem);
+    var error_counter = 0;
+    var collapsed_elems = $('.content').find(".collapse.run-code");
 
-    _run_code_counter--;
+    _each(collapsed_elems, function (elem, label) {
 
-    var result_index = 0;
-    var assert_elems = elem.find(".function:contains(ASSERT)");
-    var error = is_error === true;
+        elem = $(elem);
+        var count = elem.find('.failed').length;
 
-    _each(result, function (item, label) {
-
-        if (!item) {
-            error = true;
-            _error_counter++;
+        if (count > 0){
+            elem.addClass("failed");
+        }else{
+            elem.addClass("passed");
         }
-
-        var text = label + (item ? ": PASSED" : ": FAILED");
-        var elem = $(assert_elems.get(result_index));
-        elem.attr("title", text);
-        elem.addClass(item ? "passed" : "failed");
-
-        result_index++;
 
     });
 
-    elem.addClass(error ? 'failed' : 'passed');
+    if (_error_count == 0) {
 
+        $('#test-info')
+            .addClass('pass')
+            .text('ALL CODE TEST PASSED');
 
-    // last code block returned
-    if (_run_code_counter == 0) {
+        setTimeout(function () {
+            $('#test-info').removeClass('show');
+        }, 2000);
 
-        if (_error_counter == 0) {
+    } else {
 
-            $('#test-info')
-                .addClass('pass')
-                .text('ALL CODE TEST PASSED');
-
-            setTimeout(function () {
-                $('#test-info').removeClass('show');
-            }, 2000);
-
-        } else {
-
-            $('#test-info')
-                .addClass('fail')
-                .text(_error_counter + ' CODE TEST FAILED');
-
-        }
-
+        $('#test-info')
+            .addClass('fail')
+            .text(_error_count + ' CODE TEST FAILED');
 
     }
 
