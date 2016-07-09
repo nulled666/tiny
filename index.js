@@ -40,20 +40,28 @@ function test_code() {
     //     find_it2(str);
     // })
     // console.timeEnd('find2');
-    
+
     // console.time('indexOf');
     // _each(1000000, function () {
     //     str.indexOf(/[^ \t]/);
     // })
     // console.timeEnd('indexOf');
 
-//     var x = '...' +
-//     'li.item[id={id}]\n'+
-//     '  .title :{title}\n' +
-//     '  .tags :{tasks} TASKS <i>/</i> {people} PEOPLE'
-//     x._format();
+    //     var x = '...' +
+    //     'li.item[id={id}]\n'+
+    //     '  .title :{title}\n' +
+    //     '  .tags :{tasks} TASKS <i>/</i> {people} PEOPLE'
+    //     x._format();
+    // var result =
+    //     '...\n' +
+    //     'li.test:{(\n'+
+    //     '  Output {token} text\n' +
+    //     '  with new line.)}\n'+
+    //     '  b :This Might mess up';
+    // result = result._format({ token: 123 });
+    // _log(result);
 
-//     return true;
+    // return true;
 }
 
 // ====== ui functions

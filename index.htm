@@ -959,8 +959,8 @@
             ASSERT('keep {}', result === 'Use {token} to fill value 123');
 
             // output text directly
-            result = '{(Output {token} or any text)}'._format({token: 123});
-            ASSERT('{(output text)}', result === 'Output {token} or any text');
+            result = '{(Output {token} text\n with new line)}'._format({token: 123});
+            ASSERT('{(output text)}', result === 'Output {token} text\n with new line');
 
             var my_items = {
                 book: { price: 1299.99,
@@ -1000,7 +1000,21 @@
                 '&lt;li id="123456" class="item">\n' +
                 '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '&lt;/li>\n');
-            
+                
+            template = '...' +
+                'li #{id} .item :{(\n' +
+                '  Output {token} text\n' +
+                '  with new line)}\n' +
+                '  b :Though this might mess up';
+            result = template._format(data);
+            ASSERT('inline shorthand 2',
+                result ===
+                '&lt;li id="123456" class="item">\n' +
+                '  Output {token} text\n' +
+                '  with new line\n' +
+                '  &lt;b>Though this might mess up&lt;/b>\n' +
+                '&lt;/li>\n');
+
             // complex shorthand template
             //   indents('\t' or ' ') and end-of-lines('\n') are important
             //   you can choose to use tabs or spaces, mixing them might result chaos

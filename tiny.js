@@ -1677,10 +1677,16 @@ var tiny = (function () {
                 line_indent = char == '>' ? line_indent + 2 : -1;
             } else if (char == ':') {
                 // ==> content section
-                var newline_pos = template.indexOf('\n', pos);
-                if (newline_pos < 0) newline_pos = len - 1;
-                tag.content = template.substring(pos + 1, newline_pos);
-                pos = newline_pos - 1;  // -1 to trigger end of line char
+                var end_pos = template.indexOf('\n', pos); // use new line as end
+                var start_pos = template.indexOf('{(', pos); // try to find {( start
+                if (start_pos > -1 && start_pos < end_pos) {
+                    end_pos = template.indexOf(')}', start_pos); // try to find )} end
+                    if (end_pos > -1)
+                        end_pos = template.indexOf('\n', end_pos); // use new line after )}
+                }
+                if (end_pos < 0) end_pos = len - 1;
+                tag.content = template.substring(pos + 1, end_pos);
+                pos = end_pos - 1;  // -1 to trigger end of line char
             } else if ('.#['.includes(char)) {
                 // ==> tag attributes
                 pos = read_shorthand_segment(char, pos, len, template, tag);
@@ -1818,6 +1824,7 @@ var tiny = (function () {
 
         while (item = lines.pop()) {
 
+            // check level
             level = item[0];
 
             if (level < limit_level) {
@@ -1825,6 +1832,7 @@ var tiny = (function () {
                 break;
             }
 
+            // check tag
             tag = item[1];
 
             if (tag == true) {
@@ -1863,64 +1871,51 @@ var tiny = (function () {
         var parsed_token = parsed_token || {}; // Processed token cache
 
         var result = '';
-
-        var pos = 0;
-        var len = template.length + 1; // process beyond end, chr == ''
-
-        var chr = '';
-        var last_chr = '';
-        var next_chr = '';
-
+        var char = '';
         var token = '';
         var in_mustache = 0;
         var in_bracket = false;
 
         // 1-pass loop, should be faster than RegExp
-        for (pos = -1; pos < len; pos++) {
+        for (var pos = 0, len = template.length; pos < len; pos++) {
 
-            last_chr = chr;
-            chr = next_chr;
-            next_chr = template.charAt(pos);
+            char = template.charAt(pos);
 
-            // {(preserved text)}
-            if (chr == '{' && next_chr == '(') {
-                in_bracket = true;
-                next_chr = '';
-                continue;
-            } else if (in_bracket && chr == ')' && next_chr == '}') {
-                in_bracket = false;
-                next_chr = '';
-                continue;
-            }
-            if (in_bracket) {
-                result += chr;
-                continue;
-            }
-
-            if (in_mustache && '{\n'.includes(chr)) {
-                _error(TAG_FORMAT, 'Missing close "}" at ' + pos + '. token: "' + token + '"');
-                throw new SyntaxError(SEE_ABOVE);
-            }
-
-            if (chr == '{') {
-
-                if (next_chr == '{') {
-                    result += '{'; // }} => }
-                    next_chr = '';
-                } else {
-                    in_mustache++; // token start
+            // {( )} block
+            if (char == '{' && template.charAt(pos + 1) == '(') {
+                var start_pos = pos + 2;
+                var end_pos = template.indexOf(')}', start_pos);
+                if (end_pos < 0) {
+                    _error(TAG_FORMAT, 'Missing close ")}" from ' + start_pos + '.');
+                    throw new SyntaxError(SEE_ABOVE);
                 }
+                result += template.substring(start_pos, end_pos);
+                pos = end_pos;
+                continue;
+            }
 
-            } else if (chr == '}') {
+            // {{ and }}
+            if (char == '{' && template.charAt(pos + 1) == '{' || char == '}' && template.charAt(pos + 1) == '}') {
+                result += char;
+                pos++;
+                continue;
+            }
 
+            // tokens
+            if (char == '{') {
+
+                // ==> token start
+                in_mustache++;
+
+            } else if (char == '}') {
+
+                // ==> token end
                 if (in_mustache) {
-                    // token end
                     if (token.startsWith('?') || token.startsWith('!')) {
                         // ==> {?key}{/?key} & {!key}{/!key}
-                        var r = parse_conditional_template_block(token, pos, template, data_obj);
+                        var r = parse_conditional_block(token, pos + 1, template, data_obj); // pos+1 to skip the }
                         result = result + '\n' + r.output + '\n';
                         pos = r.end;   // move to block ending
-                        next_chr = ''; // and skip next char - it's inside the block
                     } else if (token.startsWith('#')) {
                         // ==> {#template-id}
                         result += format_template(token, data_obj, parsed_token);
@@ -1931,29 +1926,19 @@ var tiny = (function () {
                     }
                     token = '';
                     in_mustache--;
-                    continue;
-                }
-
-                if (next_chr == '}') {
-                    result += '}';  // }} => }
-                    next_chr = '';
                 }
 
             } else {
 
+                // ==> normal chars
                 if (in_mustache) {
-                    token += chr;
+                    token += char;
                 } else {
-                    result += chr;
+                    result += char;
                 }
 
             }
 
-        }
-
-        if (in_bracket) {
-            _error(TAG_FORMAT, 'Missing close ")}" in template string.');
-            throw new SyntaxError(SEE_ABOVE);
         }
 
         if (in_mustache) {
@@ -1971,7 +1956,7 @@ var tiny = (function () {
     /**
      * Parse condition block {?token}{/?token} {!token}{/!token}
      */
-    function parse_conditional_template_block(token, pos, template, data_obj) {
+    function parse_conditional_block(token, pos, template, data_obj) {
 
         var result = {
             end: pos,
@@ -2004,20 +1989,15 @@ var tiny = (function () {
         var child_template = template.substring(pos, end).trim();
 
         if (mark == '?' && child_data) {
-
             // ==> {?token}
             if (!(child_data instanceof Array))
                 child_data = [child_data];
-
             _each(child_data, function (item) {
                 result.output += render_template(child_template, item);
             });
-
         } else if (mark == '!' && !child_data) {
-
             // ==> {!token}
             result.output = render_template(child_template, data_obj);
-
         }
 
         result.ok = true;
