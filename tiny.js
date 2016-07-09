@@ -1902,71 +1902,50 @@ var tiny = (function () {
                 throw new SyntaxError(SEE_ABOVE);
             }
 
-            // 2/ process tokens
-            switch (chr) {
+            if (chr == '{') {
 
-                case '{':
-                    if (next_chr == '{') {
-                        // {{ = {
-                        result += '{';
-                        next_chr = '';
+                if (next_chr == '{') {
+                    result += '{'; // }} => }
+                    next_chr = '';
+                } else {
+                    in_mustache++; // token start
+                }
+
+            } else if (chr == '}') {
+
+                if (in_mustache) {
+                    // token end
+                    if (token.startsWith('?') || token.startsWith('!')) {
+                        // ==> {?key}{/?key} & {!key}{/!key}
+                        var r = parse_conditional_template_block(token, pos, template, data_obj);
+                        result = result + '\n' + r.output + '\n';
+                        pos = r.end;   // move to block ending
+                        next_chr = ''; // and skip next char - it's inside the block
+                    } else if (token.startsWith('#')) {
+                        // ==> {#template-id}
+                        result += format_template(token, data_obj, parsed_token);
                     } else {
-                        // start a token
-                        in_mustache++;
+                        // ==> render tokens - ignore block close token
+                        if (!token.startsWith('/'))
+                            result += render_token(token, data_obj, parsed_token);
                     }
-                    break;
+                    token = '';
+                    in_mustache--;
+                    continue;
+                }
 
-                case '}':
+                if (next_chr == '}') {
+                    result += '}';  // }} => }
+                    next_chr = '';
+                }
 
-                    if (in_mustache) {
+            } else {
 
-                        // end a token
-
-                        if (token.startsWith('?') || token.startsWith('!')) {
-
-                            // -> conditional block: {?key}{/?key} & {!key}{/!key}
-                            var r = parse_conditional_template_block(token, pos, template, data_obj);
-                            result = result + '\n' + r.output + '\n';
-                            pos = r.end;   // skip to block ending
-                            next_chr = ''; // skip next char - it's inside the block
-
-                        } else if (token.startsWith('#')) {
-
-                            // -> refer to other template by id: {#template-id}
-                            result += format_template(token, data_obj, parsed_token);
-
-                        } else {
-
-                            // -> common tokens
-                            // ignore block close token
-                            if (!token.startsWith('/')) {
-                                // render token
-                                result += render_token(token, data_obj, parsed_token);
-                            }
-
-                        }
-
-                        token = '';
-                        in_mustache--;
-
-                        continue;
-
-                    }
-
-                    if (next_chr == '}') {
-                        // }} = }
-                        result += '}';
-                        next_chr = '';
-                    }
-                    break;
-
-                default:
-
-                    if (in_mustache) {
-                        token += chr;
-                    } else {
-                        result += chr;
-                    }
+                if (in_mustache) {
+                    token += chr;
+                } else {
+                    result += chr;
+                }
 
             }
 
@@ -2052,14 +2031,12 @@ var tiny = (function () {
      */
     function render_token(token, obj, parsed_token) {
 
-        // 1/ check for cache
-
+        // check cache
         var value = parsed_token[token];
         if (value != undefined)
             return value;
 
-        // 2/ prepare key & format string
-
+        // prepare key & format string
         var split_pos = token.indexOf('|');
         if (split_pos < 0)
             split_pos = token.length;
@@ -2067,27 +2044,19 @@ var tiny = (function () {
         var key = token.substring(0, split_pos);
         var format = token.substring(split_pos + 1);
 
-        // 3/ get value by key
-
+        // get value by key
         if (key == '') {
-
             // use full object for value
             value = obj;
-
         } else if (key.startsWith('$')) {
-
             // language string
             value = _lang(key.replace('$'), '');
-
         } else {
-
             // multi-level key
             value = fetch_value_by_key(obj, key);
-
         }
 
-        // 4/ render value by format
-
+        // render value by format
         switch (typeof value) {
 
             case 'string':
