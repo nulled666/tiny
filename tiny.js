@@ -400,14 +400,15 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        _each(extensions, function (item, name) {
+        for (var name in extensions) {
+            var item = extensions[name];
             // no self reference - continue
-            if (target === item) return;
+            if (target === item) continue;
             // exists and no overwrite - continue
-            if (!overwrite && (typeof target[name] !== 'undefined')) return;
+            if (!overwrite && (typeof target[name] !== 'undefined')) continue;
             // set extension
             target[name] = item;
-        })
+        }
 
         return target;
 
@@ -431,14 +432,16 @@ var tiny = (function () {
         var ns_parts = ns_string.split('.');
         var parent_ns = window;
 
-        _each(ns_parts, function (name) {
+        for (var i = 0, len = ns_parts.length; i < len; i++) {
+
+            var name = ns_parts[i];
 
             if (!parent_ns[name])
                 parent_ns[name] = {};
 
             parent_ns = parent_ns[name];
 
-        });
+        }
 
         // apply extensions if given
         if (ext) _extend(parent_ns, ext);
@@ -972,13 +975,14 @@ var tiny = (function () {
             var check_prefix = _storage.keyPrefix !== '';
             var result = {};
 
-            _each(storage, function (item, label) {
+            for (var label in storage) {
+                var item = storage[label];
                 if (check_prefix) {
-                    if (label.startsWith(_storage.keyPrefix + '_') == false) return;
+                    if (label.startsWith(_storage.keyPrefix + '_') == false) continue;
                     label = label.replace(_storage.keyPrefix + '_', '');
                 }
                 result[label] = storage_output_type_conversion(item);
-            });
+            }
 
             return result;
 
@@ -994,10 +998,11 @@ var tiny = (function () {
             } else {
 
                 // have to check every key for prefix
-                _each(storage, function (item, label) {
+                for (var label in storage) {
+                    var item = storage[label];
                     if (label.startsWith(_storage.keyPrefix + '_'))
                         storage.removeItem(label);
-                });
+                }
 
                 _warn(TAG_STORAGE, 'All items in window.localStorage with prefix "' + _storage.keyPrefix + '" are cleared');
 
@@ -1006,9 +1011,9 @@ var tiny = (function () {
         } else if (typeof key === 'object') {
 
             // ==> BATCH OPERATION
-            _each(key, function (item, label) {
-                _storage(label, item);
-            });
+            for (var label in key) {
+                _storage(label, key[label]);
+            }
 
         } else {
 
@@ -1604,7 +1609,6 @@ var tiny = (function () {
     // Shorthand Template Processor
     ////////////////////////////////////////////////////
     var _expanded_shorthand_template_cache = {};
-    var SINGLETON_TAGS = ',br,img,hr,link,meta,input,';
 
     /**
      * Fast Hash function for cache id - https://github.com/darkskyapp/string-hash
@@ -1681,8 +1685,11 @@ var tiny = (function () {
                 var start_pos = template.indexOf('{(', pos); // try to find {( start
                 if (start_pos > -1 && start_pos < end_pos) {
                     end_pos = template.indexOf(')}', start_pos); // try to find )} end
-                    if (end_pos > -1)
-                        end_pos = template.indexOf('\n', end_pos); // use new line after )}
+                    if (end_pos < 0) {
+                        _error(TAG_FORMAT, 'Missing close ")}" from ' + start_pos + '.');
+                        throw new SyntaxError(SEE_ABOVE);
+                    }
+                    end_pos = template.indexOf('\n', end_pos); // use new line after )}
                 }
                 if (end_pos < 0) end_pos = len - 1;
                 tag.content = template.substring(pos + 1, end_pos);
@@ -1775,6 +1782,7 @@ var tiny = (function () {
 
     function build_shorthand_tag(tag) {
 
+        var SINGLETON_TAGS = ',br,img,hr,link,meta,input,';
         var tag_start = '';
         var tag_end = '';
 
@@ -1824,22 +1832,23 @@ var tiny = (function () {
 
         while (item = lines.pop()) {
 
-            // check level
             level = item[0];
 
+            // if encountered lower level - push back and break out
             if (level < limit_level) {
                 lines.push(item);
                 break;
             }
 
-            // check tag
             tag = item[1];
 
+            // tag == true, this is a built html fragment - add and continue
             if (tag == true) {
                 result = item[2] + result;
                 continue;
             }
 
+            // generate tag structure
             var indent = ' '.repeat(level);
 
             if (tag.end == '') {
@@ -1853,9 +1862,12 @@ var tiny = (function () {
                 result = indent + tag.start + tag.end + '\n' + result;
             }
 
+            // next in the same level or go up a level
             last_level = level;
+
         }
 
+        // put the result back into the stack
         lines.push([last_level, true, result]);
 
         return result;
@@ -1990,11 +2002,10 @@ var tiny = (function () {
 
         if (mark == '?' && child_data) {
             // ==> {?token}
-            if (!(child_data instanceof Array))
-                child_data = [child_data];
-            _each(child_data, function (item) {
-                result.output += render_template(child_template, item);
-            });
+            if (!(child_data instanceof Array)) child_data = [child_data];
+            for (var i = 0, len = child_data.length; i < len; i++) {
+                result.output += render_template(child_template, child_data[i]);
+            }
         } else if (mark == '!' && !child_data) {
             // ==> {!token}
             result.output = render_template(child_template, data_obj);
@@ -2096,18 +2107,18 @@ var tiny = (function () {
             throw new TypeError(SEE_ABOVE);
         }
 
-        // single level key
-        if (!key.includes('.'))
-            return obj[key];
+        // ==> single level key
+        if (!key.includes('.')) return obj[key];
 
-        // multi-level key
+        // ==> multi-level key
         var keys = key.split('.');
         var sub_obj = obj;
         var child_obj;
 
-        _each(keys, function (name) {
+        for (var i = 0, len = keys.length; i < len; i++) {
 
-            child_obj = sub_obj[name];
+            child_obj = sub_obj[keys[i]];
+
             if (child_obj !== undefined) {
                 sub_obj = child_obj;
             } else {
@@ -2116,7 +2127,7 @@ var tiny = (function () {
                 return false;
             }
 
-        });
+        };
 
         return sub_obj;
 

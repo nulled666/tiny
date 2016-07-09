@@ -750,6 +750,9 @@
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
+            // clean up for test
+            _storage('tiny_lib_test', null);
+
             // write a value
             _storage('test', false);
             ASSERT('_storage() no prefix', _storage('test') === false);
@@ -1171,7 +1174,8 @@
             &lt;/script>
             &lt;!-- Missing close ')}' => SyntaxError -->
             &lt;script type="text/x-template" id="tpl-missing-bracket">
-                &lt;div class="{state}">{(Use {token} to replace} &lt;/div>
+                &lt;div class="{state}">{(Use {token} to
+                replace} &lt;/div>
             &lt;/script>
             &lt;!-- Missing close '{/?token}' => SyntaxError -->
             &lt;script type="text/x-template" id="tpl-missing-close-token">
