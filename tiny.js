@@ -320,7 +320,7 @@ var tiny = (function () {
         if (Array.isArray(obj) || ARRAY_LIKE.includes(type)) {
 
             // ==> Array
-            for (var i = start_index, len = obj.length; i < len; i++) {
+            for (var i = start_index, len = obj.length; i < len; ++i) {
                 result = func.call(this_arg, obj[i], i, obj);
                 if (result !== undefined) return result;
             }
@@ -330,7 +330,7 @@ var tiny = (function () {
             if (obj.jquery && typeof obj.get == 'function') {
 
                 // ==> jQuery Object
-                for (var i = start_index, len = obj.length; i < len; i++) {
+                for (var i = start_index, len = obj.length; i < len; ++i) {
                     result = func.call(this_arg, obj.get(i), i, obj);
                     if (result !== undefined) return result;
                 }
@@ -348,7 +348,7 @@ var tiny = (function () {
         } else if (type === 'String') {
 
             // ==> String
-            for (var i = start_index, len = obj.length; i < len; i++) {
+            for (var i = start_index, len = obj.length; i < len; ++i) {
                 result = func.call(this_arg, obj.charAt(i), i, obj);
                 if (result !== undefined) return result;
             }
@@ -356,7 +356,7 @@ var tiny = (function () {
         } else if (type === 'Number') {
 
             // ==> Number
-            for (var i = start_index, len = obj; i < len; i++) {
+            for (var i = start_index, len = obj; i < len; ++i) {
                 result = func.call(this_arg, i + 1, i, obj);
                 if (result !== undefined) return result;
             }
@@ -432,7 +432,7 @@ var tiny = (function () {
         var ns_parts = ns_string.split('.');
         var parent_ns = window;
 
-        for (var i = 0, len = ns_parts.length; i < len; i++) {
+        for (var i = 0, len = ns_parts.length; i < len; ++i) {
 
             var name = ns_parts[i];
 
@@ -1235,7 +1235,7 @@ var tiny = (function () {
         var token = '';
         var chr = '';
 
-        for (var i = 0, len = format.length + 1; i < len; i++) {
+        for (var i = 0, len = format.length + 1; i < len; ++i) {
 
             chr = format.charAt(i);
 
@@ -1494,7 +1494,7 @@ var tiny = (function () {
         var chr = '';
         var last_chr = '';
 
-        for (var i = 0, len = format.length + 1; i < len; i++) {
+        for (var i = 0, len = format.length + 1; i < len; ++i) {
 
             last_chr = chr;
             chr = format.charAt(i);
@@ -1650,15 +1650,15 @@ var tiny = (function () {
         // This is a read-ahead action-behind loop
         // So we set len = template.length + 1 to loop over the end of string
         // Ths=us we can get char == '' as the ending sign
-        for (var pos = 0, len = template.length + 1; pos < len; pos++) {
+        for (var pos = 0, len = template.length + 1; pos < len; ++pos) {
 
             // get line indent
             if (line_indent == -1) {
                 var indent_counter = 0;
-                for (; pos < len; pos++) {
+                for (; pos < len; ++pos) {
                     char = template.charAt(pos);
                     if (char == '\t' || char == ' ') {
-                        indent_counter++;
+                        ++indent_counter;
                     } else {
                         // use first line's indent as base
                         if (indent_base == -1) indent_base = indent_counter;
@@ -1726,15 +1726,15 @@ var tiny = (function () {
         var in_mustache = 0;
         var in_attribute = false;
 
-        if (type != '') pos++; // skip the type char
+        if (type != '') ++pos; // skip the type char
 
-        for (; pos < len; pos++) {
+        for (; pos < len; ++pos) {
 
             char = template.charAt(pos);
 
             // keep {} tokens as they are
-            if (char == '}') in_mustache--;
-            if (char == '{') in_mustache++;
+            if (char == '}') --in_mustache;
+            if (char == '{') ++in_mustache;
             if (in_mustache) {
                 if (char == '\n') {
                     _error(TAG_FORMAT, 'Unexpected "\\n" at ' + pos + '. token: "' + token + '"');
@@ -1769,11 +1769,11 @@ var tiny = (function () {
                     tag_cache.id = token;
                 } else if (type == '[') {
                     tag_cache.attr.push(token);
-                    pos++;
+                    ++pos;
                 } else {
                     tag_cache.name = token;
                 }
-                pos--;  // -1 to trigger control char
+                --pos;  // -1 to trigger control char
                 return pos;
             }
 
@@ -1893,7 +1893,7 @@ var tiny = (function () {
         var in_bracket = false;
 
         // 1-pass loop over the string, no RegExp is used
-        for (var pos = 0, len = template.length; pos < len; pos++) {
+        for (var pos = 0, len = template.length; pos < len; ++pos) {
 
             char = template.charAt(pos);
 
@@ -1913,7 +1913,7 @@ var tiny = (function () {
             // {{ and }}
             if (char == '{' && template.charAt(pos + 1) == '{' || char == '}' && template.charAt(pos + 1) == '}') {
                 result += char;
-                pos++;
+                ++pos;
                 continue;
             }
 
@@ -1921,7 +1921,7 @@ var tiny = (function () {
             if (char == '{') {
 
                 // ==> token start
-                in_mustache++;
+                ++in_mustache;
 
             } else if (char == '}') {
 
@@ -1941,7 +1941,7 @@ var tiny = (function () {
                             result += render_token(token, data_obj, parsed_token);
                     }
                     token = '';
-                    in_mustache--;
+                    --in_mustache;
                 }
 
             } else {
@@ -2007,7 +2007,7 @@ var tiny = (function () {
         if (mark == '?' && child_data) {
             // ==> {?token}
             if (!(child_data instanceof Array)) child_data = [child_data];
-            for (var i = 0, len = child_data.length; i < len; i++) {
+            for (var i = 0, len = child_data.length; i < len; ++i) {
                 result.output += render_template(child_template, child_data[i]);
             }
         } else if (mark == '!' && !child_data) {
@@ -2119,7 +2119,7 @@ var tiny = (function () {
         var sub_obj = obj;
         var child_obj;
 
-        for (var i = 0, len = keys.length; i < len; i++) {
+        for (var i = 0, len = keys.length; i < len; ++i) {
 
             child_obj = sub_obj[keys[i]];
 
@@ -2227,7 +2227,7 @@ tiny.extend(Array, {
                 (searchElement !== searchElement && currentElement !== currentElement)) { // NaN !== NaN
                 return true;
             }
-            k++;
+            ++k;
         }
         return false;
     }

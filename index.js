@@ -26,40 +26,22 @@ function start() {
 $(start);
 
 function test_code() {
-    // var str = '                                                                            {';
-    // var char = '';
+
+    // var c = 0;
 
     // console.time('find');
-    // _each(1000000, function () {
-    //     find_it(str);
-    // })
+    // for (var i = 0; i < 1000000; i++) {
+    //     c++;
+    // }
     // console.timeEnd('find');
 
+    // c = 0;
     // console.time('find2');
-    // _each(1000000, function () {
-    //     find_it2(str);
-    // })
+    // for (var i = 0; i < 1000000; ++i) {
+    //     c++;
+    // }
     // console.timeEnd('find2');
 
-    // console.time('indexOf');
-    // _each(1000000, function () {
-    //     str.indexOf(/[^ \t]/);
-    // })
-    // console.timeEnd('indexOf');
-
-    //     var x = '...' +
-    //     'li.item[id={id}]\n'+
-    //     '  .title :{title}\n' +
-    //     '  .tags :{tasks} TASKS <i>/</i> {people} PEOPLE'
-    //     x._format();
-    // var result =
-    //     '...\n' +
-    //     'li.test:{(\n'+
-    //     '  Output {token} text\n' +
-    //     '  with new line.)}\n'+
-    //     '  b :This Might mess up';
-    // result = result._format({ token: 123 });
-    // _log(result);
 
     // return true;
 }
