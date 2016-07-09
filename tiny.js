@@ -1646,6 +1646,10 @@ var tiny = (function () {
 
         var tag = { class: [], attr: [] };
 
+        // 1-pass loop over the string, no RegExp is used
+        // This is a read-ahead action-behind loop
+        // So we set len = template.length + 1 to loop over the end of string
+        // Ths=us we can get char == '' as the ending sign
         for (var pos = 0, len = template.length + 1; pos < len; pos++) {
 
             // get line indent
@@ -1888,7 +1892,7 @@ var tiny = (function () {
         var in_mustache = 0;
         var in_bracket = false;
 
-        // 1-pass loop, should be faster than RegExp
+        // 1-pass loop over the string, no RegExp is used
         for (var pos = 0, len = template.length; pos < len; pos++) {
 
             char = template.charAt(pos);
