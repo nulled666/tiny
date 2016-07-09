@@ -47,24 +47,13 @@ function test_code() {
     // })
     // console.timeEnd('indexOf');
 
-    // return true;
-}
+//     var x = '...' +
+//     'li.item[id={id}]\n'+
+//     '  .title :{title}\n' +
+//     '  .tags :{tasks} TASKS <i>/</i> {people} PEOPLE'
+//     x._format();
 
-function find_it(str) {
-    var char = '', i = 0;
-    for (; ;) {
-        char = str.charAt(i);
-        if (char !== ' ') return i;
-        i++;
-    }
-}
-
-function find_it2(str) {
-    var char = '', i = 0;
-    while (char = str.charAt(i)) {
-        if (char !== ' ') return i;
-        i++;
-    }
+//     return true;
 }
 
 // ====== ui functions

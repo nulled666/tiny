@@ -1618,8 +1618,8 @@ var tiny = (function () {
     }
 
     /**
-     * Expand Shorthand Template to HTML Template
-     */
+    * Expand Shorthand Template to HTML Template 2
+    */
     function expand_shorthand_template(template) {
 
         var hash = __fast_hash(template, true).toString(16);
@@ -1628,89 +1628,72 @@ var tiny = (function () {
             return _expanded_shorthand_template_cache[hash];
         }
 
-        // trim end to place our ending mark
         template = template.replace(/[\s\uFEFF\xA0]+$/ig, '');
+        template = template.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        var tag_stack = [];
 
         var result = '';
-        var chr = '';
-        var last_chr = '';
-        var token = '';
+        var char = '';
 
-        var pos = 0;
-        var len = template.length + 1;
-
-        var tag_lines = [];
         var last_line_indent = 0;
-        var line_indent = 0;
-        var indent_counter = 0;
+        var line_indent = -1;
         var indent_base = -1;
 
-        var in_content = false;
+        var tag = { class: [], attr: [] };
 
-        for (pos = 0; pos < len; pos++) {
+        for (var pos = 0, len = template.length + 1; pos < len; pos++) {
 
-            last_chr = chr;
-            chr = template.charAt(pos);
-
-            // detect line start and indent
-            if (token == '') {
-                if (chr == '\t' || chr == ' ') {
-                    indent_counter++;
-                    continue;
-                } else {
-                    line_indent = indent_counter;
-                    indent_counter = 0;
+            // get line indent
+            if (line_indent == -1) {
+                var indent_counter = 0;
+                for (; pos < len; pos++) {
+                    char = template.charAt(pos);
+                    if (char == '\t' || char == ' ') {
+                        indent_counter++;
+                    } else {
+                        // use first line's indent as base
+                        if (indent_base == -1) indent_base = indent_counter;
+                        line_indent = indent_counter - indent_base;
+                        break;
+                    }
                 }
             }
 
-            if (chr == ':') {
-                in_content = true;
-            }
+            // start a line
+            char = template.charAt(pos);
 
-            // line end
-            if ('\r\n'.includes(chr) || chr == '' || (chr == '>' && !in_content)) {
-
-                // drop blank line
-                if (token == '') {
-                    line_indent = 0;
-                    indent_counter = 0;
-                    continue;
-                }
-
-                // use first line's indent as base
-                if (indent_base == -1)
-                    indent_base = line_indent;
-
-                line_indent -= indent_base;
-
-                // process result when go up level
+            if (char == '' || char == '\n' || char == '>') {
+                // ==> build tag
+                // build nested result if jump out
                 if (line_indent < last_line_indent)
-                    result = build_result_to_level(line_indent, tag_lines);
-
-                // expand token to tag
-                token = token.trim();
-                var tag = expand_shorthand_token(token);
-                tag_lines.push([line_indent, tag]);
-
-                token = '';
+                    result = build_result_to_level(line_indent, tag_stack);
+                // build current tag
+                tag = build_shorthand_tag(tag);
+                if (tag) tag_stack.push([line_indent, tag]);
+                // reset and start a new line
+                tag = { class: [], attr: [] };
                 last_line_indent = line_indent;
+                line_indent = char == '>' ? line_indent + 2 : -1;
+            } else if (char == ':') {
+                // ==> content section
+                var newline_pos = template.indexOf('\n', pos);
+                if (newline_pos < 0) newline_pos = len - 1;
+                tag.content = template.substring(pos + 1, newline_pos);
+                pos = newline_pos - 1;  // -1 to trigger end of line char
+            } else if ('.#['.includes(char)) {
+                // ==> tag attributes
+                pos = read_shorthand_segment(char, pos, len, template, tag);
 
-                // inline indent with >
-                if (chr == '>') {
-                    indent_counter = line_indent + 1;
-                }
-
-                // end
-                if (chr == '')
-                    result = build_result_to_level(0, tag_lines);
-
-                continue;
-
+            } else {
+                // ==> tag name
+                pos = read_shorthand_segment('', pos, len, template, tag);
             }
-
-            token += chr;
 
         }
+
+        // clear the stack
+        result = build_result_to_level(0, tag_stack);
 
         // cache the result
         _expanded_shorthand_template_cache[hash] = result;
@@ -1718,6 +1701,110 @@ var tiny = (function () {
         return result;
 
     }
+
+    function read_shorthand_segment(type, pos, len, template, tag_cache) {
+
+        var token = '';
+        var char = '';
+        var in_mustache = 0;
+        var in_attribute = false;
+
+        if (type != '') pos++; // skip the type char
+
+        for (; pos < len; pos++) {
+
+            char = template.charAt(pos);
+
+            // keep {} tokens as they are
+            if (char == '}') in_mustache--;
+            if (char == '{') in_mustache++;
+            if (in_mustache) {
+                if (char == '\n') {
+                    _error(TAG_FORMAT, 'Unexpected "\\n" at ' + pos + '. token: "' + token + '"');
+                    throw new SyntaxError(SEE_ABOVE);
+                }
+                token += char;
+                continue;
+            }
+
+            // attributes
+            if (type == '[' && char == '=') {
+                token += '="';
+                in_attribute = true;
+                continue;
+            }
+            if (in_attribute) {
+                if (char == "]") {
+                    token += '"';
+                    in_attribute = false;
+                } else {
+                    token += char;
+                    continue;
+                }
+            }
+
+            if (char == ' ' || char == '\t') continue;
+
+            if (char == '' || '.#[]:>\n'.includes(char)) {
+                if (type == '.') {
+                    tag_cache.class.push(token);
+                } else if (type == '#') {
+                    tag_cache.id = token;
+                } else if (type == '[') {
+                    tag_cache.attr.push(token);
+                    pos++;
+                } else {
+                    tag_cache.name = token;
+                }
+                pos--;  // -1 to trigger control char
+                return pos;
+            }
+
+            // read in token
+            token += char;
+
+        }
+
+    }
+
+    function build_shorthand_tag(tag) {
+
+        var tag_start = '';
+        var tag_end = '';
+
+        // build attirbutes first
+        if (tag.id) tag_start += ' id="' + tag.id + '"';
+        if (tag.class.length > 0) tag_start += ' class="' + tag.class.join(' ') + '"';
+        if (tag.attr.length > 0) tag_start += ' ' + tag.attr.join(' ');
+
+        if (!tag.name) {
+            // empty tag
+            if (tag_start == '') {
+                if (tag.content) {
+                    return { start: tag.content, end: '' };
+                } else {
+                    return false;
+                }
+            }
+            // add default tag name
+            tag.name = 'div';
+        }
+
+        tag_start = '<' + tag.name + tag_start;
+
+        if (SINGLETON_TAGS.indexOf(',' + tag.name + ',') > -1) {
+            tag_start += '/>';
+        } else {
+            tag_start += '>';
+            tag_end = '</' + tag.name + '>';
+        }
+
+        if (tag.content) tag_start += tag.content;
+
+        return { start: tag_start, end: tag_end };
+
+    }
+
 
     /**
      * Expand nested template up to given level
@@ -1740,7 +1827,7 @@ var tiny = (function () {
 
             tag = item[1];
 
-            if (tag == 'R') {
+            if (tag == true) {
                 result = item[2] + result;
                 continue;
             }
@@ -1761,146 +1848,9 @@ var tiny = (function () {
             last_level = level;
         }
 
-        lines.push([last_level, 'R', result]);
+        lines.push([last_level, true, result]);
 
         return result;
-
-    }
-
-    /**
-     * Render shorthand token to full tag string
-     */
-    function expand_shorthand_token(tag_str) {
-
-        var tag = '';
-        var open_tag = '';
-        var close_tag = '';
-        var content = '';
-        var is_singleton_tag = false;
-
-        var chr = '';
-        var last_mark = '';
-        var in_attribute = false;
-        var in_content_block = false;
-        var in_mustache = 0;
-
-        var pos = 0;
-        var len = tag_str.length + 1;
-
-        // 1-pass loop, should be faster than RegExp
-        for (pos = 0; pos < len; pos++) {
-
-            chr = tag_str.charAt(pos);
-
-            // output content block 
-            if (in_content_block) {
-                if (chr == '') break; // end of string
-                content += chr;
-                continue;
-            } else if (chr == ':') {
-                // start content block
-                in_content_block = true;
-            }
-
-            // keep our {} tokens
-            if (chr == '}') in_mustache--;
-            if (chr == '{') in_mustache++;
-            if (in_mustache) {
-                open_tag += chr;
-                continue;
-            }
-
-            // attribute block
-            if (in_attribute && !',=]\n'.includes(chr)) {
-                open_tag += chr;
-                continue;
-            }
-
-            // general checks
-            if ('#.:[\n'.includes(chr)) {
-
-                // check for tag name
-                if (open_tag == '' && chr != ':') // content block don't need a wrapper tag
-                    open_tag = 'div';
-
-                if (last_mark == '' && open_tag != '') {
-                    is_singleton_tag = SINGLETON_TAGS.indexOf(',' + open_tag + ',') > -1;
-                    tag = open_tag;
-                }
-
-                // close attribute
-                if (last_mark == '#') {
-                    open_tag += '"';
-                }
-                if (last_mark == '.' && chr != '.') {
-                    open_tag += '"';
-                }
-
-                // end the process
-                if (chr == '\n')
-                    break;
-
-            }
-
-            switch (chr) {
-
-                case '#':
-                    open_tag += ' id="';
-                    break;
-
-                case '.':
-                    open_tag += last_mark == '.' ? ' ' : ' class="';
-                    break;
-
-                case '[':
-                    in_attribute = true;
-                    open_tag += ' ';
-                    break;
-
-                case '=':
-                    open_tag += '="';
-                    break;
-
-                case ']':
-                case ',':
-                    if (last_mark == '=')
-                        open_tag += '"';
-                    if (chr == ',') {
-                        open_tag += ' ';
-                    } else {
-                        in_attribute = false;
-                    }
-                    break;
-
-                case ':':
-                case ' ':
-                    // just drop it
-                    break;
-
-                default:
-                    open_tag += chr;
-
-            }
-
-            if ('#.[]='.includes(chr)) {
-                last_mark = chr;
-            }
-
-        }
-
-        // build the complete tag
-        content = content.trim();
-
-        if (tag == '') {
-            open_tag = content;
-        } else if (is_singleton_tag) {
-            open_tag = '<' + open_tag + '/>' + content;
-        } else {
-            open_tag = '<' + open_tag + '>' + content;
-            close_tag = '</' + tag + '>';
-        }
-
-        return { start: open_tag, end: close_tag };
 
     }
 
@@ -2168,6 +2118,10 @@ var tiny = (function () {
                 }
                 break;
 
+            case 'undefined':
+                value = '{' + token + '}';
+                break;
+
             default:
                 value = '';
                 break;
@@ -2209,7 +2163,7 @@ var tiny = (function () {
                 sub_obj = child_obj;
             } else {
                 _log(TAG_FORMAT, 'Template token value is undefined: {' + key + '}');
-                sub_obj = '';
+                sub_obj = undefined;
                 return false;
             }
 

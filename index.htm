@@ -906,6 +906,7 @@
                 {(any text)} : contents inside brackets will be output directly
                 {{           : output { char
                 }}           : output } char
+            If a token's value is undefined, the token will be kept untouched.
             
             >> Special Formats
                 {key|!html} : don't encode special html chars
@@ -929,12 +930,13 @@
                 {#template-id}   : refer to a template block inside html file with id
 
             >> Shorthand Template Syntax
-                ...   : always starts with three dots mark
-                tag   : start a tag with tag name, DIV can be ommitted
-                #     : mark start of an ID
-                .     : mark start of a class
-                :     : all string between this mark to next newline char will be treated as tag content
-                >     : indicate an inline nested indent (won't work after ':' mark)
+                ...          : always starts with three dots mark
+                tag          : start a tag with tag name, DIV can be ommitted
+                #id          : mark start of an ID
+                .classname   : mark start of a class
+                [attr=val]   : mark an attribute
+                :text        : all string between this mark to next newline char will be treated as tag content
+                >            : indicate an inline nested indent (won't work after ':' mark)
             
             */
         </code></pre>
@@ -991,19 +993,19 @@
             };
 
             // shorthand template is short and clear
-            var template = '... li.item[id={id}] > .title :{title}';
+            var template = '... li #{id} .item > .title :{title}';
             var result = template._format(data);
             ASSERT('inline shorthand 1',
                 result ===
-                '&lt;li class="item" id="123456">\n' +
-                ' &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
+                '&lt;li id="123456" class="item">\n' +
+                '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '&lt;/li>\n');
             
             // complex shorthand template
             //   indents('\t' or ' ') and end-of-lines('\n') are important
             //   you can choose to use tabs or spaces, mixing them might result chaos
             template = '...' +
-                'li.item[id={id}]\n'+
+                'li.item[data={data}][ref={url}]\n'+
                 '  .title :{title}\n' +
                 '  .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE\n';
 
@@ -1011,16 +1013,16 @@
             result = template._format();
             ASSERT('shorthand -> html template',
                 result ===
-                '&lt;li class="item" id="{id}">\n' +
+                '&lt;li class="item" data="{data}" ref="{url}">\n' +
                 '  &lt;div class="title">{title}&lt;/div>\n' +
                 '  &lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
 
-            // fill in data
+            // fill in data - undefined value's token will be kept untouched
             result = result._format(data);
             ASSERT('html template -> output',
                 result ===
-                '&lt;li class="item" id="123456">\n' +
+                '&lt;li class="item" data="{data}" ref="{url}">\n' +
                 '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
