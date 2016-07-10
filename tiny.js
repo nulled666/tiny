@@ -1686,11 +1686,11 @@ var tiny = (function () {
             } else if (char == ':') {
                 // ==> content section
                 var end_pos = template.indexOf('\n', pos); // use new line as end
-                var start_pos = template.indexOf('{(', pos); // try to find {( start
+                var start_pos = template.indexOf('{[', pos); // try to find {( start
                 if (start_pos > -1 && start_pos < end_pos) {
-                    end_pos = template.indexOf(')}', start_pos); // try to find )} end
+                    end_pos = template.indexOf(']}', start_pos); // try to find )} end
                     if (end_pos < 0) {
-                        _error(TAG_FORMAT, 'Missing close ")}" from ' + start_pos + '.');
+                        _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
                         throw new SyntaxError(SEE_ABOVE);
                     }
                     end_pos = template.indexOf('\n', end_pos); // use new line after )}
@@ -1726,20 +1726,16 @@ var tiny = (function () {
         var in_mustache = 0;
         var in_attribute = false;
 
-        if (type != '') ++pos; // skip the type char
+        if (type != '')++pos; // skip the type char
 
         for (; pos < len; ++pos) {
 
             char = template.charAt(pos);
 
             // keep {} tokens as they are
-            if (char == '}') --in_mustache;
-            if (char == '{') ++in_mustache;
+            if (char == '}')--in_mustache;
+            if (char == '{')++in_mustache;
             if (in_mustache) {
-                if (char == '\n') {
-                    _error(TAG_FORMAT, 'Unexpected "\\n" at ' + pos + '. token: "' + token + '"');
-                    throw new SyntaxError(SEE_ABOVE);
-                }
                 token += char;
                 continue;
             }
@@ -1886,81 +1882,74 @@ var tiny = (function () {
 
         var parsed_token = parsed_token || {}; // Processed token cache
 
+        // no need to process
+        if (template.indexOf('{') < 0) return template;
+
         var result = '';
-        var char = '';
-        var token = '';
-        var in_mustache = 0;
-        var in_bracket = false;
+        var last_pos = 0;
+        var pos = 0;
 
         // 1-pass loop over the string, no RegExp is used
-        for (var pos = 0, len = template.length; pos < len; ++pos) {
+        while (true) {
 
-            char = template.charAt(pos);
+            // seek for {
+            pos = template.indexOf('{', last_pos);
 
-            // {( )} block
-            if (char == '{' && template.charAt(pos + 1) == '(') {
+            // ==> end - append rest of the template
+            if (pos < 0) {
+                result += template.substring(last_pos);
+                break;
+            }
+
+            // add common string
+            result += template.substring(last_pos, pos);
+
+            // ==> {[ ]} block
+            if (template.charAt(pos + 1) == '[') {
                 var start_pos = pos + 2;
-                var end_pos = template.indexOf(')}', start_pos);
+                var end_pos = template.indexOf(']}', start_pos);
                 if (end_pos < 0) {
-                    _error(TAG_FORMAT, 'Missing close ")}" from ' + start_pos + '.');
+                    _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
                     throw new SyntaxError(SEE_ABOVE);
                 }
                 result += template.substring(start_pos, end_pos);
-                pos = end_pos;
+                last_pos = end_pos + 2;
                 continue;
             }
 
-            // {{ and }}
-            if (char == '{' && template.charAt(pos + 1) == '{' || char == '}' && template.charAt(pos + 1) == '}') {
-                result += char;
-                ++pos;
-                continue;
+            // ==> tokens - seek close
+            last_pos = pos;
+            pos = template.indexOf('}', last_pos);
+
+            // close } not found
+            if (pos < 0) {
+                _error(TAG_FORMAT, 'Missing close "}" from ' + last_pos + '.');
+                throw new SyntaxError(SEE_ABOVE);
             }
 
-            // tokens
-            if (char == '{') {
+            // get token
+            var token = template.substring(last_pos + 1, pos);
 
-                // ==> token start
-                ++in_mustache;
-
-            } else if (char == '}') {
-
-                // ==> token end
-                if (in_mustache) {
-                    if (token.startsWith('?') || token.startsWith('!')) {
-                        // ==> {?key}{/?key} & {!key}{/!key}
-                        var r = parse_conditional_block(token, pos + 1, template, data_obj); // pos+1 to skip the }
-                        result = result + '\n' + r.output + '\n';
-                        pos = r.end;   // move to block ending
-                    } else if (token.startsWith('#')) {
-                        // ==> {#template-id}
-                        result += format_template(token, data_obj, parsed_token);
-                    } else {
-                        // ==> render tokens - ignore block close token
-                        if (!token.startsWith('/'))
-                            result += render_token(token, data_obj, parsed_token);
-                    }
-                    token = '';
-                    --in_mustache;
-                }
-
+            // parse token
+            if (token.startsWith('?') || token.startsWith('!')) {
+                // ==> {?key}{/?key} & {!key}{/!key}
+                var r = parse_conditional_block(token, pos + 1, template, data_obj); // pos+1 to skip the }
+                result = result + '\n' + r.output + '\n';
+                pos = r.end;   // move to block ending
+            } else if (token.startsWith('#')) {
+                // ==> {#template-id}
+                result += format_template(token, data_obj, parsed_token);
             } else {
-
-                // ==> normal chars
-                if (in_mustache) {
-                    token += char;
-                } else {
-                    result += char;
-                }
-
+                // ==> render tokens - ignore block close token
+                if (!token.startsWith('/'))
+                    result += render_token(token, data_obj, parsed_token);
             }
 
+            // move forward
+            last_pos = pos + 1;
+
         }
 
-        if (in_mustache) {
-            _error(TAG_FORMAT, 'Missing close "}" in template string.');
-            throw new SyntaxError(SEE_ABOVE);
-        }
 
         // remove space-only lines
         result = result.replace(/\n[\t ]+\n/g, '\n\n');
@@ -2026,6 +2015,11 @@ var tiny = (function () {
      */
     function render_token(token, obj, parsed_token) {
 
+        if (token.indexOf('\n') > -1) {
+            _error(TAG_FORMAT, 'Unexpected "\\n" in token: "' + token + '"');
+            throw new SyntaxError(SEE_ABOVE);
+        }
+
         // check cache
         var value = parsed_token[token];
         if (value != undefined)
@@ -2038,6 +2032,16 @@ var tiny = (function () {
 
         var key = token.substring(0, split_pos);
         var format = token.substring(split_pos + 1);
+        var keep_empty_token = true;
+        if (key.startsWith('*')) {
+            keep_empty_token = false;
+            key = key.replace('*', '');
+        }
+
+        if (key.indexOf('{') > -1) {
+            _error(TAG_FORMAT, 'Missing close "}" : "' + token + '"');
+            throw new SyntaxError(SEE_ABOVE);
+        }
 
         // get value by key
         if (key == '') {
@@ -2083,7 +2087,7 @@ var tiny = (function () {
                 break;
 
             case 'undefined':
-                value = '{' + token + '}';
+                value = keep_empty_token ? '{' + token + '}' : '';
                 break;
 
             default:

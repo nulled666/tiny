@@ -902,13 +902,12 @@
             /*
             >> Template Token format for value fill-in
                 {index}      : refer to data_object[index] item by index
-                {key}        : refer to data_object[key] property by key
+                {key}        : refer to data_object[key], the token will be kept if undefined
+                {*key}       : optional token, fill with '' if undefined
                 {key|format} : set format string for data_object[key]
                 {}           : fill with whole object, format with default style
                 {|format}    : fill with whole object with given 'format' string
-                {(any text)} : contents inside brackets will be output directly
-                {{           : output { char
-                }}           : output } char
+                {[any text]} : contents inside brackets will be output directly
             If a token's value is undefined, the token will be kept untouched.
             
             >> Special Formats
@@ -957,13 +956,9 @@
             result = 'It says: "{|-14.}"'._format(str);
             ASSERT('cut start', result === 'It says: "...ooooong string"');
 
-            // keep {}
-            result = 'Use {{token}} to fill value {token}'._format({token: 123});
-            ASSERT('keep {}', result === 'Use {token} to fill value 123');
-
-            // output text directly
-            result = '{(Output {token} text\n with new line)}'._format({token: 123});
-            ASSERT('{(output text)}', result === 'Output {token} text\n with new line');
+            // output text and keep { } inside
+            result = '{[Output {token} text\n with new line]}'._format({token: 123});
+            ASSERT('{[output text]}', result === 'Output {token} text\n with new line');
 
             var my_items = {
                 book: { price: 1299.99,
@@ -1005,9 +1000,9 @@
                 '&lt;/li>\n');
                 
             template = '...' +
-                'li #{id} .item :{(\n' +
+                'li #{id} .item :{[\n' +
                 '  Output {token} text\n' +
-                '  with new line)}\n' +
+                '  with new line]}\n' +
                 '  b :Though this might mess up';
             result = template._format(data);
             ASSERT('inline shorthand 2',
@@ -1022,7 +1017,7 @@
             //   indents('\t' or ' ') and end-of-lines('\n') are important
             //   you can choose to use tabs or spaces, mixing them might result chaos
             template = '...' +
-                'li.item[data={data}][ref={url}]\n'+
+                'li.item[data={*data}][ref={url}]\n'+
                 '  .title :{title}\n' +
                 '  .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE\n';
 
@@ -1030,16 +1025,17 @@
             result = template._format();
             ASSERT('shorthand -> html template',
                 result ===
-                '&lt;li class="item" data="{data}" ref="{url}">\n' +
+                '&lt;li class="item" data="{*data}" ref="{url}">\n' +
                 '  &lt;div class="title">{title}&lt;/div>\n' +
                 '  &lt;div class="tags">{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
 
-            // fill in data - undefined value's token will be kept untouched
+            // fill in data
+            // undefined value's token will be kept untouched unless it's optional (start with *)
             result = result._format(data);
             ASSERT('html template -> output',
                 result ===
-                '&lt;li class="item" data="{data}" ref="{url}">\n' +
+                '&lt;li class="item" data="" ref="{url}">\n' +
                 '  &lt;div class="title">Plan A &amp;amp; B&lt;/div>\n' +
                 '  &lt;div class="tags">7 TASKS &lt;i>/&lt;/i> 9 PEOPLE&lt;/div>\n' +
                 '&lt;/li>\n');
@@ -1172,9 +1168,9 @@
             &lt;script type="text/x-template" id="tpl-missing-mustache">
                 &lt;div class="{state">{title} &lt;/div>
             &lt;/script>
-            &lt;!-- Missing close ')}' => SyntaxError -->
+            &lt;!-- Missing close ']}' => SyntaxError -->
             &lt;script type="text/x-template" id="tpl-missing-bracket">
-                &lt;div class="{state}">{(Use {token} to
+                &lt;div class="{state}">{[Use {token} to
                 replace} &lt;/div>
             &lt;/script>
             &lt;!-- Missing close '{/?token}' => SyntaxError -->
@@ -1182,13 +1178,13 @@
                 {?has_state}
                 &lt;div class="{state}">
                     {?has_state}
-                    {(Use {token} to replace)}
+                    {[Use {token} to replace]}
                     {/?has_state}
                 &lt;/div>
                 {/?has_token}  &lt;!-- wrong close token -->
             &lt;/script>
         </code></pre>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
+        <pre class="collapse run-code stop"><code class="error-test language-javascript">
             // Detailed error information can be found in console
 
             // TypeError : invalid parameter types
@@ -1221,7 +1217,15 @@
             }catch(err){
                 ASSERT('_format() circular reference', err instanceof ReferenceError );
             }
-            
+
+            // SyntaxError : '\n' inside token
+            try{
+                '{test\nnew_line}'._format({});
+                FAIL('_format() \\n inside');
+            }catch(err){
+                ASSERT('_format() \\n inside', err instanceof SyntaxError );
+            }
+
             // SyntaxError : a close '}' is missing
             try{
                 _format('#tpl-missing-mustache', {});
@@ -1230,12 +1234,12 @@
                 ASSERT('_format() missing }', err instanceof SyntaxError );
             }
 
-            // SyntaxError : a close ')}' is missing
+            // SyntaxError : a close ']}' is missing
             try{
                 _format('#tpl-missing-bracket', {});
-                FAIL('_format() missing )}');
+                FAIL('_format() missing ]}');
             }catch(err){
-                ASSERT('_format() missing )}', err instanceof SyntaxError );
+                ASSERT('_format() missing ]}', err instanceof SyntaxError );
             }
 
             // SyntaxError : a close '{/?token}' is missing

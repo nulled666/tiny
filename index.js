@@ -27,23 +27,26 @@ $(start);
 
 function test_code() {
 
-    // var c = 0;
+    // var c = 1000000;
 
     // console.time('find');
     // for (var i = 0; i < 1000000; i++) {
-    //     c++;
+    //     c--;
     // }
     // console.timeEnd('find');
 
-    // c = 0;
+    // c = 1000000;
     // console.time('find2');
-    // for (var i = 0; i < 1000000; ++i) {
-    //     c++;
+    // for (var i = 0; i < 1000000; i++) {
+    //     --c;
     // }
     // console.timeEnd('find2');
 
+    // var template = 'Use {[{token}]} to fill value {token}';
+    // _log(template._format({token: 123}));
 
     // return true;
+    
 }
 
 // ====== ui functions
@@ -66,6 +69,11 @@ function jump_to_error() {
 
         if (elem.prop("tagName") == 'PRE' && elem.find('.failed').length > 0) {
             elem.removeClass('collapse');
+            if(elem.find('.failed').length > 0){
+                elem.removeClass('failed');
+                jump_to_error();
+                return false;
+            }
         } else if (elem.hasClass('current')) {
             elem.removeClass('current');
             index = (index + 1) < objs.length ? index + 1 : 0;
@@ -224,6 +232,7 @@ function run_code(elem) {
     } catch (e) {
         _error_count++;
         _error('=== RUN CODE ERROR ===> ', e);
+        $(elem).addClass('failed');
     }
 
 }
@@ -231,7 +240,7 @@ function run_code(elem) {
 function show_run_code_result() {
 
     var error_counter = 0;
-    var collapsed_elems = $('.content').find(".collapse.run-code");
+    var collapsed_elems = $('.content').find(".run-code");
 
     _each(collapsed_elems, function (elem, label) {
 
