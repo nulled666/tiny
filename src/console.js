@@ -19,6 +19,7 @@ define([
         warn: _warn,
         error: _error,
         inspect: _inspect,
+        time: pref_time,
         verbose: verbose_output
     });
 
@@ -40,6 +41,7 @@ define([
         _info = console.info.bind(window.console);
         _warn = console.warn.bind(window.console);
         _error = console.error.bind(window.console);
+        
         verbose_output(_verbose_mode);
 
     }
@@ -53,30 +55,6 @@ define([
         alert(msg);
     }
 
-    /**
-     * Enable/disable console.log & console.dir output
-     * Other console output types should never be disabled
-     * ```
-     *   tiny.verbose(true);
-     * ```
-     */
-    function verbose_output(on) {
-
-        if (on) {
-            _log = console.log.bind(window.console);
-            _dir = console.dir.bind(window.console);
-            _warn(G.TAG_TINY, '_log() & _dir() output is enabled');
-        } else {
-            _log = _dir = tiny.noop;
-            _info(G.TAG_TINY, '_log() & _dir() output is disabled');
-        }
-
-        if (G.INJECT_GLOBAL) {
-            window._log = _log;
-            window._dir = _dir;
-        }
-
-    }
 
     /**
      * Expand object to an JSON string
@@ -115,4 +93,50 @@ define([
 
     }
 
+    // privates for pref_time()
+    var _pref_time = {};
+    var _perf = window.performance || {};
+    var _perf_now = window.performance.now
+        ? function () { return window.performance.now() }
+        : function () { return (new Date()).getTime() };
+
+    /**
+     * Get performance time
+     */
+    function pref_time(id) {
+        if (!_pref_time[id]) {
+            _pref_time[id] = _perf_now();
+        } else {
+            var time = (_perf_now() - _pref_time[id]);
+            _pref_time[id] = false;
+            return time;
+        }
+    }
+
+
+    /**
+     * Enable/disable console.log & console.dir output
+     * Other console output types should never be disabled
+     * ```
+     *   tiny.verbose(true);
+     * ```
+     */
+    function verbose_output(on) {
+
+        if (on) {
+            _log = console.log.bind(window.console);
+            _dir = console.dir.bind(window.console);
+            _warn(G.TAG_TINY, '_log() & _dir() output is enabled');
+        } else {
+            _log = _dir = tiny.fn.noop;
+            _info(G.TAG_TINY, '_log() & _dir() output is disabled');
+        }
+
+        if (G.GLOBAL_INJECTED) {
+            window._log = _log;
+            window._dir = _dir;
+        }
+
+    }
+    
 });

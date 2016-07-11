@@ -9,7 +9,7 @@ define([
 ], function (tiny) {
 
     'use strict';
-    
+
     return (window.tiny = tiny);
 
 });

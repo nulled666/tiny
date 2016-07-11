@@ -64,74 +64,7 @@
 
         <hr/>
 
-        <h2><a class="mark" name="basic-functions">Base Functions</a></h2>
-
-        <h3><a class="mark" name="console-shorthands">_log(), _dir(), ... _error()</a></h3>
-
-        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
-            <code>_warn()</code> and <code>_error()</code>.</p>
-        <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
-            and will not show the wrapper function name &amp; location in the console output.</p>
-        <pre><code class="language-javascript">
-            // enable log output
-            tiny.verbose(true);
-
-            _log(param1, param2, ...);    // == console.log(param1, param2, ...)
-            _dir(param1, param2, ...);    // == console.dir(param1, param2, ...)
-            _info(param1, param2, ...);   // == console.info(param1, param2, ...)
-            _warn(param1, param2, ...);   // == console.warn(param1, param2, ...)
-            _error(param1, param2, ...);  // == console.error(param1, param2, ...)
-        </code></pre>
-        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
-            logs.
-        </p>
-        <p>You can easily turn the console log on or off by calling <code>tiny.verbose(true)</code> in develop or production
-            environments.
-        </p>
-
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
-            // enable _log() output when you need them
-            tiny.verbose(true);
-
-            // use them as you would like the console.xxx equivalents
-            _log('Test for _log()', '----------------------------');
-            _info('Test for _dir()', null);
-            _info('Test for _info()', {title: 'Untitled', id: 1, author: 'me'});
-            _warn('Test for _warn()', 'Nothing will happen');
-            _error('Test for _error()', '----------------------------');
-        </code></pre>
-
-        <h3><a class="mark" name="inspect">_inspect()</a></h3>
-
-        <p>The <code>_inspect</code> function is a helper function for debug purpose.</p>
-        <p>It will return a formatted JSON string version of given object for inspection.</p>
-        <p>Functions and special objects might lose in this process.</p>
-        <pre class="usage"><code class="language-javascript">
-            _inspect(obj) : string
-        </code></pre>
-
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
-            var obj = {
-                id: 123,
-                view: { loaded: true,
-                        date: new Date(1467190047725) },
-                method: function(){}
-            };
-
-            var result = _inspect( obj );
-            var expected_result = JSON.stringify({
-                "id": 123,
-                "view": {
-                    "loaded": true,
-                    "date": "2016-06-29T08:47:27.725Z"
-                },
-                "method": "[Function]"
-            }, null, 4);
-            // the result should looks like expected_result
-            ASSERT('_inspect()', result == expected_result);
-        </code></pre>
+        <h2><a class="mark" name="basic-functions">Core Functions</a></h2>
 
         <h3><a class="mark" name="type">_type()</a></h3>
         <p>Get detailed object type.</p>
@@ -150,7 +83,6 @@
             ASSERT('10', _type(document.forms) == 'HTMLCollection');
             ASSERT('11', _type(document.querySelectorAll('.run-code')) == 'NodeList');
         </code></pre>
-
 
         <h3><a class="mark" name="each">_each()</a></h3>
 
@@ -324,47 +256,94 @@
                 ASSERT('_extend() parameter 2 error', err instanceof TypeError );
             }
             </code></pre>
+        
+        <hr/>
 
+        <h2><a class="mark" name="console">Console Functions</a></h2>
 
-        <h3><a class="mark" name="namespace">_namespace()</a></h3>
+        <h3><a class="mark" name="console-log">_log(), _dir(), ... _error()</a></h3>
 
-        <p>Create a namespace and return the object.</p>
-        <p>You can't create namespace with Javascript preserved keywords. The result might appear like nothing has happened.</p>
+        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
+            <code>_warn()</code> and <code>_error()</code>.</p>
+        <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
+            and will not show the wrapper function name &amp; location in the console output.</p>
         <pre><code class="language-javascript">
-            _namespace(namespace, obj) : object
-            // namespace  - a string which represent the namespace path
-            // obj        - the object which will be bind to that namespace
+            // enable log output
+            tiny.verbose(true);
+
+            _log(param1, param2, ...);    // == console.log(param1, param2, ...)
+            _dir(param1, param2, ...);    // == console.dir(param1, param2, ...)
+            _info(param1, param2, ...);   // == console.info(param1, param2, ...)
+            _warn(param1, param2, ...);   // == console.warn(param1, param2, ...)
+            _error(param1, param2, ...);  // == console.error(param1, param2, ...)
+        </code></pre>
+        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
+            logs.
+        </p>
+        <p>You can easily turn the console log on or off by calling <code>tiny.verbose(true)</code> in develop or production
+            environments.
+        </p>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            // enable _log() output when you need them
+            tiny.verbose(true);
+
+            // use them as you would like the console.xxx equivalents
+            _log('Test for _log()', '----------------------------');
+            _info('Test for _dir()', null);
+            _info('Test for _info()', {title: 'Untitled', id: 1, author: 'me'});
+            _warn('Test for _warn()', 'Nothing will happen');
+            _error('Test for _error()', '----------------------------');
+        </code></pre>
+
+
+        <h3><a class="mark" name="inspect">_inspect()</a></h3>
+
+        <p>The <code>_inspect</code> function is a helper function for debug purpose.</p>
+        <p>It will return a formatted JSON string version of given object for inspection.</p>
+        <p>Functions and special objects might lose in this process.</p>
+        <pre class="usage"><code class="language-javascript">
+            _inspect(obj) : string
         </code></pre>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
-            // just create a blank namespace
-            _namespace('my.project');
-            ASSERT('_namespace() create blank', FLAT(my.project) === '{}' );
+            var obj = {
+                id: 123,
+                view: { loaded: true,
+                        date: new Date(1467190047725) },
+                method: function(){}
+            };
 
-            // add something to it
-            var ns_obj = _namespace('my.project.lib', { id: 1, type: 'blank' });
-            ASSERT('_namespace() add child', my.project.lib.id === 1);
-            ASSERT('_namespace() extension value', ns_obj.type === 'blank');
+            var result = _inspect( obj );
+            var expected_result = JSON.stringify({
+                "id": 123,
+                "view": {
+                    "loaded": true,
+                    "date": "2016-06-29T08:47:27.725Z"
+                },
+                "method": "[Function]"
+            }, null, 4);
+            // the result should looks like expected_result
+            ASSERT('_inspect()', result == expected_result);
         </code></pre>
 
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
-            // A TypeError will be thrown on invalid parameter types
-            // Detailed information can be found in console
-            try{
-                _namespace(['error test', 1]);
-                FAIL('_namespace() parameter 1 error');
-            }catch(err){
-                ASSERT('_namespace() parameter 1 error', err instanceof TypeError);
-            }
-            try{
-                _namespace('ex.test.2', 'error test 2');
-                FAIL('_namespace() parameter 2 error');
-            }catch(err){
-                ASSERT('_namespace() parameter 2 error', err instanceof TypeError);
-            }
-            </code></pre>
+        <h3><a class="mark" name="console-log">time()</a></h3>
+
+        <p>A timing function for evaluating script running performance. It uses <code>window.performance.now()</code> if avaiblable.</p>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            // call with an id to record start time
+            _time('test');
+
+            setTimeout(function(){
+                // call with the same id a second time to get time diff in milliseconds
+                _warn('Test Timer:', _time('test'), 'ms');
+            }, 500);
+        </code></pre>
+
 
         <hr/>
 

@@ -9,7 +9,6 @@ define([
     //////////////////////////////////////////////////////////
 
     var tiny = {};
-
     var _prototype_extensions = [];
 
     // extend the tiny object
@@ -18,15 +17,14 @@ define([
         import: inject_globals,
         me: show_tiny_definition,
 
-        noop: _noop,
         type: _type,
         each: _each,
         extend: _extend,
-        namespace: _namespace,
 
         // functions shared by internal functions
         fn: {
             add: add_to_tiny,
+            noop: noop,
             getFuncName: get_function_name
         }
 
@@ -82,7 +80,7 @@ define([
     */
     function inject_globals() {
 
-        G.INJECT_G = true;
+        G.GLOBAL_INJECTED = true;
 
         var win = window;
 
@@ -129,11 +127,11 @@ define([
         // show the namespace
         _warn('tiny = ' + _inspect(tiny, ['fn', 'consts']));
 
-        // show G objects
-        if (_injected_Gs !== true) return;
+        // show global objects
+        if (G.GLOBAL_INJECTED !== true) return;
 
         var win = window;
-        var result = 'Injected G objects:';
+        var result = 'Injected global objects:';
 
         _each(tiny, function (item, label) {
 
@@ -161,8 +159,6 @@ define([
     }
 
 
-
-
     //////////////////////////////////////////////////////////
     // CORE FUNCTIONS
     //////////////////////////////////////////////////////////
@@ -170,7 +166,8 @@ define([
     /**
      * A blank no-operation placeholder function
      */
-    function _noop() { }
+    function noop() { }
+
 
     /**
      * Get exact type of an object
@@ -318,44 +315,6 @@ define([
         return target;
 
     }
-
-
-    var TAG_NS = '_namespace()' + G.TAG_SUFFIX;
-    /**
-     * Create and bind a namespace
-     * ```
-     *    _namespace('my.project');  // just create the namespace object
-     *    _namespace('my.project.lib', {nothing: true});
-     * ```
-     */
-    function _namespace(ns_string, ext) {
-
-        if (typeof ns_string != 'string') {
-            console.error(TAG_NS, 'Expect a namespace string. > Got "' + typeof ns_string + '": ', ns_string);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
-        var ns_parts = ns_string.split('.');
-        var parent_ns = window;
-
-        for (var i = 0, len = ns_parts.length; i < len; ++i) {
-
-            var name = ns_parts[i];
-
-            if (!parent_ns[name])
-                parent_ns[name] = {};
-
-            parent_ns = parent_ns[name];
-
-        }
-
-        // apply extensions if given
-        if (ext) _extend(parent_ns, ext);
-
-        return parent_ns;
-
-    }
-
 
     return tiny;
 

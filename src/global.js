@@ -3,7 +3,7 @@ define(function () {
 
     return {
 
-        INJECT_GLOBAL: false,
+        GLOBAL_INJECTED: false,
 
         TAG_TINY: 'tiny ::',
         TAG_SUFFIX: ' :: ',
