@@ -3,7 +3,6 @@ requirejs(["src/tiny"], start);
 function start() {
 
     tiny.import();
-    tiny.verbose(true);
 
     build_content_table();
 
@@ -194,7 +193,9 @@ function run_all_code() {
 
 function run_code(elem) {
 
-    var code = $(elem).text();
+    elem = $(elem);
+
+    var code = elem.text();
 
     if ($(elem).hasClass('html')) {
         var html_fragment = $(code);
@@ -203,7 +204,7 @@ function run_code(elem) {
     }
 
     code = '\
-        var code_block = $(arguments[0]);\
+        var code_block = arguments[0];\
         var assert_index = 0;\
         var assert_list = code_block.find(".function:contains(ASSERT)");\
         var test_result = true;\
@@ -226,6 +227,8 @@ function run_code(elem) {
         var FAIL = function(txt){ ASSERT(txt, false); };\
         ' + code;
 
+    tiny.verbose('info');
+
     try {
         var func = new Function(code);
         func(elem, 'this', 'is', 'a', 'test');
@@ -237,6 +240,7 @@ function run_code(elem) {
         $(elem).addClass('failed');
     }
 
+    tiny.verbose('all');
 }
 
 function show_run_code_result() {

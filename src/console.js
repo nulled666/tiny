@@ -9,21 +9,17 @@ define([
     //////////////////////////////////////////////////////////
     var _log, _dir, _info, _warn, _error;
 
-    // assgin immediately
-    assign_console_shorthand();
 
     tiny.fn.add({
-        log: _log,
-        dir: _dir,
-        info: _info,
-        warn: _warn,
-        error: _error,
         inspect: _inspect,
         time: pref_time,
-        verbose: verbose_output
+        verbose: verbose_level
     });
 
-    var _verbose_mode = false;
+    var DEFAULT_VERBOSE = 'warn|error';
+    var con = console;
+
+    assign_console_shorthand();
 
     /**
      * Assign the console shorthands
@@ -38,11 +34,7 @@ define([
                 console[item] = console_method_polyfill;
         });
 
-        _info = console.info.bind(window.console);
-        _warn = console.warn.bind(window.console);
-        _error = console.error.bind(window.console);
-        
-        verbose_output(_verbose_mode);
+        verbose_level();
 
     }
 
@@ -55,6 +47,10 @@ define([
         alert(msg);
     }
 
+    /**
+     * A blank no-operation placeholder function
+     */
+    function noop() { }
 
     /**
      * Expand object to an JSON string
@@ -115,28 +111,43 @@ define([
 
 
     /**
-     * Enable/disable console.log & console.dir output
-     * Other console output types should never be disabled
+     * Enable/disable console method output
      * ```
-     *   tiny.verbose(true);
+     *   tiny.verbose('none');          // disable all
+     *   tiny.verbose('all');       // enable all = 'log|info|warn|error', 'log' flag includes dir()
+     *   tiny.verbose('log|error'); // console.log() & console.error() only
+     *   tiny.verbose();            // default = 'warn|error' only
      * ```
      */
-    function verbose_output(on) {
+    function verbose_level(on) {
 
-        if (on) {
-            _log = console.log.bind(window.console);
-            _dir = console.dir.bind(window.console);
-            _warn(G.TAG_TINY, '_log() & _dir() output is enabled');
-        } else {
-            _log = _dir = tiny.fn.noop;
-            _info(G.TAG_TINY, '_log() & _dir() output is disabled');
-        }
+        on = on == undefined || typeof on != 'string' ? DEFAULT_VERBOSE :
+            on == 'none' ? '' :
+                on == 'all' ? 'log|info|warn|error' :
+                    on;
+
+        _log = on.includes('log') ? con.log.bind(con) : noop;
+        _dir = on.includes('log') ? con.dir.bind(con) : noop;
+        _info = on.includes('info') ? con.info.bind(con) : noop;
+        _warn = on.includes('warn') ? con.warn.bind(con) : noop;
+        _error = on.includes('error') ? con.error.bind(con) : noop;
+
+        tiny.fn.add({
+            log: _log,
+            dir: _dir,
+            info: _info,
+            warn: _warn,
+            error: _error
+        });
 
         if (G.GLOBAL_INJECTED) {
             window._log = _log;
             window._dir = _dir;
+            window._info = _info;
+            window._warn = _warn;
+            window._error = _error;
         }
 
     }
-    
+
 });

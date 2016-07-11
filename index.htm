@@ -42,7 +42,7 @@
         <p>A typical initialization code with Tiny sequence looks like this:</p>
         <pre><code class="language-javascript">
            tiny.import();                        // import functions & methods
-           tiny.verbose(false);                  // disable _log() & _dir() output in production environment
+           tiny.verbose('error');                // output errors only in production environment
            _storage.keyPrefix = 'my_app';        // set storage key prefix
 
            var lang = _storage('lang');          // get user language setting
@@ -267,16 +267,6 @@
             <code>_warn()</code> and <code>_error()</code>.</p>
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
-        <pre><code class="language-javascript">
-            // enable log output
-            tiny.verbose(true);
-
-            _log(param1, param2, ...);    // == console.log(param1, param2, ...)
-            _dir(param1, param2, ...);    // == console.dir(param1, param2, ...)
-            _info(param1, param2, ...);   // == console.info(param1, param2, ...)
-            _warn(param1, param2, ...);   // == console.warn(param1, param2, ...)
-            _error(param1, param2, ...);  // == console.error(param1, param2, ...)
-        </code></pre>
         <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
             logs.
         </p>
@@ -287,12 +277,12 @@
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             // enable _log() output when you need them
-            tiny.verbose(true);
+            tiny.verbose('all');
 
             // use them as you would like the console.xxx equivalents
             _log('Test for _log()', '----------------------------');
-            _info('Test for _dir()', null);
-            _info('Test for _info()', {title: 'Untitled', id: 1, author: 'me'});
+            _dir('Test for _dir()', {title: 'Untitled', id: 1, author: 'me'});
+            _info('Test for _info()', null );
             _warn('Test for _warn()', 'Nothing will happen');
             _error('Test for _error()', '----------------------------');
         </code></pre>

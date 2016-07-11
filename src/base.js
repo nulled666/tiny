@@ -24,7 +24,6 @@ define([
         // functions shared by internal functions
         fn: {
             add: add_to_tiny,
-            noop: noop,
             getFuncName: get_function_name
         }
 
@@ -36,6 +35,9 @@ define([
         [String, { _each: each_extension }]
     ]);
     function each_extension(start, func, this_arg) { return _each(this.valueOf(), start, func, this_arg) }
+
+    // a quick reference to console object
+    var con = console;
 
     /**
      * Add entry to _tiny_definition
@@ -85,7 +87,7 @@ define([
         var win = window;
 
         if (!win) {
-            console.error(G.TAG_TINY, 'window object is not available. global functions will not be registered.');
+            con.error(G.TAG_TINY, 'window object is not available. global functions will not be registered.');
             return;
         }
 
@@ -95,7 +97,7 @@ define([
             if (SKIP_GLOBAL.includes(label)) return;
 
             if (win['_' + label] !== undefined) {
-                console.error(G.TAG_TINY, 'global function name already taken : ', '_' + label);
+                con.error(G.TAG_TINY, 'global function name already taken : ', '_' + label);
                 throw new Error(G.SEE_ABOVE);
             }
 
@@ -107,7 +109,7 @@ define([
         _each(_prototype_extensions, function (item, index) {
 
             if (typeof item[0] !== 'function') {
-                console.error(G.TAG_TINY, 'Prototype not found : ', item[0]);
+                con.error(G.TAG_TINY, 'Prototype not found : ', item[0]);
                 throw new Error(G.SEE_ABOVE);
             }
 
@@ -115,7 +117,7 @@ define([
 
         })
 
-        console.info(G.TAG_TINY, 'global objects imported.');
+        con.info(G.TAG_TINY, 'global objects imported.');
 
     }
 
@@ -125,14 +127,13 @@ define([
     function show_tiny_definition() {
 
         // show the namespace
-        _warn('tiny = ' + _inspect(tiny, ['fn', 'consts']));
+        con.info('tiny = ' + _inspect(tiny, ['fn', 'consts']));
 
         // show global objects
         if (G.GLOBAL_INJECTED !== true) return;
 
         var win = window;
         var result = 'Injected global objects:';
-
         _each(tiny, function (item, label) {
 
             if (SKIP_GLOBAL.includes(label)) return;
@@ -142,11 +143,10 @@ define([
 
             result += '\n_' + label + ' = ' + value;
         });
-        _warn(result);
+        con.info(result);
 
         // show prototype extensions
         result = 'Injected prototype extensions:';
-
         _each(_prototype_extensions, function (item, label) {
 
             var name = get_function_name(item[0]);
@@ -154,7 +154,7 @@ define([
 
             result += '\n' + name + '.prototype + ' + value;
         });
-        _warn(result);
+        con.info(result);
 
     }
 
@@ -162,12 +162,6 @@ define([
     //////////////////////////////////////////////////////////
     // CORE FUNCTIONS
     //////////////////////////////////////////////////////////
-
-    /**
-     * A blank no-operation placeholder function
-     */
-    function noop() { }
-
 
     /**
      * Get exact type of an object
@@ -208,7 +202,7 @@ define([
         }
 
         if (typeof func !== 'function') {
-            console.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
+            con.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -265,7 +259,7 @@ define([
 
         } else {
 
-            console.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
+            con.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
 
         }
@@ -294,11 +288,11 @@ define([
         // Don't extend non-objects
         var type = typeof target;
         if (type !== 'object' && type !== 'function') {
-            console.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
+            con.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
             throw new TypeError(G.SEE_ABOVE);
         }
         if (typeof extensions !== 'object') {
-            console.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
+            con.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
             throw new TypeError(G.SEE_ABOVE);
         }
 
