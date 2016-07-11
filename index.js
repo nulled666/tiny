@@ -1,3 +1,5 @@
+requirejs(["src/tiny"], start);
+
 function start() {
 
     tiny.import();
@@ -22,8 +24,6 @@ function start() {
     });
 
 }
-
-$(start);
 
 function test_code() {
 
