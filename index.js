@@ -46,7 +46,7 @@ function test_code() {
     // _log(template._format({token: 123}));
 
     // return true;
-    
+
 }
 
 // ====== ui functions
@@ -69,7 +69,7 @@ function jump_to_error() {
 
         if (elem.prop("tagName") == 'PRE' && elem.find('.failed').length > 0) {
             elem.removeClass('collapse');
-            if(elem.find('.failed').length > 0){
+            if (elem.find('.failed').length > 0) {
                 elem.removeClass('failed');
                 jump_to_error();
                 return false;
@@ -231,7 +231,9 @@ function run_code(elem) {
         func(elem, 'this', 'is', 'a', 'test');
     } catch (e) {
         _error_count++;
-        _error('=== RUN CODE ERROR ===> ', e);
+        setTimeout(function () {
+            _error('=== RUN CODE ERROR ===> ', e);
+        }, 500);
         $(elem).addClass('failed');
     }
 

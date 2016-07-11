@@ -261,7 +261,7 @@
 
         <h2><a class="mark" name="console">Console Functions</a></h2>
 
-        <h3><a class="mark" name="console-log">_log(), _dir(), ... _error()</a></h3>
+        <h3><a class="mark" name="console-log">_log() ... _error()</a></h3>
 
         <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
             <code>_warn()</code> and <code>_error()</code>.</p>
@@ -329,7 +329,7 @@
             ASSERT('_inspect()', result == expected_result);
         </code></pre>
 
-        <h3><a class="mark" name="console-log">time()</a></h3>
+        <h3><a class="mark" name="time">_time()</a></h3>
 
         <p>A timing function for evaluating script running performance. It uses <code>window.performance.now()</code> if avaiblable.</p>
 
@@ -341,7 +341,7 @@
             setTimeout(function(){
                 // call with the same id a second time to get time diff in milliseconds
                 _warn('Test Timer:', _time('test'), 'ms');
-            }, 500);
+            }, 200);
         </code></pre>
 
 
@@ -802,13 +802,18 @@
         <h2><a class="mark" name="i18n">Internationalize</a></h2>
         <p>Tiny provides a set of simple functions to make i18n easier.</p>
 
-        <h3><a class="mark" name="lang-strings">_lang.strings</a></h3>
-        <p>The language strings object.</p>
-        <p><code>_lang()</code> function will read string from it, you can modify it whatever you want.</p>
-        <p>The section with the same value of <code>_lang.default</code> must exist.</p>
+        <h3><a class="mark" name="lang">_lang()</a></h3>
+        <p>Get a string from language string set.</p>
         <pre><code class="language-javascript">
-            // default languague
-            _lang.default = 'en';
+            _lang(str [,lang_code])
+            // str       : the string to lookup in current language string set
+            // lang_code : the language code
+        </pre></code>
+
+        <p>The language strings should be assign to <code>_lang.strings</code>. You can modify it whatever you want. But the default section set in <code>_lang.code</code> must exist.</p>
+        <pre class="run-code"><code class="language-javascript">
+            // current languague code - default is 'en'
+            _lang.code = 'en';
 
             // language string set object
             _lang.strings = {
@@ -820,14 +825,15 @@
                 "zh-cn" : {
 
                     // these options will be set to format functions on _lang.set() call if exist
-                    'decimalDelimiter' : '.',
-                    'thousandsDelimiter' : ' ',
-                    'currencyFormat' : '¥ [.00]',
-                    'dateFormat' : 'datetime',
-                    'dateNames' : {
+                    '_decimalDelimiter' : '.',
+                    '_thousandsDelimiter' : ' ',
+                    '_currencyFormat' : '¥ [.00]',
+                    '_dateFormat' : 'datetime',
+                    '_dateNames' : {
                         day: ['周日', '周一', '周二', '周三', '周四', '周五', '周六'],
                         dayAbbr: ['日', '一', '二', '三', '四', '五', '六'],
-                        month: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                        month: ['一月', '二月', '三月', '四月', '五月', '六月',
+                                '七月', '八月', '九月', '十月', '十一月', '十二月'],
                         monthAbbr: ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'],
                         ap: ['上午', '下午']
                     },
@@ -842,14 +848,6 @@
         <p>Get a string from language string set.</p>
         <pre><code class="language-javascript">
             _lang.set([lang_code])
-            // lang_code : the language code
-        </pre></code>
-
-        <h3><a class="mark" name="lang">_lang()</a></h3>
-        <p>Get a string from language string set.</p>
-        <pre><code class="language-javascript">
-            _lang(str [,lang_code])
-            // str       : the string to lookup in current language string set
             // lang_code : the language code
         </pre></code>
 
