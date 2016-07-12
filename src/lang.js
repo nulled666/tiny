@@ -9,14 +9,24 @@ define([
     // MULTILINGUE SUPPORT FUNCTIONS
     //////////////////////////////////////////////////////////
     var _lang = get_lang_string;
-    _lang.strings = {};
+
+    _lang.get = get_language;
     _lang.set = set_language;
 
     tiny.fn.add({
         lang: _lang
     });
 
-    // get language string if not empty
+    var _lang_code = 'en';
+    var _lang_strings = {
+        'en': {
+            '_name': 'English'
+        }
+    };
+
+    /**
+     * Get string of current language
+     */
     function get_lang_string(str) {
 
         var lang_str = _lang.strings[str];
@@ -30,8 +40,21 @@ define([
 
     }
 
+    /**
+     * Get current language code
+     */
+    function get_language() {
+        return _lang_code;
+    }
+
+    /**
+     * Set current language code
+     */
     function set_language(lang) {
 
+        if (_lang_code in _lang_strings)
+            _lang_code = lang;
+            
     }
 
 });

@@ -11,6 +11,9 @@ define([
     var tiny = {};
     var _prototype_extensions = [];
 
+    // skip this method when export to global namespace
+    var SKIP_GLOBAL = ',fn,consts,import,me,verbose,fnv1a,';
+
     // extend the tiny object
     add_to_tiny({
 
@@ -20,6 +23,7 @@ define([
         type: _type,
         each: _each,
         extend: _extend,
+        hash: murmur3,
 
         // functions shared by internal functions
         fn: {
@@ -72,10 +76,6 @@ define([
         return '';
 
     }
-
-
-    // skip this method when export to global namespace
-    var SKIP_GLOBAL = ',fn,consts,import,me,verbose,';
 
     /**
     * Register functions to G namespace
@@ -172,8 +172,20 @@ define([
      * ```
      */
     function _type(obj) {
-        return Object.prototype.toString.call(obj)
-            .replace('[object ', '').replace(']', '');
+
+        var type = typeof obj;
+
+        if (type == 'object') {
+            if (obj.jquery && typeof obj.get == 'function') {
+                type = 'jquery';
+            } else {
+                type = Object.prototype.toString.call(obj)
+                    .replace('[object ', '').replace(']', '')
+                    .toLowerCase();
+            }
+        }
+
+        return type;
     }
 
     var TAG_EACH = '_each()' + G.TAG_SUFFIX;
@@ -206,8 +218,8 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var ARRAY_LIKE = ',NodeList,Arguments,HTMLCollection,';
-        var OBJECT_LIKE = ',Object,Map,Function,Storage,';
+        var ARRAY_LIKE = ',nodelist,arguments,htmlcollection,';
+        var OBJECT_LIKE = ',object,map,function,storage,';
         var type = _type(obj);
 
 
@@ -223,25 +235,22 @@ define([
 
         } else if (OBJECT_LIKE.includes(type)) {
 
-            if (obj.jquery && typeof obj.get == 'function') {
-
-                // ==> jQuery Object
-                for (var i = start_index, len = obj.length; i < len; ++i) {
-                    result = func.call(this_arg, obj.get(i), i, obj);
-                    if (result !== undefined) return result;
-                }
-
-                return;
-
-            }
-
             // ==> Object
             for (var label in obj) {
                 result = func.call(this_arg, obj[label], label, obj);
                 if (result !== undefined) return result;
             }
 
-        } else if (type === 'String') {
+
+        } else if (type == 'jquery') {
+
+            // ==> jQuery Object
+            for (var i = start_index, len = obj.length; i < len; ++i) {
+                result = func.call(this_arg, obj.get(i), i, obj);
+                if (result !== undefined) return result;
+            }
+
+        } else if (type === 'string') {
 
             // ==> String
             for (var i = start_index, len = obj.length; i < len; ++i) {
@@ -249,7 +258,7 @@ define([
                 if (result !== undefined) return result;
             }
 
-        } else if (type === 'Number') {
+        } else if (type === 'number') {
 
             // ==> Number
             for (var i = start_index, len = obj; i < len; ++i) {
@@ -307,6 +316,67 @@ define([
         }
 
         return target;
+
+    }
+
+    /**
+     * 32-bit Murmur3 Hash
+     * @author <a href="mailto:gary.court@gmail.com">Gary Court</a>
+     * @see https://github.com/mikolalysenko/murmurhash-js
+     */
+    function murmur3(key, seed) {
+
+        var remainder, bytes, h1, h1b, c1, c1b, c2, c2b, k1, i;
+
+        remainder = key.length & 3; // key.length % 4
+        bytes = key.length - remainder;
+        h1 = seed;
+        c1 = 0xcc9e2d51;
+        c2 = 0x1b873593;
+        i = 0;
+
+        while (i < bytes) {
+            k1 =
+                ((key.charCodeAt(i) & 0xff)) |
+                ((key.charCodeAt(++i) & 0xff) << 8) |
+                ((key.charCodeAt(++i) & 0xff) << 16) |
+                ((key.charCodeAt(++i) & 0xff) << 24);
+            ++i;
+
+            k1 = ((((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16))) & 0xffffffff;
+            k1 = (k1 << 15) | (k1 >>> 17);
+            k1 = ((((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16))) & 0xffffffff;
+
+            h1 ^= k1;
+            h1 = (h1 << 13) | (h1 >>> 19);
+            h1b = ((((h1 & 0xffff) * 5) + ((((h1 >>> 16) * 5) & 0xffff) << 16))) & 0xffffffff;
+            h1 = (((h1b & 0xffff) + 0x6b64) + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16));
+        }
+
+        k1 = 0;
+
+        switch (remainder) {
+            case 3: k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+            case 2: k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+            case 1: k1 ^= (key.charCodeAt(i) & 0xff);
+
+                k1 = (((k1 & 0xffff) * c1) + ((((k1 >>> 16) * c1) & 0xffff) << 16)) & 0xffffffff;
+                k1 = (k1 << 15) | (k1 >>> 17);
+                k1 = (((k1 & 0xffff) * c2) + ((((k1 >>> 16) * c2) & 0xffff) << 16)) & 0xffffffff;
+                h1 ^= k1;
+        }
+
+        h1 ^= key.length;
+
+        h1 ^= h1 >>> 16;
+        h1 = (((h1 & 0xffff) * 0x85ebca6b) + ((((h1 >>> 16) * 0x85ebca6b) & 0xffff) << 16)) & 0xffffffff;
+        h1 ^= h1 >>> 13;
+        h1 = ((((h1 & 0xffff) * 0xc2b2ae35) + ((((h1 >>> 16) * 0xc2b2ae35) & 0xffff) << 16))) & 0xffffffff;
+        h1 ^= h1 >>> 16;
+
+        h1 = h1 >>> 0;
+
+        return h1;
 
     }
 

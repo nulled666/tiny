@@ -29,7 +29,7 @@
         <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
         <p>Its goal is providing a minimalist building foundation for modern App-like web pages.</p>
 
-        <h3><a class="mark" name="import">tiny.import()</a></h3>
+        <h3><a class="mark" name="import">import()</a></h3>
 
         <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace
             (the <code>window</code> object).</p>
@@ -53,7 +53,7 @@
            app.start();                          // start your app script
         </code></pre>
 
-        <h3><a class="mark" name="show-me">tiny.me()</a></h3>
+        <h3><a class="mark" name="show-me">me()</a></h3>
 
         <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global
             functions and prototype methods.</p>
@@ -70,18 +70,18 @@
         <p>Get detailed object type.</p>
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
-            ASSERT('0', _type() == 'Undefined');
-            ASSERT('1', _type(123) == 'Number');
-            ASSERT('2', _type('test') == 'String');
-            ASSERT('3', _type(/\s\t\n/) == 'RegExp');
-            ASSERT('4', _type(new Date()) == 'Date');
-            ASSERT('5', _type(function(){}) == 'Function');
-            ASSERT('6', _type({test: true}) == 'Object');
-            ASSERT('7', _type([1,2,3]) == 'Array');
-            ASSERT('8', _type(arguments) == 'Arguments');
-            ASSERT('9', _type(window) == 'Window');
-            ASSERT('10', _type(document.forms) == 'HTMLCollection');
-            ASSERT('11', _type(document.querySelectorAll('.run-code')) == 'NodeList');
+            ASSERT('0', _type() == 'undefined');
+            ASSERT('1', _type(123) == 'number');
+            ASSERT('2', _type('test') == 'string');
+            ASSERT('3', _type(/\s\t\n/) == 'regexp');
+            ASSERT('4', _type(new Date()) == 'date');
+            ASSERT('5', _type(function(){}) == 'function');
+            ASSERT('6', _type({test: true}) == 'object');
+            ASSERT('7', _type([1,2,3]) == 'array');
+            ASSERT('8', _type(arguments) == 'arguments');
+            ASSERT('9', _type(window) == 'window');
+            ASSERT('10', _type(document.forms) == 'htmlcollection');
+            ASSERT('11', _type(document.querySelectorAll('.run-code')) == 'nodelist');
         </code></pre>
 
         <h3><a class="mark" name="each">_each()</a></h3>
@@ -127,7 +127,8 @@
         for...in            9032.005ms
         </code></pre>
 
-        <p>For looping through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project, the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code> to control code flow.</p>
+        <p>For looping through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project,
+            the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code>            to control code flow.</p>
         <p>Below is a test result on an Object:</p>
         <pre><code class="language-javascript">
         Object.keys() + for()       1064.989ms    // not sure why this is slow
@@ -256,7 +257,23 @@
                 ASSERT('_extend() parameter 2 error', err instanceof TypeError );
             }
             </code></pre>
-        
+
+        <h3><a class="mark" name="hash">hash()</a></h3>
+        <p>A fast hash function for generating 32-bit hash number from a string.</p>
+        <p>Currently it's using the Murmur2 algorithm. This algorithm is designed for uniqueness not security. Don't use it for password hashing.</p>
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            
+            ASSERT('1', tiny.hash('This is a test') === 466082811);
+
+            // you can apply an integer seed
+            ASSERT('1', tiny.hash('This is a test', 5330) === 3689166302);
+
+            // kown Murmur2 collisions
+            ASSERT('collision 1', tiny.hash('costarring') !== tiny.hash('liquid'));
+
+        </code></pre>
+
         <hr/>
 
         <h2><a class="mark" name="console">Console Functions</a></h2>
@@ -321,7 +338,7 @@
 
         <h3><a class="mark" name="time">_time()</a></h3>
 
-        <p>A timing function for evaluating script running performance. It uses <code>window.performance.now()</code> if avaiblable.</p>
+        <p>A timing function for evaluating performance. It uses <code>window.performance.now()</code> if avaiblable.</p>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
@@ -794,25 +811,36 @@
 
         <h3><a class="mark" name="lang">_lang()</a></h3>
         <p>Get a string from language string set.</p>
+        <p>Undefined strings will be collected in a list <code>_lang.missing</code> in runtime, this will make finding missing
+            language strings easier.</p>
         <pre><code class="language-javascript">
             _lang(str [,lang_code])
             // str       : the string to lookup in current language string set
             // lang_code : the language code
         </pre></code>
+            <pre><code class="language-javascript">
+        </pre></code>
 
-        <p>The language strings should be assign to <code>_lang.strings</code>. You can modify it whatever you want. But the default section set in <code>_lang.code</code> must exist.</p>
-        <pre class="run-code"><code class="language-javascript">
+                <p>The language strings should be assign to <code>_lang.strings</code>. You can modify it whatever you want.
+                    But the default section set in <code>_lang.code</code> must exist.</p>
+                <pre class="run-code"><code class="language-javascript">
             // current languague code - default is 'en'
+            // please use 
             _lang.code = 'en';
 
-            // language string set object
+            // assign set object
             _lang.strings = {
 
                 // default = 'en'
-                "en" : { "hello" : "Hello!" },
+                "en" : {
+                    '_name' : 'English',
+                    "hello" : "Hello!"
+                },
 
                 // Simplified Chinese - 'zh-cn'
                 "zh-cn" : {
+
+                    '_name' : '简体中文',
 
                     // these options will be set to format functions on _lang.set() call if exist
                     '_decimalDelimiter' : '.',
@@ -831,28 +859,30 @@
                     // here goes your language strings
                     'hello' : "你好!"
                 }
-            }
+            };
+
+
         </pre></code>
 
-        <h3><a class="mark" name="lang-set">_lang.set()</a></h3>
-        <p>Get a string from language string set.</p>
-        <pre><code class="language-javascript">
+                    <h3><a class="mark" name="lang-set">_lang.set()</a></h3>
+                    <p>Get a string from language string set.</p>
+                    <pre><code class="language-javascript">
             _lang.set([lang_code])
             // lang_code : the language code
         </pre></code>
 
 
-        <hr/>
+                        <hr/>
 
-        <h2><a class="mark" name="format-func">Format Template</a></h2>
+                        <h2><a class="mark" name="format-func">Format Template</a></h2>
 
-        <h3><a class="mark" name="format-format">_format()</a></h3>
+                        <h3><a class="mark" name="format-format">_format()</a></h3>
 
-        <p>Simply yet powerful enough format function with template support.</p>
-        <p>This function support both normal html templates and the shorthand templates.</p>
-        <p>Templates are parsed in a one-time loop over the string. In favor of performance, no RegExp is used.</p>
-        <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
-        <pre><code class="language-javascript">
+                        <p>Simply yet powerful enough format function with template support.</p>
+                        <p>This function support both normal html templates and the shorthand templates.</p>
+                        <p>Templates are parsed in a one-time loop over the string. In favor of performance, no RegExp is used.</p>
+                        <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
+                        <pre><code class="language-javascript">
             _format(template, data_object);
             // template    : the template string
             // data_object : an object contains data you want to fill into the template
@@ -910,8 +940,8 @@
             */
         </code></pre>
 
-        <h4>EXAMPLES - SIMPLE FORMAT</h4>
-        <pre class="run-code"><code class="language-javascript">
+                        <h4>EXAMPLES - SIMPLE FORMAT</h4>
+                        <pre class="run-code"><code class="language-javascript">
             // use whole data object and format with 'DD'
             var result = _format('Today is {|DD}.', new Date(1118102950753));
             ASSERT('date', result === 'Today is Tuesday.');
@@ -948,8 +978,8 @@
             ASSERT('keep html', result === 'Click &lt;a href="#">HERE&lt;/a>');
         </code></pre>
 
-        <h4>EXAMPLES - SHORTHAND TEMPLATE</h4>
-        <pre class="run-code"><code class="language-javascript">
+                        <h4>EXAMPLES - SHORTHAND TEMPLATE</h4>
+                        <pre class="run-code"><code class="language-javascript">
             var data = {
                 id: 123456,
                 title: 'Plan A & B',
@@ -1008,8 +1038,8 @@
                 '&lt;/li>\n');
         </code></pre>
 
-        <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
-        <pre class="run-code html"><code class="language-html">
+                        <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
+                        <pre class="run-code html"><code class="language-html">
             &lt;!--
             ****** TEMPLATES IN HTML FILE ******
             Templates must be placed inside &lt;script> tags to keep indents, tags and invisible.
@@ -1062,7 +1092,7 @@
                 .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
         </code></pre>
-        <pre class="run-code"><code class="language-javascript">
+                        <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
 
         // returns expanded HTML template string if no data object is given
@@ -1127,8 +1157,8 @@
             '&lt;/div>\n');
         </code></pre>
 
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code html"><code class="error-test language-html">
+                        <h4>ERROR TESTS</h4>
+                        <pre class="collapse run-code html"><code class="error-test language-html">
             &lt;!-- HTML CONTENT FOR ERROR TESTS -->
 
             &lt;!-- Missing close '}' => SyntaxError -->
@@ -1151,7 +1181,7 @@
                 {/?has_token}  &lt;!-- wrong close token -->
             &lt;/script>
         </code></pre>
-        <pre class="collapse run-code stop"><code class="error-test language-javascript">
+                        <pre class="collapse run-code stop"><code class="error-test language-javascript">
             // Detailed error information can be found in console
 
             // TypeError : invalid parameter types
@@ -1217,17 +1247,17 @@
                 ASSERT('_format() missing close {/?token}}', err instanceof SyntaxError );
             }
         </code></pre>
-        
-        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
-        <p>Make a string HTML-safe.</p>
-        <pre><code class="language-javascript">
+
+                        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
+                        <p>Make a string HTML-safe.</p>
+                        <pre><code class="language-javascript">
             _htmlSafe(str [, keep_spaces]);
 
             String._htmlSafe([keep_spaces]);
         </code></pre>
 
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
+                        <h4>EXAMPLES</h4>
+                        <pre class="run-code"><code class="language-javascript">
             var txt = 'task:\n  >> done';
 
             ASSERT('1', _htmlSafe(txt) === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
@@ -1238,8 +1268,8 @@
             ASSERT('4', txt._htmlSafe(true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
         </code></pre>
 
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
+                        <h4>ERROR TESTS</h4>
+                        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -1250,10 +1280,10 @@
             }
         </code></pre>
 
-        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
+                        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
 
-        <p>Number format function.</p>
-        <pre><code class="language-javascript">
+                        <p>Number format function.</p>
+                        <pre><code class="language-javascript">
             _formatNumber(num[, format]);
             
             Number._format([format]);
@@ -1276,8 +1306,8 @@
             // 'X'    = uppercase HEX
         </code></pre>
 
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
+                        <h4>EXAMPLES</h4>
+                        <pre class="run-code"><code class="language-javascript">
             var num = 123456.789;
 
             ASSERT('1', num._format() == '123456.789');
@@ -1310,8 +1340,8 @@
             
         </code></pre>
 
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
+                        <h4>ERROR TESTS</h4>
+                        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -1328,10 +1358,10 @@
             }
         </code></pre>
 
-        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
+                        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
 
-        <p>Date format function.</p>
-        <pre><code class="language-javascript">
+                        <p>Date format function.</p>
+                        <pre><code class="language-javascript">
             // you can use localized date names by replacing this data object
             _format.dateNames = {
                 day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -1370,8 +1400,8 @@
             // 't'    = AM,    // AM / PM
         </code></pre>
 
-        <h4>EXAMPLES</h4>
-        <pre class="run-code"><code class="language-javascript">
+                        <h4>EXAMPLES</h4>
+                        <pre class="run-code"><code class="language-javascript">
             var d = new Date(1118102950753);
             ASSERT('0', d._format() === '2005-06-07 08:09:10');
             ASSERT('1', d._format('datetime') === '2005-06-07 08:09:10');
@@ -1388,8 +1418,8 @@
             ASSERT('mix', d._format('[D, d MMM yyyy H:m:s] GMT[zz]') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
         </code></pre>
 
-        <h4>ERROR TESTS</h4>
-        <pre class="collapse run-code"><code class="error-test language-javascript">
+                        <h4>ERROR TESTS</h4>
+                        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{

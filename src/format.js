@@ -489,22 +489,11 @@ define([
     ////////////////////////////////////////////////////
 
     /**
-     * Fast Hash function for cache id - https://github.com/darkskyapp/string-hash
-     */
-    function __fast_hash(str) {
-        var hash = 5381, i = str.length;
-        while (i) {
-            hash = (hash * 33) ^ str.charCodeAt(--i);
-        }
-        return hash;
-    }
-
-    /**
     * Expand Shorthand Template to HTML Template 2
     */
     function expand_shorthand_template(template) {
 
-        var hash = __fast_hash(template, true).toString(16);
+        var hash = tiny.hash(template);
 
         if (_expanded_shorthand_template_cache[hash]) {
             return _expanded_shorthand_template_cache[hash];
