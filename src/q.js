@@ -28,10 +28,14 @@ define([
      */
     var tinyQ = function (selector, param, mode) {
 
+        tiny.time('tinyQ');
+
         var type = tiny.type(selector);
         var type_param = tiny.type(param);
+        var result;
 
         if (type == 'string') {
+
             if (selector.startsWith('<')) {
                 // ==> Create HTML fragment = '<html>';
 
@@ -40,13 +44,25 @@ define([
 
             } else if (type_param == 'tinyq') {
                 // ==> sub query
-                return init_with_selector.call(this, selector, param, mode);
+                init_with_selector.call(this, selector, param, mode);
             } else {
                 // ==> first query
-                return init_with_selector.call(this, selector, null, mode);
+                init_with_selector.call(this, selector, null, mode);
             }
+
+        } else if (type == 'array') {
+
+            if (selector.length > 0 && selector[0].nodeType) {
+                this.selector = type_param == 'string' ? param : '[nodes]';
+                this.node = selector;
+                this.length = selector.length;
+            }
+
         }
 
+        tiny.log('tinyQ operation:', tiny.time('tinyQ').toFixed(4), 'ms');
+
+        return this;
 
     };
 
@@ -82,8 +98,6 @@ define([
             return tiny.each(this.nodes, start, func, this_arg)
         },
 
-        toArray: to_array,
-
         cls: process_class,
         css: false,
         attr: false,
@@ -106,7 +120,6 @@ define([
         this.nodes = do_query(selector, tinyq.nodes, mode);
         this.length = this.nodes.length;
 
-        return this;
     }
 
     /**
@@ -161,6 +174,53 @@ define([
     }
 
     /**
+     * tinyQ.add() - add items to current tinyQ object
+     */
+    function add_to_query(selector) {
+
+        check_selector(selector);
+
+        var result = document.querySelectorAll(selector)
+        if (result == null) return this;
+
+        result = to_array(result);
+
+        this.nodes = this.nodes.concat(result);
+        this.length = this.nodes.length;
+        this.selector += ', ' + selector;
+
+        return this;
+
+    }
+
+    /**
+     * tinyQ.first() - get first element as a tinyQ object
+     */
+    function get_first() {
+        var arr = [];
+        if (this.nodes.length > 0) arr.push(this.nodes[0]);
+        return new tinyQ(arr, 'first()');
+    }
+
+    /**
+     * tinyQ.last() - get last element as a tinyQ object
+     */
+    function get_last() {
+        var arr = [];
+        if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
+        return new tinyQ(arr, 'last()');
+    }
+
+    /**
+     * tinyQ.filter() - filter items in result set
+     */
+    function filter_nodes(func) {
+        return this;
+    }
+
+
+
+    /**
      * check selector string
      */
     function check_selector(selector) {
@@ -186,41 +246,6 @@ define([
 
         return this_selector.join(',').trim();
 
-    }
-
-    /**
-     * tinyQ.add() - add items to query
-     */
-    function add_to_query(selector) {
-
-        check_selector(selector);
-
-        var result = document.querySelectorAll(selector)
-        if (result == null) return this;
-
-        result = to_array(result);
-
-        this.nodes = this.nodes.concat(result);
-        this.length = this.nodes.length;
-        this.selector += ', ' + selector;
-
-        return this;
-
-    }
-
-    function get_first() {
-        return this.nodes.length > 0 ? this.nodes[0] : null;
-    }
-
-    function get_last() {
-        return this.nodes.length > 0 ? this.nodes[this.nodes.length - 1] : null;
-    }
-
-    /**
-     * tinyQ.filter() - filter items in result set
-     */
-    function filter_nodes(func) {
-        return this;
     }
 
     /**

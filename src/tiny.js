@@ -1,6 +1,7 @@
 define([
+    './ie8shim',
+    './polyfills',
     './base',
-    './polyfill',
     './console',
     './message',
     './route',
@@ -8,7 +9,7 @@ define([
     './q',
     './lang',
     './format',
-], function (tiny) {
+], function (ie8shim, polyfills, tiny) {
 
     'use strict';
 
