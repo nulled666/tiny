@@ -1,5 +1,6 @@
 define([
-    './global'
+    './global',
+    './slice'
 ], function (G) {
 
     'use strict';

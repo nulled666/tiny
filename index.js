@@ -51,10 +51,12 @@ function test_code() {
     var y = x.add('h3');
     _log(y);
 
-    var z = y.cls('^collapse passed');
+    y = y.cls('^collapse passed');
 
-    z = z.q1('a');
+    y = y.q1('a');
     _log(y);
+    _log(y.first())
+    _log(y.last())
 
     return true;
 

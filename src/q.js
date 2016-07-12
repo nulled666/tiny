@@ -20,11 +20,34 @@ define([
         return new tinyQ(selector);
     }
     function _q1(selector) {
-        return new tinyQ(selector, true);
+        return new tinyQ(selector, null, 1);
     }
 
-    var tinyQ = function (selector, q1) {
-        return q1 ? this.q1(selector) : this.q(selector);
+    /**
+     * tinyQ constructor
+     */
+    var tinyQ = function (selector, param, mode) {
+
+        var type = tiny.type(selector);
+        var type_param = tiny.type(param);
+
+        if (type == 'string') {
+            if (selector.startsWith('<')) {
+                // ==> Create HTML fragment = '<html>';
+
+            } else if (type_param == 'object') {
+                // ==> Create HTML Element - 'tagname', {attr}
+
+            } else if (type_param == 'tinyq') {
+                // ==> sub query
+                return init_with_selector.call(this, selector, param, mode);
+            } else {
+                // ==> first query
+                return init_with_selector.call(this, selector, null, mode);
+            }
+        }
+
+
     };
 
     tinyQ.prototype = {
@@ -41,6 +64,9 @@ define([
         add: add_to_query,
         filter: filter_nodes,
 
+        first: get_first,
+        last: get_last,
+
         parent: false,
         next: false,
         prev: false,
@@ -56,7 +82,7 @@ define([
             return tiny.each(this.nodes, start, func, this_arg)
         },
 
-        toArray: nodelist_to_array,
+        toArray: to_array,
 
         cls: process_class,
         css: false,
@@ -69,44 +95,75 @@ define([
     };
 
     /**
-     * tinyQ.q() - query all
+     * Init the tinyQ object with selector
      */
-    function query_all(selector) {
-        this.selector = add_child_selector(this.selector, selector);
-        var arr = [];
-        tiny.each(this.nodes, function (node) {
-            if (!node) return;
-            var result = node.querySelectorAll(selector);
-            result = nodelist_to_array(result);
-            if (result) arr = arr.concat(result);
-        });
-        this.nodes = arr;
-        this.length = arr.length;
+    function init_with_selector(selector, tinyq, mode) {
+
+        tinyq = tinyq || this;
+        mode = mode || 0;
+
+        this.selector = add_child_selector(tinyq.selector, selector);
+        this.nodes = do_query(selector, tinyq.nodes, mode);
+        this.length = this.nodes.length;
+
         return this;
     }
 
     /**
-     * tinyQ.q1() - query first one
+     * real query function
+     */
+    function do_query(selector, nodes, mode) {
+
+        check_selector(selector);
+
+        nodes = nodes || this.nodes;
+
+        var out = [];
+        var action = mode == 1 ? node_query_one : node_query_all;
+
+        var out = [];
+
+        tiny.each(nodes, function (node) {
+            if (node) out = action(node, selector, out);
+        });
+
+        return out;
+
+    }
+
+    function node_query_one(node, selector, out) {
+        var result = node.querySelector(selector);
+        if (result) out.push(result);
+        return out;
+    }
+
+    function node_query_all(node, selector, out) {
+        var result = node.querySelectorAll(selector);
+        if (!result) return;
+        result = to_array(result);
+        out = out.concat(result);
+        return out;
+    }
+
+
+    /**
+     * tinyQ.q() - query all
+     */
+    function query_all(selector) {
+        return new tinyQ(selector, this);
+    }
+
+    /**
+     * tinyQ.q1() - query one
      */
     function query_one(selector) {
-        this.selector = add_child_selector(this.selector, selector);
-        var arr = [];
-        tiny.each(this.nodes, function (node) {
-            if (node) {
-                if (!node) return;
-                var result = node.querySelector(selector);
-                if (result) arr.push(result);
-            };
-        });
-        this.nodes = arr;
-        this.length = arr.length;
-        return this;
+        return new tinyQ(selector, this, 1);
     }
 
     /**
      * check selector string
      */
-    function check_selector(selector){
+    function check_selector(selector) {
 
         if (typeof selector != 'string') {
             tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof selector + '": ', selector);
@@ -135,21 +192,28 @@ define([
      * tinyQ.add() - add items to query
      */
     function add_to_query(selector) {
-        
+
         check_selector(selector);
 
         var result = document.querySelectorAll(selector)
-        if(result == null) return this;
+        if (result == null) return this;
 
-        result = nodelist_to_array(result);
+        result = to_array(result);
 
-        var arr = nodelist_to_array(this.nodes);
-        this.nodes = arr.concat(result);
+        this.nodes = this.nodes.concat(result);
         this.length = this.nodes.length;
         this.selector += ', ' + selector;
 
         return this;
 
+    }
+
+    function get_first() {
+        return this.nodes.length > 0 ? this.nodes[0] : null;
+    }
+
+    function get_last() {
+        return this.nodes.length > 0 ? this.nodes[this.nodes.length - 1] : null;
     }
 
     /**
@@ -161,13 +225,10 @@ define([
 
     /**
      * Convert NodeList to Arrays
-     * Array.prototype.slice.call() is not supported in IE8 and just a little faster
      */
-    function nodelist_to_array(nodes) {
+    function to_array(nodes) {
         if (tiny.type(nodes) == 'array') return nodes;
-        var arr = [];
-        for (var i = nodes.length; i--; arr.unshift(nodes[i]));
-        return arr;
+        return Array.prototype.slice.call(nodes);
     }
 
     /**
