@@ -32,28 +32,37 @@ define([
         tinyQ: true,
 
         // properties
-        selector: false,
-        nodes: [],
+        selector: '',
+        nodes: [document],
         length: 0,
 
         // query for all
         q: function (selector) {
-            var query = this.selector ? this.selector + ' ' + selector : selector;
-            this.nodes = document.querySelectorAll(query);
-            this.length = this.nodes.length;
-            this.selector = query;
+            var query = prepare_selector(this.selector, selector);
+            do_query.call(this, query);
             return this;
         },
 
         // query for first one
         q1: function (selector) {
-            var query = this.selector ? this.selector + ' ' + selector : selector;
+            var query = prepare_selector(this.selector, selector);
             var node = document.querySelector(query);
             this.nodes = node == null ? [] : [node];
             this.length = this.nodes.length;
             this.selector = query;
             return this;
         },
+
+        // add items to query set
+        add: function (selector) {
+            var query = this.selector + ', ' + selector;
+            do_query.call(this, query);
+            return this;
+        },
+
+        parent: false,
+        next: false,
+        prev: false,
 
         get: function (index) {
             return this.nodes[index];
@@ -71,16 +80,50 @@ define([
             return arr;
         },
 
-        cls: process_class
+        cls: process_class,
+        css: false,
+        attr: false,
+
+        offset: false,
+
+        on: false
 
     };
+
+    /**
+     * prepare selector for query
+     */
+    function prepare_selector(this_selector, selector) {
+
+        if (typeof selector != 'string') {
+            tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof selector + '": ', selector);
+            throw new TypeError(G.SEE_ABOVE);
+        }
+
+        var this_selector = this_selector.split(',');
+        tiny.each(this_selector, function (section, index, list) {
+            list[index] = section + ' ' + selector;
+        });
+
+        return this_selector.join(',').trim();
+
+    }
+
+    /**
+     * Execute query and set the properties
+     */
+    function do_query(query) {
+        this.nodes = document.querySelectorAll(query);
+        this.length = this.nodes.length;
+        this.selector = query;
+    }
 
     /**
      * tinyQ.cls() method
      */
     function process_class(actions) {
 
-        if(typeof actions != 'string'){
+        if (typeof actions != 'string') {
             tiny.error(TAG_Q, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
             throw new TypeError(G.SEE_ABOVE);
         }

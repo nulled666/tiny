@@ -47,8 +47,12 @@ function test_code() {
 
     var x = _q('.run-code');
     _log(x);
+    x.add('h3');
+    _log(x);
 
     var y = x.cls('^collapse passed');
+
+    y = x.q('a');
     _log(y);
 
     return true;
