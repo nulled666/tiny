@@ -3,6 +3,7 @@ requirejs(["src/tiny"], start);
 function start() {
 
     tiny.import();
+    tiny.verbose('all');
 
     build_content_table();
 
@@ -44,7 +45,13 @@ function test_code() {
     // var template = 'Use {[{token}]} to fill value {token}';
     // _log(template._format({token: 123}));
 
-    // return true;
+    var x = _q('.run-code');
+    _log(x);
+
+    var y = x.cls('^collapse passed');
+    _log(y);
+
+    return true;
 
 }
 

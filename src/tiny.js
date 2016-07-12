@@ -5,6 +5,7 @@ define([
     './message',
     './route',
     './storage',
+    './q',
     './lang',
     './format',
 ], function (tiny) {

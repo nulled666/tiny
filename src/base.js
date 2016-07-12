@@ -176,8 +176,10 @@ define([
         var type = typeof obj;
 
         if (type == 'object') {
-            if (obj.jquery && typeof obj.get == 'function') {
+            if (obj.jquery) {
                 type = 'jquery';
+            } else if (obj.tinyQ) {
+                type = 'tinyq';
             } else {
                 type = Object.prototype.toString.call(obj)
                     .replace('[object ', '').replace(']', '')
@@ -242,9 +244,9 @@ define([
             }
 
 
-        } else if (type == 'jquery') {
+        } else if (type == 'jquery' || type == 'tinyq') {
 
-            // ==> jQuery Object
+            // ==> jQuery or tinyQ Object
             for (var i = start_index, len = obj.length; i < len; ++i) {
                 result = func.call(this_arg, obj.get(i), i, obj);
                 if (result !== undefined) return result;
