@@ -36,33 +36,17 @@ define([
         nodes: [document],
         length: 0,
 
-        // query for all
-        q: function (selector) {
-            var query = prepare_selector(this.selector, selector);
-            do_query.call(this, query);
-            return this;
-        },
-
-        // query for first one
-        q1: function (selector) {
-            var query = prepare_selector(this.selector, selector);
-            var node = document.querySelector(query);
-            this.nodes = node == null ? [] : [node];
-            this.length = this.nodes.length;
-            this.selector = query;
-            return this;
-        },
-
-        // add items to query set
-        add: function (selector) {
-            var query = this.selector + ', ' + selector;
-            do_query.call(this, query);
-            return this;
-        },
+        q: query_all,
+        q1: query_one,
+        add: add_to_query,
+        filter: filter_nodes,
 
         parent: false,
         next: false,
         prev: false,
+
+        after: false,
+        before: false,
 
         get: function (index) {
             return this.nodes[index];
@@ -72,13 +56,7 @@ define([
             return tiny.each(this.nodes, start, func, this_arg)
         },
 
-        toArray: function () {
-            // Array.prototype.slice.call() is not supported in IE8 and just a little faster
-            var arr = [];
-            var bodes = this.nodes;
-            for (var i = nodes.length; i--; arr.unshift(nodes[i]));
-            return arr;
-        },
+        toArray: nodelist_to_array,
 
         cls: process_class,
         css: false,
@@ -91,14 +69,58 @@ define([
     };
 
     /**
-     * prepare selector for query
+     * tinyQ.q() - query all
      */
-    function prepare_selector(this_selector, selector) {
+    function query_all(selector) {
+        this.selector = add_child_selector(this.selector, selector);
+        var arr = [];
+        tiny.each(this.nodes, function (node) {
+            if (!node) return;
+            var result = node.querySelectorAll(selector);
+            result = nodelist_to_array(result);
+            if (result) arr = arr.concat(result);
+        });
+        this.nodes = arr;
+        this.length = arr.length;
+        return this;
+    }
+
+    /**
+     * tinyQ.q1() - query first one
+     */
+    function query_one(selector) {
+        this.selector = add_child_selector(this.selector, selector);
+        var arr = [];
+        tiny.each(this.nodes, function (node) {
+            if (node) {
+                if (!node) return;
+                var result = node.querySelector(selector);
+                if (result) arr.push(result);
+            };
+        });
+        this.nodes = arr;
+        this.length = arr.length;
+        return this;
+    }
+
+    /**
+     * check selector string
+     */
+    function check_selector(selector){
 
         if (typeof selector != 'string') {
             tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof selector + '": ', selector);
             throw new TypeError(G.SEE_ABOVE);
         }
+
+    }
+
+    /**
+     * Add child selector for query
+     */
+    function add_child_selector(this_selector, selector) {
+
+        check_selector(selector);
 
         var this_selector = this_selector.split(',');
         tiny.each(this_selector, function (section, index, list) {
@@ -110,12 +132,42 @@ define([
     }
 
     /**
-     * Execute query and set the properties
+     * tinyQ.add() - add items to query
      */
-    function do_query(query) {
-        this.nodes = document.querySelectorAll(query);
+    function add_to_query(selector) {
+        
+        check_selector(selector);
+
+        var result = document.querySelectorAll(selector)
+        if(result == null) return this;
+
+        result = nodelist_to_array(result);
+
+        var arr = nodelist_to_array(this.nodes);
+        this.nodes = arr.concat(result);
         this.length = this.nodes.length;
-        this.selector = query;
+        this.selector += ', ' + selector;
+
+        return this;
+
+    }
+
+    /**
+     * tinyQ.filter() - filter items in result set
+     */
+    function filter_nodes(func) {
+        return this;
+    }
+
+    /**
+     * Convert NodeList to Arrays
+     * Array.prototype.slice.call() is not supported in IE8 and just a little faster
+     */
+    function nodelist_to_array(nodes) {
+        if (tiny.type(nodes) == 'array') return nodes;
+        var arr = [];
+        for (var i = nodes.length; i--; arr.unshift(nodes[i]));
+        return arr;
     }
 
     /**
