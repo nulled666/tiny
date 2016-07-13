@@ -41,13 +41,13 @@ function test_code() {
     var z = _q(document.querySelectorAll('.run-code'));
     _log(z);
 
-    z = z.filter(test);
-    _log(z);
+    y = _q('h3');
+    _log(y);
+
+    _log(z.add(y));
 
     _log(z.first());
     _log(z.last());
-
-    _log(z.add('h3'));
 
     return true;
 

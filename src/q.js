@@ -182,9 +182,11 @@ define([
      * querySelector() helper for do_query()
      */
     function action_query_one(node, selector, filter, out) {
-        var result = node.querySelector(selector);
-        if (result && (!filter || filter(result, 0)))
-            out.push(result);
+        var node = node.querySelector(selector);
+        if (node) {
+            if (!filter || node_matches(filter, node))
+                out.push(node);
+        }
         return out;
     }
 
@@ -192,10 +194,11 @@ define([
      * querySelectorAll() helper for do_query()
      */
     function action_query_all(node, selector, filter, out) {
-        var result = node.querySelectorAll(selector);
-        if (!result) return;
-        result = to_array(result, filter);
-        out = out.concat(result);
+        var nodes = node.querySelectorAll(selector);
+        if (nodes) {
+            nodes = to_array(nodes, filter);
+            out = out.concat(nodes);
+        }
         return out;
     }
 
@@ -217,10 +220,17 @@ define([
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (!filter || filter(node, i)) arr.push(node);
+            if (!filter || node_matches(filter, node, i)) arr.push(node);
         }
         return arr;
 
+    }
+
+    /**
+     * test a node againt filter
+     */
+    function node_matches(filter, node, index) {
+        return filter(node, index);
     }
 
     ///////////////////////////// CORE METHODS ////////////////////////////
@@ -283,7 +293,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        return new tinyQ(arr, null, null, null, this.selector + '; first()');
+        return new tinyQ(arr, null, null, null, this.selector + ' :first()');
     }
 
     /**
@@ -292,7 +302,7 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        return new tinyQ(arr, null, null, null, this.selector + '; last()');
+        return new tinyQ(arr, null, null, null, this.selector + ' :last()');
     }
 
 
