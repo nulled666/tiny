@@ -27,34 +27,31 @@ function start() {
 
 function test_code() {
 
-    // var c = 1000000;
-
-    // console.time('find');
-    // for (var i = 0; i < 1000000; i++) {
-    //     c--;
-    // }
-    // console.timeEnd('find');
-
-    // c = 1000000;
-    // console.time('find2');
-    // for (var i = 0; i < 1000000; i++) {
-    //     --c;
-    // }
-    // console.timeEnd('find2');
-
-    // var template = 'Use {[{token}]} to fill value {token}';
-    // _log(template._format({token: 123}));
+    function test(node, index){
+        if(index%2 == 0) return false;
+        return true
+    }
 
     var x = _q('.run-code');
     _log(x);
 
-    var y = x.add('h3');
+    var y = _q('.run-code', test);
     _log(y);
+
+    var z = _q(x);
+    _log(z);
+
+    z = z.filter(test);
+    _log(z);
+
+    return true;
 
     y = y.cls('^collapse passed');
 
-    y = y.q1('a');
+    var z = z.q1('a');
     _log(y);
+
+
     _log(y.first())
     _log(y.last())
 

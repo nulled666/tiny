@@ -20,31 +20,36 @@ define([
         return new tinyQ(selector, filter);
     }
     function _q1(selector, filter) {
-        return new tinyQ(selector, filter, 1);
+        return new tinyQ(selector, filter, null, 1);
     }
 
     /**
      * tinyQ constructor
+     * ```
+     *  tinyQ(selector [,filter]);
+     *  tinyQ(tinyQ|Node|NodeList|Array<Node> [,selector] [,filter])
+     * 
+     *  tinyQ('<a href="#here">Test</a>')           // create html fragment
+     *  _tinyQq('a', {href: '#here', text: 'Test'}) // create element
+     * 
+     *  tinyQ(Array, selector, mode)                // internal .q() .q1()
+     *  tinyQ(Array, filter)                        // internal .filter()
+     * ```
      */
-    var tinyQ = function (obj, param, mode) {
+    var tinyQ = function (obj, param, extra, mode) {
 
         tiny.time('tinyQ');
 
         var type = tiny.type(obj);
         var param_type = tiny.type(param);
+        var filter = param_type == 'function' ? param : false;
 
-        // prepare
-        if (obj && (obj.nodeType == 1 || obj.nodeType == 9)) {
-            // wrap single html node
+        // single node -> array
+        if (is_node(obj)) {
             type = 'array';
             obj = [selecotor];
         }
-
-        // node filter
-        var filter;
-        if (param_type == 'function') filter = param;
-
-        // NodeList to Array
+        // NodeList -> Array
         if (type == 'nodelist') obj = to_array(obj, filter);
 
         /// mode select
@@ -55,21 +60,34 @@ define([
             } else if (param_type == 'object') {
                 // ==> Create HTML Element - 'tagname', {attr}
 
-            } else if (param_type == 'tinyq') {
-                // ==> sub query - 'selector', tinyQ, q|q1, filter
-                init_with_selector.call(this, obj, param, mode, filter);
             } else {
-                // ==> first query - 'selector', null, q|q1, filter
-                init_with_selector.call(this, obj, null, mode, filter);
+                // ==> first query - (selector, filter, null, mode)
+                this.selector = obj;
+                this.nodes = do_query([document], obj, filter, mode);
+                if (filter) this.selector += ' <filter:' + tiny.fn.getFuncName(filter) + '()>';
             }
         } else if (type == 'array') {
             // ==> array of nodes
-            if (obj.length > 0 && obj[0].nodeType) {
-                this.selector = param_type == 'string' ? param : '[nodes]';
-                this.node = obj;
-                this.length = selector.length;
+            if (param_type == 'string') {
+                // ==> (nodes, selector [,filter] [,mode]) - .q() and .q1() method
+                this.selector = param;
+                this.nodes = do_query(obj, selector, filter, mode);
+            } else {
+                // ==> (nodes, [,filter]) - .filter() method
+                this.selector = '[nodes]';
+                this.nodes = to_array(obj, filter);
             }
+            if (filter) this.selector += ' <filter:' + tiny.fn.getFuncName(filter) + '()>';
+        } else if (type == 'tinyq') {
+            // ==> clone tinyQ object
+            this.selector = obj.selector;
+            this.nodes = copy_array(obj.nodes);
+        } else {
+            tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof obj + '": ', obj);
+            throw new TypeError(G.SEE_ABOVE);
         }
+
+        this.length = this.nodes.length;
 
         tiny.log('tinyQ operation:', tiny.time('tinyQ').toFixed(4), 'ms');
 
@@ -122,33 +140,15 @@ define([
     ///////////////////////////// INTERNAL FUNCTIONS ////////////////////////////
 
     /**
-     * Init the tinyQ object with a selector
-     */
-    function init_with_selector(selector, tinyq, mode, filter) {
-
-        tinyq = tinyq || this;
-        mode = mode || 0;
-
-        this.selector = add_child_selector(tinyq.selector, selector);
-        this.nodes = do_query(selector, tinyq.nodes, mode, filter);
-        this.length = this.nodes.length;
-
-    }
-
-    /**
      * Real query function
      */
-    function do_query(selector, nodes, mode, filter) {
-
-        check_selector(selector);
-
-        nodes = nodes || [document];
+    function do_query(nodes, selector, filter, mode) {
 
         var action = mode == 1 ? action_query_one : action_query_all;
 
         var out = [];
         tiny.each(nodes, function (node) {
-            if (node) out = action(node, selector, out, filter);
+            if (node) out = action(node, selector, filter, out);
         });
 
         return out;
@@ -156,9 +156,9 @@ define([
     }
 
     /**
-     * q1() helper for do_query()
+     * querySelector() helper for do_query()
      */
-    function action_query_one(node, selector, out, filter) {
+    function action_query_one(node, selector, filter, out) {
         var result = node.querySelector(selector);
         if (result && (!filter || filter(result, 0)))
             out.push(result);
@@ -166,9 +166,9 @@ define([
     }
 
     /**
-     * q() helper for do_query()
+     * querySelectorAll() helper for do_query()
      */
-    function action_query_all(node, selector, out, filter) {
+    function action_query_all(node, selector, filter, out) {
         var result = node.querySelectorAll(selector);
         if (!result) return;
         result = to_array(result, filter);
@@ -176,33 +176,18 @@ define([
         return out;
     }
 
-
     /**
-     * check selector string
+     * check if an object is a html element or document node
      */
-    function check_selector(selector) {
-
-        if (typeof selector != 'string') {
-            tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof selector + '": ', selector);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
+    function is_node(obj) {
+        return obj && (obj.nodeType == 1 || obj.nodeType == 9);
     }
 
     /**
-     * Add child selector for query
+     * clone an Array object
      */
-    function add_child_selector(this_selector, selector) {
-
-        check_selector(selector);
-
-        var this_selector = this_selector.split(',');
-        tiny.each(this_selector, function (section, index, list) {
-            list[index] = section + ' ' + selector;
-        });
-
-        return this_selector.join(',').trim();
-
+    function copy_array(arr) {
+        return arr.slice(0);
     }
 
     /**
@@ -210,17 +195,13 @@ define([
      */
     function to_array(nodes, filter) {
 
-        // choose the fast way if no filter is required
-        if (typeof filter !== 'function') {
-            if (tiny.type(nodes) == 'array') return nodes;
-            return Array.prototype.slice.call(nodes);
-        }
+        if (tiny.type(nodes) == 'array' && !filter)
+            return nodes;
 
-        // filter through
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (filter(node, i)) arr.push(node);
+            if (!filter || filter(node, i)) arr.push(node);
         }
         return arr;
 
@@ -229,21 +210,28 @@ define([
     ///////////////////////////// CORE QUERY METHODS ////////////////////////////
 
     /**
-     * tinyQ.q() - query all
+     * .q() - query all
      */
     function query_all(selector) {
-        return new tinyQ(selector, this);
+        return new tinyQ(this.nodes, selector);
     }
 
     /**
-     * tinyQ.q1() - query one
+     * .q1() - query one
      */
     function query_one(selector) {
-        return new tinyQ(selector, this, 1);
+        return new tinyQ(this.nodes, selector, false, 1);
     }
 
     /**
-     * tinyQ.add() - add items to current tinyQ object
+     * .filter() - filter items in result set
+     */
+    function filter_nodes(filter) {
+        return new tinyQ(this.nodes, filter);
+    }
+
+    /**
+     * .add() - add items to current tinyQ object
      */
     function add_to_query(selector) {
 
@@ -263,7 +251,7 @@ define([
     }
 
     /**
-     * tinyQ.first() - get first element as a tinyQ object
+     * .first() - get first element as a tinyQ object
      */
     function get_first() {
         var arr = [];
@@ -272,19 +260,12 @@ define([
     }
 
     /**
-     * tinyQ.last() - get last element as a tinyQ object
+     * .last() - get last element as a tinyQ object
      */
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
         return new tinyQ(arr, 'last()');
-    }
-
-    /**
-     * tinyQ.filter() - filter items in result set
-     */
-    function filter_nodes(func) {
-        return this;
     }
 
 
