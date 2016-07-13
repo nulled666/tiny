@@ -70,18 +70,19 @@
         <p>Get detailed object type.</p>
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
-            ASSERT('0', _type() == 'undefined');
-            ASSERT('1', _type(123) == 'number');
-            ASSERT('2', _type('test') == 'string');
-            ASSERT('3', _type(/\s\t\n/) == 'regexp');
-            ASSERT('4', _type(new Date()) == 'date');
-            ASSERT('5', _type(function(){}) == 'function');
-            ASSERT('6', _type({test: true}) == 'object');
-            ASSERT('7', _type([1,2,3]) == 'array');
-            ASSERT('8', _type(arguments) == 'arguments');
-            ASSERT('9', _type(window) == 'window');
-            ASSERT('10', _type(document.forms) == 'htmlcollection');
-            ASSERT('11', _type(document.querySelectorAll('.run-code')) == 'nodelist');
+            ASSERT('undefined',      _type() == 'undefined');
+            ASSERT('null',           _type(null) == 'null');
+            ASSERT('number',         _type(123) == 'number');
+            ASSERT('string',         _type('test') == 'string');
+            ASSERT('function',       _type(function(){}) == 'function');
+            ASSERT('object',         _type({test: true}) == 'object');
+            ASSERT('RegExp',         _type(/\s\t\n/) == 'RegExp');
+            ASSERT('Date',           _type(new Date()) == 'Date');
+            ASSERT('Array',          _type([1,2,3]) == 'Array');
+            ASSERT('Arguments',      _type(arguments) == 'Arguments');
+            ASSERT('Window',         _type(window) == 'Window');
+            ASSERT('HTMLCollection', _type(document.forms) == 'HTMLCollection');
+            ASSERT('NodeList',       _type(document.querySelectorAll('.run-code')) == 'NodeList');
         </code></pre>
 
         <h3><a class="mark" name="each">_each()</a></h3>

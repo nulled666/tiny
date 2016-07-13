@@ -5,8 +5,24 @@ define([
 
     'use strict';
 
+    // Element.matches support for tinyQ
+    if (!Element.prototype.matches) {
+        Element.prototype.matches =
+            Element.prototype.matchesSelector ||
+            Element.prototype.mozMatchesSelector ||
+            Element.prototype.msMatchesSelector ||
+            Element.prototype.oMatchesSelector ||
+            Element.prototype.webkitMatchesSelector ||
+            function (s) {
+                var matches = (this.document || this.ownerDocument).querySelectorAll(s),
+                    i = matches.length;
+                while (--i >= 0 && matches.item(i) !== this) { }
+                return i > -1;
+            };
+    }
+
     //////////////////////////////////////////////////////////
-    // DOM FUNCTIONS
+    // TINYQ
     //////////////////////////////////////////////////////////
 
     tiny.fn.add({
@@ -43,19 +59,22 @@ define([
         /// *** Prepare Parameters ***
         var filter = param_type == 'function' ? param : false;
 
-        // single node -> array
         if (is_node(obj)) {
-            type = 'array';
-            obj = [selecotor];
+            // single node -> array
+            type = 'Array';
+            obj = [obj];
         }
-        // NodeList -> Array
-        if (type == 'nodelist') {
-            type = 'array';
-        }
-        // tinyQ -> Array
-        if (type == 'tinyq') {
-            type = 'array';
+        if (type == 'NodeList' || type == 'HTMLCollection') {
+            // NodeList -> Array
+            type = 'Array';
+        } else if (type == 'q') {
+            // tinyQ -> Array
+            type = 'Array';
             obj = obj.nodes;
+        } else if (type == 'jquery') {
+            // JQuery -> Array
+            type = 'Array';
+            obj = obj.toArray();
         }
 
         /// *** Detect parameter pattern ***
@@ -68,12 +87,12 @@ define([
 
             } else {
                 // ==> first query - (selector, filter, null, mode)
-                this.selector = obj;
                 this.nodes = do_query([document], obj, filter, mode);
-                if (filter) this.selector += '; filter:' + tiny.fn.getFuncName(filter) + '()';
+                this.length = this.nodes.length;
+                this.selector = obj;
+                if (filter) this.selector += ' :filter=' + tiny.fn.getFuncName(filter) + '()';
             }
-        } else if (type == 'array') {
-            this.selector = (typeof desc == 'string') ? desc : '[nodes]';
+        } else if (type == 'Array') {
             // ==> array of nodes
             if (param_type == 'string') {
                 // ==> (nodes, selector [,filter] [,mode]) - .q() and .q1() method
@@ -82,13 +101,13 @@ define([
                 // ==> (nodes, [,filter]) - .filter() method
                 this.nodes = to_array(obj, filter);
             }
-            if (filter) this.selector += '; filter:' + tiny.fn.getFuncName(filter) + '()';
+            this.length = this.nodes.length;
+            this.selector = (typeof desc == 'string') ? desc : '[nodes]';
+            if (filter) this.selector += ' :filter=' + tiny.fn.getFuncName(filter) + '()';
         } else {
-            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
+            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
-
-        this.length = this.nodes.length;
 
         tiny.log('tinyQ operation:', tiny.time('tinyQ').toFixed(4), 'ms');
 
@@ -104,13 +123,13 @@ define([
         tinyQ: true,
 
         // properties
-        selector: '',
         nodes: [],
         length: 0,
+        selector: '',
 
         q: query_all,
         q1: query_one,
-        add: add_to_query,
+        add: add_to_nodes,
         filter: filter_nodes,
 
         first: get_first,
@@ -131,15 +150,15 @@ define([
             return tiny.each(this.nodes, start, func, this_arg)
         },
 
-        cls: process_class,
-        css: false,
-        attr: false,
+        toArray: function () { return to_array(this.nodes) },
 
         offset: false,
 
         on: false
 
     };
+
+    tinyQ.TAG = TAG_Q;
 
     ///////////////////////////// INTERNAL FUNCTIONS ////////////////////////////
 
@@ -188,14 +207,7 @@ define([
     }
 
     /**
-     * clone an Array object
-     */
-    function copy_array(arr) {
-        return arr.slice(0);
-    }
-
-    /**
-     * Convert NodeList to Arrays, also do the filtering
+     * Convert NodeList to Arrays, also do copy and filtering
      */
     function to_array(nodes, filter) {
 
@@ -211,20 +223,20 @@ define([
 
     }
 
-    ///////////////////////////// CORE QUERY METHODS ////////////////////////////
+    ///////////////////////////// CORE METHODS ////////////////////////////
 
     /**
      * .q() - query all
      */
-    function query_all(selector) {
-        return new tinyQ(this.nodes, selector, null, null, this.selector + '; q()');
+    function query_all(selector, filter) {
+        return new tinyQ(this.nodes, selector, filter, null, this.selector + '; q()');
     }
 
     /**
      * .q1() - query one
      */
-    function query_one(selector) {
-        return new tinyQ(this.nodes, selector, null, 1, this.selector + '; q1()');
+    function query_one(selector, filter) {
+        return new tinyQ(this.nodes, selector, filter, 1, this.selector + '; q1()');
     }
 
     /**
@@ -237,21 +249,32 @@ define([
     /**
      * .add() - add items to current tinyQ object
      */
-    function add_to_query(selector) {
+    function add_to_nodes(obj, filter) {
 
-        check_selector(selector);
+        filter = typeof filter == 'function' ? filter : false;
 
-        var result = document.querySelectorAll(selector);
-        if (result == null) return this;
+        var type = tiny.type(obj);
+        var out = [];
+        var selector = '';
 
-        result = to_array(result);
+        if (type == 'string') {
+            selector = obj;
+            out = action_query_all(document, obj, filter, []);
+        } else if (type == 'NodeList' || type == 'HTMLCollection') {
+            selector = '[nodes]';
+            out = to_array(obj, filter);
+        } else if (type == 'q') {
+            selector = obj.selector;
+            out = to_array(obj.nodes, filter);
+        } else if (type == 'jquery') {
+            selector = type;
+            out = to_array(obj.toArray(), filter);
+        } else if (is_node(obj)) {
+            selector = 'node';
+            out = to_array([obj], filter);
+        }
 
-        this.nodes = this.nodes.concat(result);
-        this.length = this.nodes.length;
-        this.selector += ', ' + selector;
-
-        return this;
-
+        return new tinyQ(this.nodes.concat(out), null, null, null, this.selector + ' :add(' + selector + ')');
     }
 
     /**
@@ -273,85 +296,6 @@ define([
     }
 
 
-    ///////////////////////////// ATTRIBUTES MANIPULATION METHODS ////////////////////////////
-
-    /**
-     * tinyQ.cls() method
-     */
-    function process_class(actions) {
-
-        if (typeof actions != 'string') {
-            tiny.error(TAG_Q, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
-        actions = prepare_class_actions(actions);
-
-        var result, test;
-        this.each(function (elem) {
-            test = do_class_actions(elem, actions);
-            result = test !== undefined ? test : true;
-        }, actions);
-
-        return actions.hasTest ? result : this;
-
-    }
-
-    /**
-     * Prepare the action list for className change
-     */
-    function prepare_class_actions(list) {
-        list = list.split(' ');
-        var plus = '';
-        var arr = [];
-        var test = [];
-        tiny.each(list, function (item, index, list) {
-            var chr = item.charAt(0);
-            var seg = item.substring(1);
-            if (chr == '-' || chr == '^') {
-                arr.push([chr, ' ' + seg + ' ']);
-            } else if (chr == '?' || chr == '!') {
-                test.push([chr, ' ' + seg + ' ']); // put test actions at end
-            } else {
-                if (chr == '+') item = seg;
-                plus += ' ' + item;
-            }
-        });
-        return {
-            hasTest: test.length > 0,
-            plus: plus,
-            list: arr.concat(test)
-        };
-    }
-
-    /**
-     * Do className change and check
-     */
-    function do_class_actions(elem, actions) {
-
-        var cls = ' ' + elem.className + actions.plus + ' ';
-
-        var result = tiny.each(actions.list, function (item) {
-
-            var action = item[0];
-            var val = item[1];
-
-            if (action == '-') {
-                cls = cls.replace(val, ' ');
-            } else if (action == '^') {
-                cls = cls.indexOf(val) > -1 ? cls.replace(val, ' ') : cls + val.substring(1);
-            } else if (action == '?') {
-                if (cls.indexOf(val) < 0) return false;
-            } else if (action == '!') {
-                if (cls.indexOf(val) > -1) return false;
-            }
-
-        });
-
-        elem.className = cls.trim();
-
-        return result === undefined;
-
-    }
+    return tinyQ;
 
 });

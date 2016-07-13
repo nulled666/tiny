@@ -47,18 +47,20 @@ function test_code() {
     _log(z.first());
     _log(z.last());
 
-    return true;
-
-    y = y.cls('^collapse passed');
-
-    var z = z.q1('a');
-    _log(y);
-
-
-    _log(y.first())
-    _log(y.last())
+    _log(z.add('h3'));
 
     return true;
+
+    // y = y.cls('^collapse passed');
+
+    // var z = z.q1('a');
+    // _log(y);
+
+
+    // _log(y.first())
+    // _log(y.last())
+
+    // return true;
 
 }
 

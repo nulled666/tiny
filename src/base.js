@@ -177,15 +177,20 @@ define([
 
         if (type == 'object') {
             if (!obj) {
-                type = null;
+                type = 'null';
+            } else if (obj.nodeType == 1 && obj.nodeType == 9) {
+                type = 'node';
             } else if (obj.jquery) {
                 type = 'jquery';
             } else if (obj.tinyQ) {
-                type = 'tinyq';
+                type = 'q';
             } else {
                 type = Object.prototype.toString.call(obj)
-                    .replace('[object ', '').replace(']', '')
-                    .toLowerCase();
+                if (type == '[object Object]') {
+                    type = 'object';
+                } else {
+                    type = type.replace('[object ', '').replace(']', '');
+                }
             }
         }
 
@@ -222,8 +227,8 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var ARRAY_LIKE = ',nodelist,arguments,htmlcollection,';
-        var OBJECT_LIKE = ',object,map,function,storage,';
+        var ARRAY_LIKE = ',NodeList,Arguments,HTMLCollection,';
+        var OBJECT_LIKE = ',object,Map,Function,Storage,';
         var type = _type(obj);
 
 
@@ -246,7 +251,7 @@ define([
             }
 
 
-        } else if (type == 'jquery' || type == 'tinyq') {
+        } else if (type == 'jquery' || type == 'q') {
 
             // ==> jQuery or tinyQ Object
             for (var i = start_index, len = obj.length; i < len; ++i) {
