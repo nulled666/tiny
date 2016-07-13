@@ -38,7 +38,7 @@ function test_code() {
     var y = x.filter('.collapse');
     _log(y);
 
-    y = _q(x).q('.token');
+    y = _q(x);
     _log(y);
     
     var z = _q(document.querySelectorAll('.run-code'));

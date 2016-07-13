@@ -57,10 +57,13 @@ define([
 
         tiny.time('tinyQ');
 
+        var type = tiny.type(obj);
+        if(type == 'q') selector_string = obj.selector;
+
         /// *** Prepare Parameters ***
         obj = prepare_node_paramter(obj);
 
-        var type = get_type(obj);
+        type = get_type(obj);
         var param_type = get_type(param);
 
         /// *** Detect parameter pattern ***
