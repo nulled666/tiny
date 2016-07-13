@@ -44,7 +44,10 @@ function test_code() {
     y = _q('h3');
     _log(y);
 
-    _log(z.add(y));
+    _log(z.add(y, test));
+    _log(z.add('h3', test));
+
+    _log(x.q('.function', test));
 
     _log(z.first());
     _log(z.last());

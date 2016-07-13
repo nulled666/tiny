@@ -42,78 +42,107 @@ define([
     /**
      * tinyQ constructor
      * ```
-     *  tinyQ(selector [,filter]);
-     *  tinyQ(nodes [,selector] [,filter] [,mode] [,desc])
+     *  tinyQ(html [,parent])              // _q('<a href="#here">Test</a>', document) 
+     *  tinyQ(tag, attr [,parent])         // _q('a', {href: '#here', text: 'Test'}, document)
+     *  tinyQ(selector [,filter])          // _q('a', '.test')
+     *  tinyQ(selector, nodes [,filter])   // .q(selector, filter)
      * 
-     *  tinyQ('<a href="#here">Test</a>')           // create html fragment
-     *  tinyQ('a', {href: '#here', text: 'Test'})   // create element
+     *  tinyQ(nodes [,filter])             // _q(nodes, '.test')
+     *  tinyQ(nodes, nodes [,filter])      // .add(nodes, '.test')
+     * 
+     *  tinyQ(obj, param, filter, mode, desc)
+     * 
      * ```
      */
-    var tinyQ = function (obj, param, extra, mode, desc) {
+    var tinyQ = function (obj, param, filter, mode, selector_string) {
 
         tiny.time('tinyQ');
 
-        var type = tiny.type(obj);
-        var param_type = tiny.type(param);
-
         /// *** Prepare Parameters ***
-        var filter = param_type == 'function' ? param : false;
+        obj = prepare_parameter(obj);
+        param = prepare_parameter(param);
 
-        if (is_node(obj)) {
-            // single node -> array
-            type = 'Array';
-            obj = [obj];
-        }
-        if (type == 'NodeList' || type == 'HTMLCollection') {
-            // NodeList -> Array
-            type = 'Array';
-        } else if (type == 'q') {
-            // tinyQ -> Array
-            type = 'Array';
-            obj = obj.nodes;
-        } else if (type == 'jquery') {
-            // JQuery -> Array
-            type = 'Array';
-            obj = obj.toArray();
-        }
+        var type = obj[0];
+        var param_type = param[0];
+        var extra_type = tiny.type(filter);
+        obj = obj[1];
+        param = param[1];
 
         /// *** Detect parameter pattern ***
         if (type == 'string') {
             if (obj.startsWith('<')) {
                 // ==> Create HTML fragment - '<html>';
-
-            } else if (param_type == 'object') {
-                // ==> Create HTML Element - 'tagname', {attr}
-
             } else {
-                // ==> first query - (selector, filter, null, mode)
-                this.nodes = do_query([document], obj, filter, mode);
-                this.length = this.nodes.length;
-                this.selector = obj;
-                if (filter) this.selector += ' :filter=' + tiny.fn.getFuncName(filter) + '()';
+                // _q(selector, filter)
+                if (param_type == 'string' || param_type == 'function') filter = param;
+                if (param_type == 'Array') {
+                    // ==> tinyq.q(selector, nodes [, filter])
+                    this.nodes = do_query(param, obj, filter, mode);
+                    filter = false; // don't build filter tag in selector for this
+                } else if (param_type == 'object') {
+                    // ==> Create HTML Element - 'tagname', {attr}
+                } else {
+                    // ==> _q(selector [,filter])
+                    this.nodes = do_query([document], obj, filter, mode);
+                }
             }
         } else if (type == 'Array') {
-            // ==> array of nodes
-            if (param_type == 'string') {
-                // ==> (nodes, selector [,filter] [,mode]) - .q() and .q1() method
-                this.nodes = do_query(obj, param, filter, mode);
+            // _q(nodes, filter)
+            if (param_type == 'string' || param_type == 'function') filter = param;
+            if (param_type == 'Array') {
+                // ==> .add(nodes, nodes [,filter])
+                this.nodes = obj.concat(to_array(param, filter));
+                filter = false; // don't build filter tag in selector for this
             } else {
-                // ==> (nodes, [,filter]) - .filter() method
+                // ==> _q(nodes [,filter])
                 this.nodes = to_array(obj, filter);
             }
-            this.length = this.nodes.length;
-            this.selector = (typeof desc == 'string') ? desc : '[nodes]';
-            if (filter) this.selector += ' :filter=' + tiny.fn.getFuncName(filter) + '()';
+            obj = '[nodes]'; // set for selector string
         } else {
-            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
-            throw new TypeError(G.SEE_ABOVE);
+            invalid_parameter(type, obj);
         }
+
+        this.length = this.nodes.length;
+        this.selector = (typeof selector_string == 'string') ? selector_string : obj;
+        if (filter) this.selector += build_filter_tag(filter);
 
         tiny.log('tinyQ operation:', tiny.time('tinyQ').toFixed(4), 'ms');
 
         return this;
 
     };
+
+    function invalid_parameter(type, obj) {
+        tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
+        throw new TypeError(G.SEE_ABOVE);
+    }
+
+    function prepare_parameter(obj) {
+
+        var type = tiny.type(obj);
+
+        if (is_node(obj)) {
+            // single node -> array
+            obj = [obj];
+        } else if (type == 'q') {
+            obj = obj.nodes;
+        } else if (type == 'jquery') {
+            obj = obj.toArray();
+        }
+
+        type = tiny.type(obj);
+        if (type == 'NodeList' || type == 'HTMLCollection') type = 'Array';
+
+        return [type, obj];
+
+    }
+
+    function build_filter_tag(filter) {
+        var type = typeof filter;
+        if (type != 'string' && type != 'function') return '';
+        var name = type == 'string' ? filter : tiny.fn.getFuncName(filter) + '()';
+        return '::filter="' + name + '"';
+    }
 
     /**
      * The prototype
@@ -127,8 +156,8 @@ define([
         length: 0,
         selector: '',
 
-        q: query_all,
-        q1: query_one,
+        q: sub_query_all,
+        q1: sub_query_one,
         add: add_to_nodes,
         filter: filter_nodes,
 
@@ -230,7 +259,12 @@ define([
      * test a node againt filter
      */
     function node_matches(filter, node, index) {
-        return filter(node, index);
+        var type = typeof filter;
+        if (type == 'function')
+            return filter(node, index);
+        if (type == 'string')
+            return node.matches(filter);
+        return false;
     }
 
     ///////////////////////////// CORE METHODS ////////////////////////////
@@ -238,15 +272,16 @@ define([
     /**
      * .q() - query all
      */
-    function query_all(selector, filter) {
-        return new tinyQ(this.nodes, selector, filter, null, this.selector + '; q()');
+    function sub_query_all(selector, filter, mode) {
+        var tag = '::q' + (mode == 1 ? '1' : '') + '(' + selector + build_filter_tag(filter) + ')';
+        return new tinyQ(selector, this.nodes, filter, mode, this.selector + tag);
     }
 
     /**
      * .q1() - query one
      */
-    function query_one(selector, filter) {
-        return new tinyQ(this.nodes, selector, filter, 1, this.selector + '; q1()');
+    function sub_query_one(selector, filter) {
+        return sub_query_all(selector, this.nodes, filter, 1);
     }
 
     /**
@@ -260,31 +295,15 @@ define([
      * .add() - add items to current tinyQ object
      */
     function add_to_nodes(obj, filter) {
-
-        filter = typeof filter == 'function' ? filter : false;
-
-        var type = tiny.type(obj);
-        var out = [];
-        var selector = '';
-
-        if (type == 'string') {
-            selector = obj;
-            out = action_query_all(document, obj, filter, []);
-        } else if (type == 'NodeList' || type == 'HTMLCollection') {
-            selector = '[nodes]';
-            out = to_array(obj, filter);
-        } else if (type == 'q') {
-            selector = obj.selector;
-            out = to_array(obj.nodes, filter);
-        } else if (type == 'jquery') {
-            selector = type;
-            out = to_array(obj.toArray(), filter);
-        } else if (is_node(obj)) {
-            selector = 'node';
-            out = to_array([obj], filter);
+        var tag = build_filter_tag(filter);
+        if (typeof obj == 'string') {
+            tag = obj + tag;
+            obj = do_query([document], obj, filter);
+            filter = false;
+        } else {
+            tag = '[nodes]' + tag;
         }
-
-        return new tinyQ(this.nodes.concat(out), null, null, null, this.selector + ' :add(' + selector + ')');
+        return new tinyQ(this.nodes, obj, filter, null, this.selector + '::add(' + tag + ')');
     }
 
     /**
@@ -293,7 +312,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        return new tinyQ(arr, null, null, null, this.selector + ' :first()');
+        return new tinyQ(arr, null, null, null, this.selector + '::first()');
     }
 
     /**
@@ -302,7 +321,7 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        return new tinyQ(arr, null, null, null, this.selector + ' :last()');
+        return new tinyQ(arr, null, null, null, this.selector + '::last()');
     }
 
 
