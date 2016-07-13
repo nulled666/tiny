@@ -35,9 +35,12 @@ function test_code() {
     var x = _q('.run-code');
     _log(x);
 
-    var y = x.filter(test);
+    var y = x.filter('.collapse');
     _log(y);
 
+    y = _q(x).q('.token');
+    _log(y);
+    
     var z = _q(document.querySelectorAll('.run-code'));
     _log(z);
 
