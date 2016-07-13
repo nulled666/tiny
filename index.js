@@ -27,18 +27,18 @@ function start() {
 
 function test_code() {
 
-    function test(node, index){
-        if(index%2 == 0) return false;
+    function test(node, index) {
+        if (index % 2 == 0) return false;
         return true
     }
 
     var x = _q('.run-code');
     _log(x);
 
-    var y = _q('.run-code', test);
+    var y = _q(x, test);
     _log(y);
 
-    var z = _q(x);
+    var z = _q(document.querySelectorAll('.run-code'));
     _log(z);
 
     z = z.filter(test);

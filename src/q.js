@@ -27,10 +27,10 @@ define([
      * tinyQ constructor
      * ```
      *  tinyQ(selector [,filter]);
-     *  tinyQ(tinyQ|Node|NodeList|Array<Node> [,selector] [,filter])
+     *  tinyQ(nodes [,selector] [,filter]  [,mode])
      * 
      *  tinyQ('<a href="#here">Test</a>')           // create html fragment
-     *  _tinyQq('a', {href: '#here', text: 'Test'}) // create element
+     *  tinyQ('a', {href: '#here', text: 'Test'})   // create element
      * 
      *  tinyQ(Array, selector, mode)                // internal .q() .q1()
      *  tinyQ(Array, filter)                        // internal .filter()
@@ -44,15 +44,23 @@ define([
         var param_type = tiny.type(param);
         var filter = param_type == 'function' ? param : false;
 
+        /// *** Prepare Parameters ***
         // single node -> array
         if (is_node(obj)) {
             type = 'array';
             obj = [selecotor];
         }
         // NodeList -> Array
-        if (type == 'nodelist') obj = to_array(obj, filter);
+        if (type == 'nodelist') {
+            type = 'array';
+        }
+        // tinyQ -> Array
+        if (type == 'tinyq') {
+            type = 'array';
+            obj = obj.nodes;
+        }
 
-        /// mode select
+        /// *** Detect parameter pattern ***
         if (type == 'string') {
             if (obj.startsWith('<')) {
                 // ==> Create HTML fragment - '<html>';
@@ -78,10 +86,6 @@ define([
                 this.nodes = to_array(obj, filter);
             }
             if (filter) this.selector += ' <filter:' + tiny.fn.getFuncName(filter) + '()>';
-        } else if (type == 'tinyq') {
-            // ==> clone tinyQ object
-            this.selector = obj.selector;
-            this.nodes = copy_array(obj.nodes);
         } else {
             tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
