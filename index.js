@@ -47,7 +47,7 @@ function test_code() {
     _log(z.add(y, test));
     _log(z.add('h3', test));
 
-    _log(x.q('.function', test));
+    _log(x.q1('.token'));
 
     _log(z.first());
     _log(z.last());

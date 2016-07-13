@@ -158,7 +158,7 @@ define([
 
         q: sub_query_all,
         q1: sub_query_one,
-        add: add_to_nodes,
+        add: add_nodes,
         filter: filter_nodes,
 
         first: get_first,
@@ -281,7 +281,7 @@ define([
      * .q1() - query one
      */
     function sub_query_one(selector, filter) {
-        return sub_query_all(selector, this.nodes, filter, 1);
+        return sub_query_all.call(this, selector, filter, 1);
     }
 
     /**
@@ -294,7 +294,7 @@ define([
     /**
      * .add() - add items to current tinyQ object
      */
-    function add_to_nodes(obj, filter) {
+    function add_nodes(obj, filter) {
         var tag = build_filter_tag(filter);
         if (typeof obj == 'string') {
             tag = obj + tag;
