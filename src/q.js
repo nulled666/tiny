@@ -27,24 +27,22 @@ define([
      * tinyQ constructor
      * ```
      *  tinyQ(selector [,filter]);
-     *  tinyQ(nodes [,selector] [,filter]  [,mode])
+     *  tinyQ(nodes [,selector] [,filter] [,mode] [,desc])
      * 
      *  tinyQ('<a href="#here">Test</a>')           // create html fragment
      *  tinyQ('a', {href: '#here', text: 'Test'})   // create element
-     * 
-     *  tinyQ(Array, selector, mode)                // internal .q() .q1()
-     *  tinyQ(Array, filter)                        // internal .filter()
      * ```
      */
-    var tinyQ = function (obj, param, extra, mode) {
+    var tinyQ = function (obj, param, extra, mode, desc) {
 
         tiny.time('tinyQ');
 
         var type = tiny.type(obj);
         var param_type = tiny.type(param);
-        var filter = param_type == 'function' ? param : false;
 
         /// *** Prepare Parameters ***
+        var filter = param_type == 'function' ? param : false;
+
         // single node -> array
         if (is_node(obj)) {
             type = 'array';
@@ -72,22 +70,21 @@ define([
                 // ==> first query - (selector, filter, null, mode)
                 this.selector = obj;
                 this.nodes = do_query([document], obj, filter, mode);
-                if (filter) this.selector += ' <filter:' + tiny.fn.getFuncName(filter) + '()>';
+                if (filter) this.selector += '; filter:' + tiny.fn.getFuncName(filter) + '()';
             }
         } else if (type == 'array') {
+            this.selector = (typeof desc == 'string') ? desc : '[nodes]';
             // ==> array of nodes
             if (param_type == 'string') {
                 // ==> (nodes, selector [,filter] [,mode]) - .q() and .q1() method
-                this.selector = param;
-                this.nodes = do_query(obj, selector, filter, mode);
+                this.nodes = do_query(obj, param, filter, mode);
             } else {
                 // ==> (nodes, [,filter]) - .filter() method
-                this.selector = '[nodes]';
                 this.nodes = to_array(obj, filter);
             }
-            if (filter) this.selector += ' <filter:' + tiny.fn.getFuncName(filter) + '()>';
+            if (filter) this.selector += '; filter:' + tiny.fn.getFuncName(filter) + '()';
         } else {
-            tiny.error(TAG_Q, 'Expect an selector string. > Got "' + typeof obj + '": ', obj);
+            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -99,6 +96,9 @@ define([
 
     };
 
+    /**
+     * The prototype
+     */
     tinyQ.prototype = {
 
         tinyQ: true,
@@ -217,21 +217,21 @@ define([
      * .q() - query all
      */
     function query_all(selector) {
-        return new tinyQ(this.nodes, selector);
+        return new tinyQ(this.nodes, selector, null, null, this.selector + '; q()');
     }
 
     /**
      * .q1() - query one
      */
     function query_one(selector) {
-        return new tinyQ(this.nodes, selector, false, 1);
+        return new tinyQ(this.nodes, selector, null, 1, this.selector + '; q1()');
     }
 
     /**
      * .filter() - filter items in result set
      */
     function filter_nodes(filter) {
-        return new tinyQ(this.nodes, filter);
+        return new tinyQ(this.nodes, filter, null, null, this.selector);
     }
 
     /**
@@ -260,7 +260,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        return new tinyQ(arr, 'first()');
+        return new tinyQ(arr, null, null, null, this.selector + '; first()');
     }
 
     /**
@@ -269,7 +269,7 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        return new tinyQ(arr, 'last()');
+        return new tinyQ(arr, null, null, null, this.selector + '; last()');
     }
 
 

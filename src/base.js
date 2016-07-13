@@ -176,7 +176,9 @@ define([
         var type = typeof obj;
 
         if (type == 'object') {
-            if (obj.jquery) {
+            if (!obj) {
+                type = null;
+            } else if (obj.jquery) {
                 type = 'jquery';
             } else if (obj.tinyQ) {
                 type = 'tinyq';
