@@ -46,7 +46,6 @@ define([
      *  tinyQ(tag, attr [,parent])         // _q('a', {href: '#here', text: 'Test'}, document)
      *  tinyQ(selector [,filter])          // _q('a', '.test')
      *  tinyQ(selector, nodes [,filter])   // .q(selector, filter)
-     * 
      *  tinyQ(nodes [,filter])             // _q(nodes, '.test')
      * 
      *  tinyQ(obj, param, filter, mode, desc)
@@ -96,7 +95,7 @@ define([
         this.selector = (typeof selector_string == 'string') ? selector_string : obj;
         if (filter) this.selector += build_filter_tag(filter);
 
-        tiny.log('tinyQ operation:', tiny.time('tinyQ').toFixed(4), 'ms');
+        tiny.time('tinyQ');
 
         return this;
 

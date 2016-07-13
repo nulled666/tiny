@@ -339,16 +339,21 @@
 
         <h3><a class="mark" name="time">_time()</a></h3>
 
-        <p>A timing function for evaluating performance. It uses <code>window.performance.now()</code> if avaiblable.</p>
+        <p>A timing function for evaluating performance.</p>
+        <p>It uses <code>Date()</code> if the <code>window.performance.now()</code> method is not avaiblable.</p>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             // call with an id to record start time
             _time('test');
+            // call again to output to console
+            _time('test');
 
+            // start another
+            _time('test');
             setTimeout(function(){
-                // call with the same id a second time to get time diff in milliseconds
-                _warn('Test Timer:', _time('test'), 'ms');
+                // call with false as second parameter to get the value
+                ASSERT('time', _time('test', false) > 199);
             }, 200);
         </code></pre>
 

@@ -99,13 +99,14 @@ define([
     /**
      * Get performance time
      */
-    function pref_time(id) {
+    function pref_time(id, log) {
         if (!_pref_time[id]) {
             _pref_time[id] = _perf_now();
         } else {
             var time = (_perf_now() - _pref_time[id]);
             _pref_time[id] = false;
-            return time;
+            if (log == false) return time;
+            _info('%c' +id + ': ' + time.toFixed(3) + 'ms', 'padding: 2px 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
         }
     }
 
