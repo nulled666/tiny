@@ -111,7 +111,7 @@ define([
      */
     function prepare_node_paramter(obj) {
         var type = tiny.type(obj);
-        if (is_node(obj)) {
+        if (is_element(obj)) {
             // single node -> array
             obj = [obj];
         } else if (type == 'q') {
@@ -155,25 +155,6 @@ define([
         q1: sub_query_one_node,
         add: add_nodes,
         filter: filter_nodes,
-        
-        // '!filter' definitions
-        filters: {
-            first: function (node) { return [node] },
-            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
-            even: function (a, index) { return index % 2 == 0 },
-            odd: function (a, index) { return index % 2 == 1 },
-            eq: function (a, index) { return index == this },
-            lt: function (a, index) { return index < this },
-            gt: function (a, index) { return index > this },
-            empty: function (node) { return node.childNodes.length == 0 },
-            not: function (node) { return !node.matches(this) },
-            has: function (node) { return node.querySelector(this) != null },
-            contains: function (node) { return node.innerText.includes(this) },
-            enabled: function (node) { return !node.disabled },
-            disabled: function (node) { return node.disabled },
-            visible: function (node) { return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length) },
-            hidden: function (node) { return !tinyQ.filters.visible(node) }
-        },
 
         first: get_first,
         last: get_last,
@@ -214,7 +195,7 @@ define([
 
         var out = [];
         tiny.each(nodes, function (node) {
-            if (is_node(node)) out = action(node, selector, filter, out);
+            if (is_element(node)) out = action(node, selector, filter, out);
         });
 
         return out;
@@ -248,7 +229,7 @@ define([
     /**
      * check if an object is a html element or document node
      */
-    function is_node(obj) {
+    function is_element(obj) {
         return obj && (obj.nodeType == 1 || obj.nodeType == 9);
     }
 
@@ -265,7 +246,7 @@ define([
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (!is_node(node)) continue;
+            if (!is_element(node)) continue;
             if (filter) {
                 var r = filter(node, i, nodes);
                 if (r == false) continue;
@@ -286,24 +267,32 @@ define([
         if (!filter) return false; // no filter is set
 
         var type = typeof filter;
+        var func;
+        var this_arg = {};
+
         if (type == 'function') {
             // ==> filter() - custom function
             // simply return the given function
-            return filter;
+            func = filter;
         } else if (type == 'string') {
             if (filter.startsWith('!')) {
                 //==> '!first' - build-in custom filter
+                func = parse_custom_filter_string(filter);
             } else {
-                // ==> selector - create a proxy function for given selector
-                return function () {
-                    var node = arguments[0];
-                    return node_matches.apply(filter, [node]);
-                };
+                // ==> selector
+                this_arg = filter;
+                func = node_matches;
             }
         } else {
             tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', filter);
             throw new TypeError(G.SEE_ABOVE);
         }
+
+        // create a proxy function, this_arg as a temporary data storage for custom filters
+        return function (node, index, list) {
+            var arg = arguments;
+            return func.call(this_arg, node, index, list);
+        };
 
     }
 
@@ -313,6 +302,36 @@ define([
     function node_matches(node) {
         return node.matches(this);
     }
+
+
+    function parse_custom_filter_string(filter) {
+
+        var filters = filter.split('!');
+        var arr = [];
+        for (var i = 1, len = filters.length; i < len; ++i) {
+
+            var item = filters[i];
+            var pos = item.indexOf('(');
+            var name, param;
+
+            if (pos < 0) {
+                arr.push([item, null]);
+                continue;
+            } else {
+                name = item.substring(0, pos);
+                param = item.substring(pos);
+            }
+
+            // seek for end of parameter
+            if (!param.endsWith(')')) {
+            }
+
+        }
+        _inspect(arr);
+        return arr;
+
+    }
+
 
     ///////////////////////////// CORE METHODS ////////////////////////////
 
@@ -394,6 +413,34 @@ define([
         return new tinyQ(arr, null, null, null, this.selector + '::last()');
     }
 
+
+    ///////////////////////////// CUSTOM FILTERS ////////////////////////////
+
+    tiny.extend(tinyQ.prototype, {
+        filters: {
+            first: function (node) { return [node] },
+            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
+            even: function (a, index) { return index % 2 == 1 },
+            odd: function (a, index) { return index % 2 == 0 },
+            eq: function (a, index) { return index != this || [node] },
+            lt: function (a, index) { return index < this },
+            gt: function (a, index) { return index > this },
+            blank: function (node) { return node.innerText.trim() == '' },
+            empty: function (node) { return node.childNodes.length == 0 },
+            matches: function (node) { return node.matches(this) },
+            not: function (node) { return !node.matches(this) },
+            has: function (node) { return node.querySelector(this) != null },
+            contains: function (node) { return node.innerText.includes(this) },
+            enabled: function (node) { return !node.disabled },
+            disabled: function (node) { return node.disabled },
+            checked: function (node) { return !!(node.checked) },
+            visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
+            hidden: function (node) { return !tinyQ.filters.visible(node) },
+            'only-child': function (node) { return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node] },
+            'first-child': function (node) { return !(node.parentNode && !node.prevSibling) || [node] },
+            'last-child': function (node) { return !(node.parentNode && !node.nextSibling) || [node] }
+        },
+    })
 
     return tinyQ;
 

@@ -312,7 +312,7 @@
         <p>It will return a formatted JSON string version of given object for inspection.</p>
         <p>Functions and special objects might lose in this process.</p>
         <pre class="usage"><code class="language-javascript">
-            _inspect(obj) : string
+            _inspect(obj [, key_filter] [, log]) : string
         </code></pre>
 
         <h4>EXAMPLES</h4>
@@ -324,14 +324,13 @@
                 method: function(){}
             };
 
-            var result = _inspect( obj );
+            var result = _inspect( obj, ['method'], false );
             var expected_result = JSON.stringify({
                 "id": 123,
                 "view": {
                     "loaded": true,
                     "date": "2016-06-29T08:47:27.725Z"
-                },
-                "method": "[Function]"
+                }
             }, null, 4);
             // the result should looks like expected_result
             ASSERT('_inspect()', result == expected_result);

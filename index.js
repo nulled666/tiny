@@ -33,41 +33,10 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code');
+    var x = _q('.run-code', '.html');
     _log(x);
 
-    var y = x.filter('.collapse');
-    _log(y);
-
-    y = _q(x);
-    _log(y);
-    
-    var z = _q(document.querySelectorAll('.run-code'));
-    _log(z);
-
-    y = _q('h3');
-    _log(y);
-
-    _log(z.add(y, test));
-    _log(z.add('h3', test));
-
-    _log(x.q1('.token'));
-
-    _log(z.first());
-    _log(z.last());
-
     return true;
-
-    // y = y.cls('^collapse passed');
-
-    // var z = z.q1('a');
-    // _log(y);
-
-
-    // _log(y.first())
-    // _log(y.last())
-
-    // return true;
 
 }
 

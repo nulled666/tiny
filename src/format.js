@@ -255,11 +255,11 @@ define([
     }
 
     // helper function
-    function insert_char_every(width, char, str) {
+    function insert_char_every(width, chr, str) {
         var index = str.length;
         while (index > width) {
             index -= width;
-            str = str.substring(0, index) + char + str.substring(index);
+            str = str.substring(0, index) + chr + str.substring(index);
         }
         return str;
     }
@@ -505,7 +505,7 @@ define([
         var tag_stack = [];
 
         var result = '';
-        var char = '';
+        var chr = '';
 
         var last_line_indent = 0;
         var line_indent = -1;
@@ -516,15 +516,15 @@ define([
         // 1-pass loop over the string, no RegExp is used
         // This is a read-ahead action-behind loop
         // So we set len = template.length + 1 to loop over the end of string
-        // Ths=us we can get char == '' as the ending sign
+        // Ths=us we can get chr == '' as the ending sign
         for (var pos = 0, len = template.length + 1; pos < len; ++pos) {
 
             // get line indent
             if (line_indent == -1) {
                 var indent_counter = 0;
                 for (; pos < len; ++pos) {
-                    char = template.charAt(pos);
-                    if (char == '\t' || char == ' ') {
+                    chr = template.charAt(pos);
+                    if (chr == '\t' || chr == ' ') {
                         ++indent_counter;
                     } else {
                         // use first line's indent as base
@@ -536,9 +536,9 @@ define([
             }
 
             // start a line
-            char = template.charAt(pos);
+            chr = template.charAt(pos);
 
-            if (char == '' || char == '\n' || char == '>') {
+            if (chr == '' || chr == '\n' || chr == '>') {
                 // ==> build tag
                 // build nested result if jump out
                 if (line_indent < last_line_indent)
@@ -549,8 +549,8 @@ define([
                 // reset and start a new line
                 tag = { class: [], attr: [] };
                 last_line_indent = line_indent;
-                line_indent = char == '>' ? line_indent + 2 : -1;
-            } else if (char == ':') {
+                line_indent = chr == '>' ? line_indent + 2 : -1;
+            } else if (chr == ':') {
                 // ==> content section
                 var end_pos = template.indexOf('\n', pos); // use new line as end
                 var start_pos = template.indexOf('{[', pos); // try to find {( start
@@ -565,9 +565,9 @@ define([
                 if (end_pos < 0) end_pos = len - 1;
                 tag.content = template.substring(pos + 1, end_pos);
                 pos = end_pos - 1;  // -1 to trigger end of line char
-            } else if ('.#['.includes(char)) {
+            } else if ('.#['.includes(chr)) {
                 // ==> tag attributes
-                pos = read_shorthand_segment(char, pos, len, template, tag);
+                pos = read_shorthand_segment(chr, pos, len, template, tag);
 
             } else {
                 // ==> tag name
@@ -589,7 +589,7 @@ define([
     function read_shorthand_segment(type, pos, len, template, tag_cache) {
 
         var token = '';
-        var char = '';
+        var chr = '';
         var in_mustache = 0;
         var in_attribute = false;
 
@@ -597,35 +597,35 @@ define([
 
         for (; pos < len; ++pos) {
 
-            char = template.charAt(pos);
+            chr = template.charAt(pos);
 
             // keep {} tokens as they are
-            if (char == '}')--in_mustache;
-            if (char == '{')++in_mustache;
+            if (chr == '}')--in_mustache;
+            if (chr == '{')++in_mustache;
             if (in_mustache) {
-                token += char;
+                token += chr;
                 continue;
             }
 
             // attributes
-            if (type == '[' && char == '=') {
+            if (type == '[' && chr == '=') {
                 token += '="';
                 in_attribute = true;
                 continue;
             }
             if (in_attribute) {
-                if (char == "]") {
+                if (chr == "]") {
                     token += '"';
                     in_attribute = false;
                 } else {
-                    token += char;
+                    token += chr;
                     continue;
                 }
             }
 
-            if (char == ' ' || char == '\t') continue;
+            if (chr == ' ' || chr == '\t') continue;
 
-            if (char == '' || '.#[]:>\n'.includes(char)) {
+            if (chr == '' || '.#[]:>\n'.includes(chr)) {
                 if (type == '.') {
                     tag_cache.class.push(token);
                 } else if (type == '#') {
@@ -641,7 +641,7 @@ define([
             }
 
             // read in token
-            token += char;
+            token += chr;
 
         }
 

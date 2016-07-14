@@ -63,16 +63,19 @@ define([
      *   // }
      * ```
      */
-    function _inspect(obj, filter_out) {
+    function _inspect(obj, filter_out, log) {
 
-        filter_out = filter_out || false;
+        log = log == false ? false :
+            filter_out === false ? false : true;
+            
+        filter_out = filter_out || null;
 
         if (filter_out) {
             if (_type(filter_out) !== 'Array') filter_out = [filter_out];
             filter_out = '|' + filter_out.join('|') + '|';
         }
 
-        return JSON.stringify(obj, function (name, value) {
+        var result = JSON.stringify(obj, function (name, value) {
 
             if (filter_out && filter_out.includes('|' + name + '|')) return undefined;
 
@@ -86,6 +89,10 @@ define([
             }
 
         }, 4);
+
+        if (log == false) return result;
+
+        _info('%c' + result, 'padding: 2px 8px;color:#292;background:#f9fff9;border-radius: 1em;');
 
     }
 
@@ -106,7 +113,7 @@ define([
             var time = (_perf_now() - _pref_time[id]);
             _pref_time[id] = false;
             if (log == false) return time;
-            _info('%c' +id + ': ' + time.toFixed(3) + 'ms', 'padding: 2px 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
+            _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 2px 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
         }
     }
 
