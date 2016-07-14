@@ -321,10 +321,10 @@ define([
      * build a wrapper function for all filters
      */
     function create_filter_list(args) {
-        var tag = this;
+        var filter_string = this;
         var arr = [];
         tiny.each(args, function (item) {
-            arr = parse_arg_to_filter.call(tag, item, arr);
+            arr = parse_arg_to_filter.call(filter_string, item, arr);
         })
         return arr;
     }
@@ -337,22 +337,23 @@ define([
 
         if (!arg) return false; // no filter is set
 
+        var filter_string = this;
         var type = typeof arg;
         var func;
 
         if (type == 'function') {
             // ==> filter() - custom function
-            this.tag += '|' + tiny.fn.getFuncName(arg) + '()';
+            filter_string.tag += '$' + tiny.fn.getFuncName(arg) + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('|')) {
+            if (arg.startsWith('$')) {
                 //==> '/filter(param)' - build-in custom filter
-                this.tag += arg;
+                filter_string.tag += arg;
                 func = parse_custom_filter_tag(arg);
                 list = list.concat(func);
             } else {
                 // ==> selector
-                this.tag += '|' + arg;
+                filter_string.tag += '$' + arg;
                 list.push([tinyQ.prototype.filters['matches'], arg]);
             }
         } else {
@@ -369,7 +370,7 @@ define([
      */
     function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split('@');
+        var filters = filter.split('$');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 
