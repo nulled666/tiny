@@ -32,11 +32,19 @@ define([
 
     var TAG_Q = '_q()' + G.TAG_SUFFIX;
 
-    function _q(selector, filter) {
-        return new tinyQ(selector, filter);
+    function _q() {
+        return construct(tinyQ, arguments);
     }
-    function _q1(selector, filter) {
-        return new tinyQ(selector, filter, null, 1);
+    function _q1() {
+    }
+
+    // a helper to pass arguments on constructor
+    function construct(constructor, args) {
+        function F() {
+            return constructor.apply(this, args);
+        }
+        F.prototype = constructor.prototype;
+        return new F();
     }
 
     /**
@@ -44,99 +52,23 @@ define([
      * ```
      *  tinyQ(html [,parent])              // _q('<a href="#here">Test</a>', document) 
      *  tinyQ(tag, attr [,parent])         // _q('a', {href: '#here', text: 'Test'}, document)
-     *  tinyQ(selector [,filter])          // _q('a', '.test')
-     *  tinyQ(selector, nodes [,filter])   // .q(selector, filter)
-     *  tinyQ(nodes [,filter])             // _q(nodes, '.test')
+     *  tinyQ(selector [,filter...])          // _q('a', '.test')
+     *  tinyQ(selector, nodes [,filter...])   // .q(selector, filter)
+     *  tinyQ(nodes [,filter...])             // _q(nodes, '.test')
      * 
      *  tinyQ(obj, param, filter, mode, desc)
      * 
      * ```
      */
-    var tinyQ = function (obj, param, filter, mode, selector_string) {
-
+    var tinyQ = function () {
         tiny.time('tinyQ');
-
-        // preserve selector string from last tinyQ object
-        if (tiny.type(obj) == 'q') selector_string = obj.selector;
-
-        /// *** Prepare Parameters ***
-        obj = prepare_node_paramter(obj);
-
-        var type = get_type(obj);
-        var param_type = get_type(param);
-
-        /// *** Detect parameter pattern ***
-        if (type == 'string') {
-            if (obj.startsWith('<')) {
-                // ==> Create HTML fragment - '<html>';
-            } else {
-                // _q(selector, filter)
-                if (param_type == 'string' || param_type == 'function') filter = param;
-                if (param_type == 'Array') {
-                    // ==> tinyq.q(selector, nodes [, filter])
-                    this.nodes = do_query(param, obj, filter, mode);
-                } else if (param_type == 'object') {
-                    // ==> Create HTML Element - 'tagname', {attr}
-                } else {
-                    // ==> _q(selector [,filter])
-                    this.nodes = do_query([document], obj, filter, mode);
-                }
-            }
-        } else if (type == 'Array') {
-            // ==> _q(nodes [,filter])
-            if (param_type == 'string' || param_type == 'function') filter = param;
-            this.nodes = to_array(obj, filter);
-            obj = '[nodes]'; // set for selector string
-        } else {
-            invalid_parameter(type, obj);
-        }
-
-        this.length = this.nodes.length;
-        this.selector = (typeof selector_string == 'string') ? selector_string : obj;
-        if (filter) this.selector += build_filter_tag(filter);
-
+        if (arguments.length > 0)
+            init_q.call(this, arguments);
         tiny.time('tinyQ');
-
         return this;
-
     };
 
-    function invalid_parameter(type, obj) {
-        tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
-        throw new TypeError(G.SEE_ABOVE);
-    }
-
-    /**
-     * prepare Array-like Node list objects
-     */
-    function prepare_node_paramter(obj) {
-        var type = tiny.type(obj);
-        if (is_element(obj)) {
-            // single node -> array
-            obj = [obj];
-        } else if (type == 'q') {
-            obj = obj.nodes;
-        } else if (type == 'jquery') {
-            obj = obj.toArray();
-        }
-        return obj;
-    }
-
-    /**
-     * Custom tiny.type() wrapper for tinyQ
-     */
-    function get_type(obj) {
-        var type = tiny.type(obj);
-        if (type == 'NodeList' || type == 'HTMLCollection') type = 'Array';
-        return type;
-    }
-
-    function build_filter_tag(filter) {
-        var type = typeof filter;
-        if (type != 'string' && type != 'function') return '';
-        var name = type == 'string' ? filter : tiny.fn.getFuncName(filter) + '()';
-        return ' >> filter="' + name + '"';
-    }
+    tinyQ.TAG = TAG_Q;
 
     /**
      * The prototype
@@ -182,9 +114,110 @@ define([
 
     };
 
-    tinyQ.TAG = TAG_Q;
 
-    ///////////////////////////// INTERNAL FUNCTIONS ////////////////////////////
+    ///////////////////////////// INIT FUNCTIONS ////////////////////////////
+    function init_q(args) {
+
+        args = Array.prototype.slice.call(args, 0);
+
+        var prop = {};
+        var filter_func = false;
+        var obj = args[0];
+        var obj_type = tiny.type(obj);
+
+        if (obj_type == 'object' && obj._tinyQ) {
+            // ==> Parameter 1 is an internal object
+            // internal method's call
+            prop = obj;
+            args = args.slice(1);
+            obj = args[0];
+        } else if (obj_type == 'q') {
+            // ==> Parameter 1 is a tinyQ object
+            // (tinyQ [,filter]...)
+            prop.chain = obj.chain;
+        }
+
+        obj = normalize_nodelist(obj);
+        obj_type = get_type(obj);
+
+        if (obj_type == 'Array') {
+            // ==> (nodes [,filter...])
+            if (args.length > 1)
+                filter_func = create_filter_from_arguments(args.slice(1));
+
+            this.nodes = to_array(obj, filter_func);
+
+        } else if (obj_type == 'string') {
+
+            var param = args[1];
+            var param_type = get_type(param);
+
+            if (obj.startsWith('<')) {
+                // ==> (html_fragment [,parent])
+            } else if (param_type == 'object') {
+                // ==> (tag, attribute_object)
+            } else if (param_type == 'Array') {
+                // ==> (selector, nodes [,filter...])
+                param = normalize_nodelist(param);
+                filter_func = create_filter_from_arguments(args.slice(2));
+                this.nodes = do_query(param, obj, filter_func);
+            } else {
+                // ==> (selector, [,filter...])
+                filter_func = create_filter_from_arguments(args.slice(1));
+                this.nodes = do_query([document], obj, filter_func);
+            }
+
+        } else {
+            invalid_parameter(obj_type, obj);
+        }
+
+        this.length = this.nodes.length;
+        this.selector = (typeof selector_string == 'string') ? selector_string : obj;
+        if (filter_func) this.selector += '<filtered>';
+
+        return this;
+
+    }
+
+    function invalid_parameter(type, obj) {
+        tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
+        throw new TypeError(G.SEE_ABOVE);
+    }
+
+    /**
+     * prepare Array-like Node list objects
+     */
+    function normalize_nodelist(obj) {
+        var type = tiny.type(obj);
+        if (is_element(obj)) {
+            // single node -> array
+            obj = [obj];
+        } else if (type == 'q') {
+            obj = obj.nodes;
+        } else if (type == 'jquery') {
+            obj = obj.toArray();
+        }
+        return obj;
+    }
+
+    /**
+     * Custom tiny.type() wrapper for tinyQ
+     */
+    function get_type(obj) {
+        var type = tiny.type(obj);
+        if (type == 'NodeList' || type == 'HTMLCollection') type = 'Array';
+        return type;
+    }
+
+    function build_filter_tag(filter) {
+        var type = typeof filter;
+        if (type != 'string' && type != 'function') return '';
+        var name = type == 'string' ? filter : tiny.fn.getFuncName(filter) + '()';
+        return ' >> filter="' + name + '"';
+    }
+
+
+    ///////////////////////////// QUERY FUNCTIONS ////////////////////////////
 
     /**
      * Real query function
@@ -236,19 +269,17 @@ define([
     /**
      * Convert NodeList to Arrays, also do copy and filtering
      */
-    function to_array(nodes, filter) {
+    function to_array(nodes, filters) {
 
-        if (tiny.type(nodes) == 'Array' && !filter)
+        if (tiny.type(nodes) == 'Array' && !filters)
             return nodes;
-
-        filter = get_filter_function(filter);
 
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
-            if (filter) {
-                var r = filter(node, i, nodes);
+            if (filters) {
+                var r = filters(node, i, nodes);
                 if (r == false) continue;
                 // a node array returned, end with this node
                 if (r !== true && tiny.type(r) == 'Array') return r;
@@ -259,54 +290,78 @@ define([
 
     }
 
+    ///////////////////////////// FILTER SUPPORT FUNCTIONS ////////////////////////////
+
     /**
-     * Returns a filter function for given filter type
+     * build a wrapper function for all filters
      */
-    function get_filter_function(filter) {
+    function create_filter_from_arguments(list) {
+
+        var arr = [];
+
+        tiny.each(list, function (item) {
+            arr = parse_filter_parameter(item, arr);
+        })
+        
+        // create a proxy function, this_arg as a temporary data storage for custom filters
+        return function (node, index, list) {
+            return filter_list_caller.call(arr, node, index, list);
+        };
+
+    }
+
+    /**
+     * proxy for executing filter function list
+     */
+    function filter_list_caller(node, index, list) {
+        var filter_list = this;
+        // a 'this' context shared by all filters
+        var this_arg = {};
+        return tiny.each(filter_list, function (filter) {
+            this_arg.p = filter[1];
+            var r = filter[0].call(this_arg, node, index, list);
+            if (r == false) return false;
+            if (r != true) return r;
+        });
+    }
+
+    /**
+     * Returns a filter function of given filter type
+     */
+    function parse_filter_parameter(filter, list) {
 
         if (!filter) return false; // no filter is set
 
         var type = typeof filter;
         var func;
-        var this_arg = {};
 
         if (type == 'function') {
             // ==> filter() - custom function
-            // simply return the given function
-            func = filter;
+            list.push([filter, null]);
         } else if (type == 'string') {
-            if (filter.startsWith('@')) {
-                //==> '@first' - build-in custom filter
+            if (filter.startsWith('/')) {
+                //==> '/filter(param)' - build-in custom filter
                 func = parse_custom_filter_string(filter);
+                list = list.concat(func);
             } else {
                 // ==> selector
-                this_arg = filter;
-                func = node_matches;
+                list.push([tinyQ.prototype.filters['matches'], filter]);
             }
         } else {
             tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', filter);
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        // create a proxy function, this_arg as a temporary data storage for custom filters
-        return function (node, index, list) {
-            var arg = arguments;
-            return func.call(this_arg, node, index, list);
-        };
+        return list;
 
     }
 
     /**
-     * test a node againt selector
+     * Parse custom filter string into function list
      */
-    function node_matches(node) {
-        return node.matches(this);
-    }
-
-
     function parse_custom_filter_string(filter) {
 
-        var filters = filter.split('@');
+        var filters = filter.split('/');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 
@@ -336,21 +391,7 @@ define([
 
         }
 
-        return function (node, index, list) {
-            var param = this;
-            return custom_filter_list_caller.call(arr, param, node, index, list);
-        };
-
-    }
-
-    function custom_filter_list_caller(param, node, index, list) {
-        var func_list = this;
-        return tiny.each(func_list, function (func) {
-            param.p = func[1];
-            var r = func[0].call(param, node, index, list);
-            if (r == false) return false;
-            if (r != true) return r;
-        })
+        return arr;
 
     }
 
@@ -362,7 +403,7 @@ define([
      */
     function is_node_of_type(selector) {
 
-        var filter = get_filter_function(filter);
+        var filter = parse_filter_parameter(filter);
 
         var nodes = this.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
@@ -397,7 +438,7 @@ define([
      */
     function add_nodes(obj, filter) {
 
-        obj = prepare_node_paramter(obj);
+        obj = normalize_nodelist(obj);
         var type = get_type(obj);
         var tag = build_filter_tag(filter);
 

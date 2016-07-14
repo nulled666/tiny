@@ -81,7 +81,7 @@ define([
 
             switch (typeof value) {
                 case 'function':
-                    return '[Function]';
+                    return '[function: ' + tiny.fn.getFuncName(value) + '()]';
                 case 'undefined':
                     return '[undefined]';
                 default:
