@@ -121,7 +121,7 @@ define([
 
         args = Array.prototype.slice.call(args, 0);
 
-        var prop = { filter: '' };
+        var prop = {};
         var filter_func = false;
         var obj = args[0];
         var obj_type = tiny.type(obj);
@@ -134,6 +134,8 @@ define([
             obj = args[0];
         }
 
+        prop.filter = '';
+
         obj = normalize_nodelist.call(prop, obj);
         obj_type = get_type(obj);
 
@@ -143,6 +145,8 @@ define([
                 filter_func = create_filter_list.call(prop, args.slice(1));
 
             this.nodes = to_array(obj, filter_func);
+
+            if (prop.filter) prop.chain += '.filter(' + prop.filter + ')';
 
         } else if (obj_type == 'string') {
             // ==> (selector, ...
@@ -166,7 +170,7 @@ define([
                     this.nodes = do_query([document], obj, filter_func);
                 }
 
-                if (prop.filter) obj += '&' + prop.filter + '';
+                if (prop.filter) obj += ', ' + prop.filter + '';
                 if (!prop.chain) {
                     prop.chain = '(' + obj + ')';
                 } else {
