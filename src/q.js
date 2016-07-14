@@ -275,8 +275,8 @@ define([
             // simply return the given function
             func = filter;
         } else if (type == 'string') {
-            if (filter.startsWith('!')) {
-                //==> '!first' - build-in custom filter
+            if (filter.startsWith('@')) {
+                //==> '@first' - build-in custom filter
                 func = parse_custom_filter_string(filter);
             } else {
                 // ==> selector
@@ -306,29 +306,49 @@ define([
 
     function parse_custom_filter_string(filter) {
 
-        var filters = filter.split('!');
+        var filters = filter.split('@');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 
-            var item = filters[i];
+            var item = filters[i].trim();
             var pos = item.indexOf('(');
             var name, param;
+            var func = null;
 
             if (pos < 0) {
-                arr.push([item, null]);
-                continue;
+                func = tinyQ.prototype.filters[item];
+                param = null;
             } else {
                 name = item.substring(0, pos);
-                param = item.substring(pos);
+                func = tinyQ.prototype.filters[name];
+                param = item.substring(pos + 1);
+                if (!param.endsWith(')')) {
+                    tiny.error(TAG_Q, 'Unexpected end of filter. ', item);
+                    throw new SyntaxError(G.SEE_ABOVE);
+                }
+                param = param.substring(0, param.length - 1).trim();
+                if (param.search(/^\d$/) > -1) param = parseInt(param);
             }
 
-            // seek for end of parameter
-            if (!param.endsWith(')')) {
+            if (func) {
+                arr.push([func, param]);
             }
 
         }
         _inspect(arr);
-        return arr;
+        return function (node, index, list) {
+            var param = this;
+            return custom_filter_list_caller.call(arr, param, node, index, list);
+        };
+
+    }
+
+    function custom_filter_list_caller(param, node, index, list) {
+        var func_list = this;
+        tiny.each(func_list, function (func) {
+            param.p = func[1];
+            func[0].call(param, node, index, list)
+        })
 
     }
 
@@ -422,15 +442,15 @@ define([
             last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
             even: function (a, index) { return index % 2 == 1 },
             odd: function (a, index) { return index % 2 == 0 },
-            eq: function (a, index) { return index != this || [node] },
-            lt: function (a, index) { return index < this },
-            gt: function (a, index) { return index > this },
+            eq: function (a, index) { return index != this.p || [node] },
+            lt: function (a, index) { return index < this.p },
+            gt: function (a, index) { return index > this.p },
             blank: function (node) { return node.innerText.trim() == '' },
             empty: function (node) { return node.childNodes.length == 0 },
-            matches: function (node) { return node.matches(this) },
-            not: function (node) { return !node.matches(this) },
-            has: function (node) { return node.querySelector(this) != null },
-            contains: function (node) { return node.innerText.includes(this) },
+            matches: function (node) { return node.matches(this.p) },
+            not: function (node) { return !node.matches(this.p) },
+            has: function (node) { return node.querySelector(this.p) != null },
+            contains: function (node) { return node.innerText.includes(this.p) },
             enabled: function (node) { return !node.disabled },
             disabled: function (node) { return node.disabled },
             checked: function (node) { return !!(node.checked) },

@@ -33,7 +33,7 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code', '.html');
+    var x = _q('.run-code', '@gt(7) @has(.function) @first');
     _log(x);
 
     return true;

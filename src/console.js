@@ -92,7 +92,7 @@ define([
 
         if (log == false) return result;
 
-        _info('%c' + result, 'padding: 2px 8px;color:#292;background:#f9fff9;border-radius: 1em;');
+        _info('%c' + result, 'padding: 0 8px;color:#292;background:#f9fff9;border-radius: 1em;');
 
     }
 
@@ -113,7 +113,7 @@ define([
             var time = (_perf_now() - _pref_time[id]);
             _pref_time[id] = false;
             if (log == false) return time;
-            _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 2px 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
+            _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 0 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
         }
     }
 
