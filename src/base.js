@@ -29,7 +29,7 @@ define([
         fn: {
             add: add_to_tiny,
             getFuncName: get_function_name,
-            slice: Array.prototype.slice
+            toArray: to_array
         }
 
     });
@@ -327,6 +327,28 @@ define([
 
         return target;
 
+    }
+
+    /**
+     * Convert Array-like object into Array
+     */
+    function to_array(array_like, start) {
+
+        start = typeof start == 'number' ? start : 0;
+
+        if (Array.isArray(array_like)) {
+            if (start > 0) {
+                return array_like.slice(start);
+            }
+            return array_like;
+        }
+
+        var arr = [];
+        for (var i = start, len = array_like.length; i < len; ++i) {
+            arr.push(array_like[i]);
+        }
+        return arr;
+        
     }
 
     /**

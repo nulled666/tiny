@@ -30,24 +30,8 @@ define([
         q1: _q1
     });
 
+
     var TAG_Q = '_q()' + G.TAG_SUFFIX;
-
-    function _q() {
-        return construct(tinyQ, arguments);
-    }
-    function _q1() {
-    }
-
-    // a helper to pass arguments on constructor
-    function construct(constructor, args) {
-        args = Array.prototype.slice.call(args, 0);
-        function Q() {
-            return constructor.apply(this, args);
-        }
-        Q.prototype = constructor.prototype;
-        return new Q();
-    }
-
     /**
      * tinyQ constructor
      * ```
@@ -70,6 +54,20 @@ define([
     };
 
     tinyQ.TAG = TAG_Q;
+
+    function _q() { return construct(tinyQ, arguments); }
+    function _q1() { return construct(tinyQ, arguments, 1); }
+
+    /**
+     * Helper fucntion to pass arguments on constructor
+     */
+    function construct(constructor, args, mode) {
+        if (tiny.type(args) == 'Arguments') args = tiny.fn.toArray(args);
+        if (mode) args.push(mode);
+        function Q() { return constructor.apply(this, args); }
+        Q.prototype = constructor.prototype;
+        return new Q();
+    }
 
     /**
      * The prototype
@@ -117,24 +115,36 @@ define([
 
 
     ///////////////////////////// INIT FUNCTIONS ////////////////////////////
+
     function init_q(args) {
 
-        args = Array.prototype.slice.call(args, 0);
+        args = tiny.fn.toArray(args);
 
-        var prop = {};
-        var filter_func = false;
-        var obj = args[0];
-        var obj_type = tiny.type(obj);
+        // Last parameter - only used by internal method
+        var mode = 0;
+        var tag_start = 'q(';
+        var tag_end = ')';
+        var add = false;
+        var prop = { tag_obj: '', filter: '' };
+        var filter_list = false;
+        var result = [];
 
-        if (obj_type == 'object' && obj._tinyQ) {
-            // ==> Parameter 1 is an internal object
-            // internal method's call
-            prop = obj;
-            args = args.slice(1);
-            obj = args[0];
+        if (args.length > 1) {
+            var extra = args[args.length - 1];
+            if (extra == 1) {
+                mode = extra;
+                tag_start = 'q1(';
+                args.pop();
+            } else if (args.length > 2 && Array.isArray(extra)) {
+                add = true;
+                this.nodes = extra;
+                args.pop();
+            }
         }
 
-        prop.filter = '';
+
+        var obj = args[0];
+        var obj_type = tiny.type(obj);
 
         obj = normalize_nodelist.call(prop, obj);
         obj_type = get_type(obj);
@@ -142,48 +152,43 @@ define([
         if (obj_type == 'Array') {
             // ==> (nodes [,filter...])
             if (args.length > 1)
-                filter_func = create_filter_list.call(prop, args.slice(1));
-
-            this.nodes = to_array(obj, filter_func);
-
-            if (prop.filter) prop.chain += '.filter(' + prop.filter + ')';
-
+                filter_list = create_filter_list.call(prop, args.slice(1));
+            result = to_array(obj, filter_list);
+            tag_start = tag_end = '';
+            if (prop.filter) prop.tag_obj += '.filter(' + prop.filter + ')';
         } else if (obj_type == 'string') {
             // ==> (selector, ...
-
             var param = normalize_nodelist.call(prop, args[1]);
             var param_type = get_type(param);
-
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,parent])
             } else if (param_type == 'object') {
                 // ==> (tag, attribute_object)
             } else {
-
                 if (param_type == 'Array') {
                     // ==> (selector, nodes [,filter...])
-                    filter_func = create_filter_list.call(prop, args.slice(2));
-                    this.nodes = do_query(param, obj, filter_func);
+                    filter_list = create_filter_list.call(prop, args.slice(2));
+                    result = do_query(param, obj, filter_list, mode);
                 } else {
-                    // ==> (selector, [,filter...])
-                    filter_func = create_filter_list.call(prop, args.slice(1));
-                    this.nodes = do_query([document], obj, filter_func);
+                    // ==> (selector [,filter...])
+                    filter_list = create_filter_list.call(prop, args.slice(1));
+                    result = do_query([document], obj, filter_list, mode);
                 }
-
-                if (prop.filter) obj += ', ' + prop.filter + '';
-                if (!prop.chain) {
-                    prop.chain = '(' + obj + ')';
-                } else {
-                    prop.chain += '.q(' + obj + ')';
-                }
+                if (prop.filter) obj += ' {' + prop.filter + '}';
+                prop.tag_obj = obj;
             }
-
         } else {
             invalid_parameter(obj_type, obj);
         }
 
+        if (!add) {
+            this.nodes = result;
+            this.chain = tag_start + prop.tag_obj + tag_end;
+        } else {
+            this.nodes = this.nodes.concat(result);
+            this.chain = '.add(' + prop.tag_obj + ')';
+        }
         this.length = this.nodes.length;
-        this.chain = prop.chain;
 
         return this;
 
@@ -201,14 +206,15 @@ define([
         var type = tiny.type(obj);
         if (is_element(obj)) {
             // single node -> array
-            this.chain = '[node]';
+            this.tag_obj = '[node]';
             obj = [obj];
         } else if (type == 'q') {
-            this.chain = obj.chain;
+            this.tag_obj = obj.chain;
             obj = obj.nodes;
         } else if (type == 'Array') {
-            this.chain = '[nodes]';
+            this.tag_obj = '[nodes]';
         } else if (type == 'jQuery') {
+            this.tag_obj = '[jquery]';
             obj = obj.toArray();
         }
         return obj;
@@ -270,7 +276,7 @@ define([
      */
     function to_array(nodes, filters) {
 
-        if (tiny.type(nodes) == 'Array' && !filters)
+        if (Array.isArray(nodes) && !filters)
             return nodes;
 
         filters = create_filter_executor(filters);
@@ -283,7 +289,7 @@ define([
             if (filters) {
                 var r = filters(node, i, nodes);
                 if (r == false) continue;
-                if (r !== true && tiny.type(r) == 'Array') {
+                if (r !== true && Array.isArray(r)) {
                     // a node array returned, end with this node
                     return r;
                 };
@@ -336,6 +342,7 @@ define([
         var prop = this;
         var arr = [];
         tiny.each(args, function (item) {
+            if (!item) return;
             arr = parse_arg_to_filter.call(prop, item, arr);
         })
         return arr;
@@ -355,7 +362,7 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            prop.filter += ':' + tiny.fn.getFuncName(arg) + '()';
+            prop.filter += ':[' + tiny.fn.getFuncName(arg) + ']';
             list.push([arg, null]);
         } else if (type == 'string') {
             if (arg.startsWith('@:')) {
@@ -435,48 +442,39 @@ define([
      * .q() - query all
      */
     function sub_query_nodes(selector) {
-        var args = tiny.fn.slice.call(arguments, 1);
-        args = [selector, this].concat(args);
+        var args = tiny.fn.toArray(arguments, 1);
+        args.unshift(selector, this);
         return construct(tinyQ, args);
     }
 
     /**
      * .q1() - query one
      */
-    function sub_query_one_node(selector, filter) {
-        return sub_query_nodes.call(this, selector, filter, 1);
+    function sub_query_one_node(selector) {
+        var args = tiny.fn.toArray(arguments, 1);
+        args.unshift(selector, this).push(1);
+        return construct(tinyQ, args);
     }
 
     /**
      * .filter() - filter items in result set
      */
     function filter_nodes(filter) {
-        return new tinyQ(this.nodes, filter, null, null, this.chain);
+        var args = tiny.fn.toArray(arguments);
+        args.unshift(this);
+        return construct(tinyQ, args);
     }
 
     /**
      * .add() - add items to current tinyQ object
      */
-    function add_nodes(obj, filter) {
-
-        obj = normalize_nodelist(obj);
-        var type = get_type(obj);
-        var tag = build_filter_tag(filter);
-
-        if (type == 'string') {
-            // ==> selector
-            tag = obj + tag;
-            obj = do_query([document], obj, filter);
-            obj = this.nodes.concat(obj);
-        } else if (type == 'Array') {
-            // ==> nodes
-            tag = '[nodes]' + tag;
-            obj = this.nodes.concat(to_array(obj, filter));
-        } else {
-            invalid_parameter(type, obj);
-        }
-
-        return new tinyQ(obj, null, null, null, this.chain + '::add(' + tag + ')');
+    function add_nodes(selector) {
+        var args = tiny.fn.toArray(arguments);
+        if (args.length < 2) args.push(null);
+        args.push(this.nodes);
+        var r = construct(tinyQ, args);
+        r.chain = this.chain + r.chain;
+        return r;
     }
 
     /**
@@ -485,7 +483,9 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        return new tinyQ(arr, null, null, null, this.chain + '::first()');
+        var r = construct(tinyQ, [arr]);
+        r.chain = this.chain + '.first()';
+        return r;
     }
 
     /**
@@ -494,7 +494,9 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        return new tinyQ(arr, null, null, null, this.chain + '::last()');
+        var r = construct(tinyQ, [arr]);
+        r.chain = this.chain + '.last()';
+        return r;
     }
 
 

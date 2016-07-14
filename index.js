@@ -33,10 +33,12 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code', '@:gt(7):even', test);
-_log(x);
-    var y = x.q('.function');
-_log(y);
+    var x = _q('.run-code');
+    _log(x);
+    var z = _q('.function').filter(test).add(x);
+    _log(z);
+    var t = _q('.function', test).add('.run-code');
+    _log(t);
     return true;
 
 }
