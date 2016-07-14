@@ -335,7 +335,7 @@ define([
             }
 
         }
-        _inspect(arr);
+
         return function (node, index, list) {
             var param = this;
             return custom_filter_list_caller.call(arr, param, node, index, list);
@@ -345,9 +345,11 @@ define([
 
     function custom_filter_list_caller(param, node, index, list) {
         var func_list = this;
-        tiny.each(func_list, function (func) {
+        return tiny.each(func_list, function (func) {
             param.p = func[1];
-            func[0].call(param, node, index, list)
+            var r = func[0].call(param, node, index, list);
+            if (r == false) return false;
+            if (r != true) return r;
         })
 
     }
