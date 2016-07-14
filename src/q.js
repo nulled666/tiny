@@ -57,7 +57,7 @@ define([
         tiny.time('tinyQ');
 
         // preserve selector string from last tinyQ object
-        if(tiny.type(obj) == 'q') selector_string = obj.selector;
+        if (tiny.type(obj) == 'q') selector_string = obj.selector;
 
         /// *** Prepare Parameters ***
         obj = prepare_node_paramter(obj);
@@ -150,6 +150,7 @@ define([
         length: 0,
         selector: '',
 
+        is: is_node_of_type,
         q: sub_query_nodes,
         q1: sub_query_one_node,
         add: add_nodes,
@@ -206,10 +207,9 @@ define([
      */
     function action_query_one(node, selector, filter, out) {
         var node = node.querySelector(selector);
-        filter = get_filter_function(filter);
         if (node) {
-            if (!filter || filter(node, 0))
-                out.push(node);
+            node = to_array([node], filter);
+            out = out.concat(node);
         }
         return out;
     }
@@ -246,7 +246,14 @@ define([
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (is_node(node) && (!filter || filter(node, i))) arr.push(node);
+            if (!is_node(node)) continue;
+            if (filter) {
+                var r = filter(node, i, nodes);
+                if (r == false) continue;
+                // a node array returned, end with this node
+                if (r !== true && tiny.type(r) == 'Array') return r;
+            }
+            arr.push(node);
         }
         return arr;
 
@@ -261,14 +268,19 @@ define([
 
         var type = typeof filter;
         if (type == 'function') {
+            // ==> filter() - custom function
             // simply return the given function
             return filter;
         } else if (type == 'string') {
-            // create a proxy function for node_matches() with given selector
-            return function () {
-                var node = arguments[0];
-                return node_matches.apply(filter, [node]);
-            };
+            if (filter.startsWith('!')) {
+                //==> '!first' - build-in custom filter
+            } else {
+                // ==> selector - create a proxy function for given selector
+                return function () {
+                    var node = arguments[0];
+                    return node_matches.apply(filter, [node]);
+                };
+            }
         } else {
             tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', filter);
             throw new TypeError(G.SEE_ABOVE);
@@ -284,6 +296,19 @@ define([
     }
 
     ///////////////////////////// CORE METHODS ////////////////////////////
+
+    /**
+     * .is() - selector check
+     */
+    function is_node_of_type(selector) {
+
+        var filter = get_filter_function(filter);
+
+        var nodes = this.nodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+        }
+
+    }
 
     /**
      * .q() - query all
