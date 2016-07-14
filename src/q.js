@@ -122,6 +122,7 @@ define([
         args = Array.prototype.slice.call(args, 0);
 
         var prop = {};
+        var filter_string = {tag: ''};
         var filter_func = false;
         var obj = args[0];
         var obj_type = tiny.type(obj);
@@ -140,7 +141,7 @@ define([
         if (obj_type == 'Array') {
             // ==> (nodes [,filter...])
             if (args.length > 1)
-                filter_func = create_filter_from_arguments(args.slice(1));
+                filter_func = create_filter_list.call(filter_string, args.slice(1));
 
             this.nodes = to_array(obj, filter_func);
 
@@ -156,11 +157,11 @@ define([
                 // ==> (tag, attribute_object)
             } else if (param_type == 'Array') {
                 // ==> (selector, nodes [,filter...])
-                filter_func = create_filter_from_arguments(args.slice(2));
+                filter_func = create_filter_list.call(filter_string, args.slice(2));
                 this.nodes = do_query(param, obj, filter_func);
             } else {
                 // ==> (selector, [,filter...])
-                filter_func = create_filter_from_arguments(args.slice(1));
+                filter_func = create_filter_list.call(filter_string, args.slice(1));
                 this.nodes = do_query([document], obj, filter_func);
             }
 
@@ -169,8 +170,8 @@ define([
         }
 
         this.length = this.nodes.length;
-        if(obj_type == 'string') this.chain += obj;
-        if (filter_func) this.chain += '<filtered>';
+        if (obj_type == 'string') this.chain += obj;
+        if (filter_string.tag) this.chain += ' {' + filter_string.tag + '}';
 
         return this;
 
@@ -210,18 +211,10 @@ define([
         return type;
     }
 
-    function build_filter_tag(filter) {
-        var type = typeof filter;
-        if (type != 'string' && type != 'function') return '';
-        var name = type == 'string' ? filter : tiny.fn.getFuncName(filter) + '()';
-        return ' >> filter="' + name + '"';
-    }
-
-
     ///////////////////////////// QUERY FUNCTIONS ////////////////////////////
 
     /**
-     * Real query function
+     * Execute query on all given nodes and concate the results
      */
     function do_query(nodes, selector, filter, mode) {
 
@@ -261,13 +254,6 @@ define([
     }
 
     /**
-     * check if an object is a html element or document node
-     */
-    function is_element(obj) {
-        return obj && (obj.nodeType == 1 || obj.nodeType == 9);
-    }
-
-    /**
      * Convert NodeList to Arrays, also do copy and filtering
      */
     function to_array(nodes, filters) {
@@ -275,6 +261,9 @@ define([
         if (tiny.type(nodes) == 'Array' && !filters)
             return nodes;
 
+        filters = create_filter_executor(filters);
+
+        // do the loop
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
@@ -282,39 +271,41 @@ define([
             if (filters) {
                 var r = filters(node, i, nodes);
                 if (r == false) continue;
-                // a node array returned, end with this node
-                if (r !== true && tiny.type(r) == 'Array') return r;
+                if (r !== true && tiny.type(r) == 'Array') {
+                    // a node array returned, end with this node
+                    return r;
+                };
             }
             arr.push(node);
         }
+
         return arr;
 
+    }
+
+    /**
+     * check if an object is a html element or document node
+     */
+    function is_element(obj) {
+        return obj && (obj.nodeType == 1 || obj.nodeType == 9);
     }
 
     ///////////////////////////// FILTER SUPPORT FUNCTIONS ////////////////////////////
 
     /**
-     * build a wrapper function for all filters
+     * create a function wrapper for all filters
      */
-    function create_filter_from_arguments(list) {
-
-        var arr = [];
-
-        tiny.each(list, function (item) {
-            arr = parse_filter_parameter(item, arr);
-        })
-
-        // create a proxy function, this_arg as a temporary data storage for custom filters
+    function create_filter_executor(filters) {
+        if (!filters) return false;
         return function (node, index, list) {
-            return filter_list_caller.call(arr, node, index, list);
-        };
-
+            return filter_list_executor.call(filters, node, index, list);
+        }
     }
 
     /**
      * proxy for executing filter function list
      */
-    function filter_list_caller(node, index, list) {
+    function filter_list_executor(node, index, list) {
         var filter_list = this;
         // a 'this' context shared by all filters
         var this_arg = {};
@@ -327,29 +318,45 @@ define([
     }
 
     /**
+     * build a wrapper function for all filters
+     */
+    function create_filter_list(args) {
+        var tag = this;
+        var arr = [];
+        tiny.each(args, function (item) {
+            arr = parse_arg_to_filter.call(tag, item, arr);
+        })
+        return arr;
+    }
+
+
+    /**
      * Returns a filter function of given filter type
      */
-    function parse_filter_parameter(filter, list) {
+    function parse_arg_to_filter(arg, list) {
 
-        if (!filter) return false; // no filter is set
+        if (!arg) return false; // no filter is set
 
-        var type = typeof filter;
+        var type = typeof arg;
         var func;
 
         if (type == 'function') {
             // ==> filter() - custom function
-            list.push([filter, null]);
+            this.tag += '|' + tiny.fn.getFuncName(arg) + '()';
+            list.push([arg, null]);
         } else if (type == 'string') {
-            if (filter.startsWith('/')) {
+            if (arg.startsWith('|')) {
                 //==> '/filter(param)' - build-in custom filter
-                func = parse_custom_filter_string(filter);
+                this.tag += arg;
+                func = parse_custom_filter_tag(arg);
                 list = list.concat(func);
             } else {
                 // ==> selector
-                list.push([tinyQ.prototype.filters['matches'], filter]);
+                this.tag += '|' + arg;
+                list.push([tinyQ.prototype.filters['matches'], arg]);
             }
         } else {
-            tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', filter);
+            tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -358,11 +365,11 @@ define([
     }
 
     /**
-     * Parse custom filter string into function list
+     * Parse custom filter tag into function list
      */
-    function parse_custom_filter_string(filter) {
+    function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split('/');
+        var filters = filter.split('@');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 

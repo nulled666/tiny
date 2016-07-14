@@ -33,9 +33,9 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code', '/gt(7) /has(.function)', test, '.collapse');
+    var x = _q('.run-code', '|gt(7)|has(.function)', test, '.collapse');
 _log(x);
-    var y = _q(x, '/first');
+    var y = _q(x, '|first');
 _log(y);
     return true;
 
