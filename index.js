@@ -35,6 +35,8 @@ function test_code() {
 
     var x = _q('.run-code');
     _log(x);
+    var t = x.q1('.function');
+    _log(t);
     var z = _q('.function').filter(test).add(x);
     _log(z);
     var t = _q('.function', test).add('.run-code');

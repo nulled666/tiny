@@ -35,8 +35,8 @@ define([
     /**
      * tinyQ constructor
      * ```
-     *  tinyQ(html [,parent])              // _q('<a href="#here">Test</a>', document) 
-     *  tinyQ(tag, attr [,parent])         // _q('a', {href: '#here', text: 'Test'}, document)
+     *  tinyQ(html [,parent])                 // _q('<a href="#here">Test</a>', document) 
+     *  tinyQ(tag, attr [,parent])            // _q('a', {href: '#here', text: 'Test'}, document)
      *  tinyQ(selector [,filter...])          // _q('a', '.test')
      *  tinyQ(selector, nodes [,filter...])   // .q(selector, filter)
      *  tinyQ(nodes [,filter...])             // _q(nodes, '.test')
@@ -52,6 +52,7 @@ define([
         tiny.time('tinyQ');
         return this;
     };
+
 
     tinyQ.TAG = TAG_Q;
 
@@ -169,13 +170,14 @@ define([
                     // ==> (selector, nodes [,filter...])
                     filter_list = create_filter_list.call(prop, args.slice(2));
                     result = do_query(param, obj, filter_list, mode);
+                    tag_start = prop.tag_obj + '.' + tag_start;
                 } else {
                     // ==> (selector [,filter...])
                     filter_list = create_filter_list.call(prop, args.slice(1));
                     result = do_query([document], obj, filter_list, mode);
                 }
-                if (prop.filter) obj += ' {' + prop.filter + '}';
                 prop.tag_obj = obj;
+                if (prop.filter) obj += ' {' + prop.filter + '}';
             }
         } else {
             invalid_parameter(obj_type, obj);
@@ -452,7 +454,8 @@ define([
      */
     function sub_query_one_node(selector) {
         var args = tiny.fn.toArray(arguments, 1);
-        args.unshift(selector, this).push(1);
+        args.unshift(selector, this);
+        args.push(1);
         return construct(tinyQ, args);
     }
 
@@ -469,12 +472,18 @@ define([
      * .add() - add items to current tinyQ object
      */
     function add_nodes(selector) {
+
         var args = tiny.fn.toArray(arguments);
+
+        // add a null parameter to avoid  error
+        // append array should not appear in the second place
         if (args.length < 2) args.push(null);
+
         args.push(this.nodes);
         var r = construct(tinyQ, args);
         r.chain = this.chain + r.chain;
         return r;
+
     }
 
     /**
