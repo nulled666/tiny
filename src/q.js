@@ -121,8 +121,7 @@ define([
 
         args = Array.prototype.slice.call(args, 0);
 
-        var prop = {};
-        var filter_string = {tag: ''};
+        var prop = { filter: '' };
         var filter_func = false;
         var obj = args[0];
         var obj_type = tiny.type(obj);
@@ -135,34 +134,44 @@ define([
             obj = args[0];
         }
 
-        obj = normalize_nodelist.call(this, obj);
+        obj = normalize_nodelist.call(prop, obj);
         obj_type = get_type(obj);
 
         if (obj_type == 'Array') {
             // ==> (nodes [,filter...])
             if (args.length > 1)
-                filter_func = create_filter_list.call(filter_string, args.slice(1));
+                filter_func = create_filter_list.call(prop, args.slice(1));
 
             this.nodes = to_array(obj, filter_func);
 
         } else if (obj_type == 'string') {
             // ==> (selector, ...
 
-            var param = normalize_nodelist.call(this, args[1]);
+            var param = normalize_nodelist.call(prop, args[1]);
             var param_type = get_type(param);
 
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,parent])
             } else if (param_type == 'object') {
                 // ==> (tag, attribute_object)
-            } else if (param_type == 'Array') {
-                // ==> (selector, nodes [,filter...])
-                filter_func = create_filter_list.call(filter_string, args.slice(2));
-                this.nodes = do_query(param, obj, filter_func);
             } else {
-                // ==> (selector, [,filter...])
-                filter_func = create_filter_list.call(filter_string, args.slice(1));
-                this.nodes = do_query([document], obj, filter_func);
+
+                if (param_type == 'Array') {
+                    // ==> (selector, nodes [,filter...])
+                    filter_func = create_filter_list.call(prop, args.slice(2));
+                    this.nodes = do_query(param, obj, filter_func);
+                } else {
+                    // ==> (selector, [,filter...])
+                    filter_func = create_filter_list.call(prop, args.slice(1));
+                    this.nodes = do_query([document], obj, filter_func);
+                }
+
+                if (prop.filter) obj += '&' + prop.filter + '';
+                if (!prop.chain) {
+                    prop.chain = '(' + obj + ')';
+                } else {
+                    prop.chain += '.q(' + obj + ')';
+                }
             }
 
         } else {
@@ -170,8 +179,7 @@ define([
         }
 
         this.length = this.nodes.length;
-        if (obj_type == 'string') this.chain += obj;
-        if (filter_string.tag) this.chain += ' {' + filter_string.tag + '}';
+        this.chain = prop.chain;
 
         return this;
 
@@ -321,10 +329,10 @@ define([
      * build a wrapper function for all filters
      */
     function create_filter_list(args) {
-        var filter_string = this;
+        var prop = this;
         var arr = [];
         tiny.each(args, function (item) {
-            arr = parse_arg_to_filter.call(filter_string, item, arr);
+            arr = parse_arg_to_filter.call(prop, item, arr);
         })
         return arr;
     }
@@ -337,23 +345,24 @@ define([
 
         if (!arg) return false; // no filter is set
 
-        var filter_string = this;
+        var prop = this;
         var type = typeof arg;
         var func;
 
         if (type == 'function') {
             // ==> filter() - custom function
-            filter_string.tag += '$' + tiny.fn.getFuncName(arg) + '()';
+            prop.filter += ':' + tiny.fn.getFuncName(arg) + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('$')) {
+            if (arg.startsWith('@:')) {
                 //==> '/filter(param)' - build-in custom filter
-                filter_string.tag += arg;
+                arg = arg.substring(1);
+                prop.filter += arg;
                 func = parse_custom_filter_tag(arg);
                 list = list.concat(func);
             } else {
                 // ==> selector
-                filter_string.tag += '$' + arg;
+                prop.filter += ':matches(' + arg + ')';
                 list.push([tinyQ.prototype.filters['matches'], arg]);
             }
         } else {
@@ -370,7 +379,7 @@ define([
      */
     function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split('$');
+        var filters = filter.split(':');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 
