@@ -40,11 +40,12 @@ define([
 
     // a helper to pass arguments on constructor
     function construct(constructor, args) {
-        function F() {
+        args = Array.prototype.slice.call(args, 0);
+        function Q() {
             return constructor.apply(this, args);
         }
-        F.prototype = constructor.prototype;
-        return new F();
+        Q.prototype = constructor.prototype;
+        return new Q();
     }
 
     /**
@@ -80,7 +81,7 @@ define([
         // properties
         nodes: [],
         length: 0,
-        selector: '',
+        chain: '',
 
         is: is_node_of_type,
         q: sub_query_nodes,
@@ -131,13 +132,9 @@ define([
             prop = obj;
             args = args.slice(1);
             obj = args[0];
-        } else if (obj_type == 'q') {
-            // ==> Parameter 1 is a tinyQ object
-            // (tinyQ [,filter]...)
-            prop.chain = obj.chain;
         }
 
-        obj = normalize_nodelist(obj);
+        obj = normalize_nodelist.call(this, obj);
         obj_type = get_type(obj);
 
         if (obj_type == 'Array') {
@@ -148,8 +145,9 @@ define([
             this.nodes = to_array(obj, filter_func);
 
         } else if (obj_type == 'string') {
+            // ==> (selector, ...
 
-            var param = args[1];
+            var param = normalize_nodelist.call(this, args[1]);
             var param_type = get_type(param);
 
             if (obj.startsWith('<')) {
@@ -158,7 +156,6 @@ define([
                 // ==> (tag, attribute_object)
             } else if (param_type == 'Array') {
                 // ==> (selector, nodes [,filter...])
-                param = normalize_nodelist(param);
                 filter_func = create_filter_from_arguments(args.slice(2));
                 this.nodes = do_query(param, obj, filter_func);
             } else {
@@ -172,8 +169,8 @@ define([
         }
 
         this.length = this.nodes.length;
-        this.selector = (typeof selector_string == 'string') ? selector_string : obj;
-        if (filter_func) this.selector += '<filtered>';
+        if(obj_type == 'string') this.chain += obj;
+        if (filter_func) this.chain += '<filtered>';
 
         return this;
 
@@ -191,10 +188,14 @@ define([
         var type = tiny.type(obj);
         if (is_element(obj)) {
             // single node -> array
+            this.chain = '[node]';
             obj = [obj];
         } else if (type == 'q') {
+            this.chain = obj.chain;
             obj = obj.nodes;
-        } else if (type == 'jquery') {
+        } else if (type == 'Array') {
+            this.chain = '[nodes]';
+        } else if (type == 'jQuery') {
             obj = obj.toArray();
         }
         return obj;
@@ -302,7 +303,7 @@ define([
         tiny.each(list, function (item) {
             arr = parse_filter_parameter(item, arr);
         })
-        
+
         // create a proxy function, this_arg as a temporary data storage for custom filters
         return function (node, index, list) {
             return filter_list_caller.call(arr, node, index, list);
@@ -402,21 +403,20 @@ define([
      * .is() - selector check
      */
     function is_node_of_type(selector) {
-
-        var filter = parse_filter_parameter(filter);
-
         var nodes = this.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
+            if (!nodes[i].matches(selector)) return false;
         }
-
+        return true;
     }
 
     /**
      * .q() - query all
      */
-    function sub_query_nodes(selector, filter, mode) {
-        var tag = '::q' + (mode == 1 ? '1' : '') + '(' + selector + build_filter_tag(filter) + ')';
-        return new tinyQ(selector, this.nodes, filter, mode, this.selector + tag);
+    function sub_query_nodes(selector) {
+        var args = tiny.fn.slice.call(arguments, 1);
+        args = [selector, this].concat(args);
+        return construct(tinyQ, args);
     }
 
     /**
@@ -430,7 +430,7 @@ define([
      * .filter() - filter items in result set
      */
     function filter_nodes(filter) {
-        return new tinyQ(this.nodes, filter, null, null, this.selector);
+        return new tinyQ(this.nodes, filter, null, null, this.chain);
     }
 
     /**
@@ -455,7 +455,7 @@ define([
             invalid_parameter(type, obj);
         }
 
-        return new tinyQ(obj, null, null, null, this.selector + '::add(' + tag + ')');
+        return new tinyQ(obj, null, null, null, this.chain + '::add(' + tag + ')');
     }
 
     /**
@@ -464,7 +464,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        return new tinyQ(arr, null, null, null, this.selector + '::first()');
+        return new tinyQ(arr, null, null, null, this.chain + '::first()');
     }
 
     /**
@@ -473,7 +473,7 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        return new tinyQ(arr, null, null, null, this.selector + '::last()');
+        return new tinyQ(arr, null, null, null, this.chain + '::last()');
     }
 
 
@@ -497,9 +497,13 @@ define([
             enabled: function (node) { return !node.disabled },
             disabled: function (node) { return node.disabled },
             checked: function (node) { return !!(node.checked) },
-            visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
             hidden: function (node) { return !tinyQ.filters.visible(node) },
-            'only-child': function (node) { return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node] },
+            visible: function (node) {
+                return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
+            },
+            'only-child': function (node) {
+                return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node]
+            },
             'first-child': function (node) { return !(node.parentNode && !node.prevSibling) || [node] },
             'last-child': function (node) { return !(node.parentNode && !node.nextSibling) || [node] }
         },

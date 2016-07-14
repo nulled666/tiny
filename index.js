@@ -34,8 +34,9 @@ function test_code() {
     }
 
     var x = _q('.run-code', '/gt(7) /has(.function)', test, '.collapse');
-    _log(x);
-
+_log(x);
+    var y = _q(x, '/first');
+_log(y);
     return true;
 
 }

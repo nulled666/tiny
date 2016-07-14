@@ -28,7 +28,8 @@ define([
         // functions shared by internal functions
         fn: {
             add: add_to_tiny,
-            getFuncName: get_function_name
+            getFuncName: get_function_name,
+            slice: Array.prototype.slice
         }
 
     });
