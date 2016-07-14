@@ -155,6 +155,25 @@ define([
         q1: sub_query_one_node,
         add: add_nodes,
         filter: filter_nodes,
+        
+        // '!filter' definitions
+        filters: {
+            first: function (node) { return [node] },
+            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
+            even: function (a, index) { return index % 2 == 0 },
+            odd: function (a, index) { return index % 2 == 1 },
+            eq: function (a, index) { return index == this },
+            lt: function (a, index) { return index < this },
+            gt: function (a, index) { return index > this },
+            empty: function (node) { return node.childNodes.length == 0 },
+            not: function (node) { return !node.matches(this) },
+            has: function (node) { return node.querySelector(this) != null },
+            contains: function (node) { return node.innerText.includes(this) },
+            enabled: function (node) { return !node.disabled },
+            disabled: function (node) { return node.disabled },
+            visible: function (node) { return !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length) },
+            hidden: function (node) { return !tinyQ.filters.visible(node) }
+        },
 
         first: get_first,
         last: get_last,
