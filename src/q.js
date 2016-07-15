@@ -465,7 +465,7 @@ define([
      * .add() - add items to current tinyQ object
      */
     function add_nodes(selector) {
-        var r = init_q(null, arguments, this.nodes);
+        var r = init_q(null, arguments, null, this.nodes);
         r.chain = this.chain + r.chain;
         return r;
     }

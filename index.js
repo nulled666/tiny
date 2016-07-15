@@ -27,7 +27,6 @@ function start() {
 
 function test_code() {
 
-
     function test(node, index) {
         if (index % 2 == 0) return false;
         return true
