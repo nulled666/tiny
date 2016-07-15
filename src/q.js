@@ -25,7 +25,7 @@ define([
     // TINYQ
     //////////////////////////////////////////////////////////
 
-    tiny.fn.add({
+    tiny.x.add({
         q: _q,
         q1: _q1
     });
@@ -101,7 +101,7 @@ define([
 
         tinyq = tinyq || new tinyQ();
 
-        args = tiny.fn.toArray(args);
+        args = tiny.x.toArray(args);
 
         var mode = 0;
         var add = false;
@@ -332,7 +332,7 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            prop.filter += '->' + tiny.fn.getFuncName(arg) + '()';
+            prop.filter += '->' + tiny.x.funcName(arg) + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
             if (arg.startsWith('->')) {
@@ -446,7 +446,7 @@ define([
      * .q() - query all
      */
     function sub_query_nodes(selector) {
-        var args = tiny.fn.toArray(arguments, 1);
+        var args = tiny.x.toArray(arguments, 1);
         var mode = 0;
 
         // if mode is set to 1
@@ -480,7 +480,7 @@ define([
      * .q1() - query one
      */
     function sub_query_one_node(selector) {
-        var args = tiny.fn.toArray(arguments);
+        var args = tiny.x.toArray(arguments);
         args.push(1);
         return sub_query_nodes.apply(this, args);
     }
@@ -490,7 +490,7 @@ define([
      * .filter() - filter items in result set
      */
     function filter_nodes(filter) {
-        var args = tiny.fn.toArray(arguments);
+        var args = tiny.x.toArray(arguments);
         chain_method_parameter_check(args);
         args.unshift(this);
         return init_q(null, args);

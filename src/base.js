@@ -27,9 +27,9 @@ define([
         hash: murmur3,
 
         // functions shared by internal functions
-        fn: {
+        x: {
             add: add_to_tiny,
-            getFuncName: get_function_name,
+            funcName: get_function_name,
             toArray: to_array
         }
 
@@ -62,20 +62,24 @@ define([
     }
 
     /**
-     * get a function's name
+     * get a function's name - with IE8 support
      */
     function get_function_name(func) {
 
         if (typeof func !== 'function')
             return '';
-        if (func.name !== undefined)
-            return func.name;
 
-        var match = func.toString().match(/function ([^\(]+)/);
-        if (match && match[1])
-            return match[1];
+        // use native if avaiblable - IE 9 and above
+        if (func.name !== undefined) return func.name;
 
-        return '';
+        // search for it - for performance, no RegExp
+        var str = func.toString();
+        var pos1 = str.indexOf('function');
+        var pos2 = str.indexOf('(');
+        if (pos1 < 0 || pos2 < pos1) return '';
+        str = str.substring(pos1 + 8, pos2).trim();
+
+        return str;
 
     }
 
@@ -349,7 +353,7 @@ define([
             arr.push(array_like[i]);
         }
         return arr;
-        
+
     }
 
     /**

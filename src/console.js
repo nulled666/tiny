@@ -10,7 +10,7 @@ define([
     var _log, _dir, _info, _warn, _error;
 
 
-    tiny.fn.add({
+    tiny.x.add({
         inspect: _inspect,
         time: pref_time,
         verbose: verbose_level
@@ -70,7 +70,7 @@ define([
 
             switch (typeof value) {
                 case 'function':
-                    return '[function: ' + tiny.fn.getFuncName(value) + '()]';
+                    return '[function: ' + tiny.x.funcName(value) + '()]';
                 case 'undefined':
                     return '[undefined]';
                 default:
@@ -129,7 +129,7 @@ define([
         _warn = on.includes('warn') ? con.warn.bind(con) : noop;
         _error = on.includes('error') ? con.error.bind(con) : noop;
 
-        tiny.fn.add({
+        tiny.x.add({
             log: _log,
             dir: _dir,
             info: _info,

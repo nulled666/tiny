@@ -19,7 +19,7 @@ define([
         remove: route_remove
     };
 
-    tiny.fn.add({
+    tiny.x.add({
         route: _route
     });
 

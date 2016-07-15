@@ -29,14 +29,14 @@ define([
     var _expanded_shorthand_template_cache = {};
 
     // add to tiny definition
-    tiny.fn.add({
+    tiny.x.add({
         format: _format,
         formatNumber: format_number,
         formatDate: format_date,
         htmlSafe: html_safe
     });
 
-    tiny.fn.add([
+    tiny.x.add([
         [Number, { _format: format_number_extension }],
         [Date, { _format: format_date_extension }],
         [String, {

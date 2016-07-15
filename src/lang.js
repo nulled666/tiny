@@ -13,7 +13,7 @@ define([
     _lang.get = get_language;
     _lang.set = set_language;
 
-    tiny.fn.add({
+    tiny.x.add({
         lang: _lang
     });
 

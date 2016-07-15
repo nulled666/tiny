@@ -15,7 +15,7 @@ define([
         postDelayed: post_delayed_message
     };
 
-    tiny.fn.add({
+    tiny.x.add({
         message: _message
     });
 
@@ -47,7 +47,7 @@ define([
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
-        tiny.log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', tiny.fn.getFuncName(handler) + '()');
+        tiny.log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', tiny.x.funcName(handler) + '()');
 
         _message_handlers[msg].push(handler);
 
@@ -69,7 +69,7 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var sliced_args = tiny.fn.toArray(arguments, 1);
+        var sliced_args = tiny.x.toArray(arguments, 1);
         tiny.info(TAG_MSG_POST, 'Post message "' + msg + '" + ', sliced_args);
 
         var handles = _message_handlers[msg];
@@ -109,7 +109,7 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var sliced_args = tiny.fn.toArray(arguments, 1);
+        var sliced_args = tiny.x.toArray(arguments, 1);
         if (_delayed_messages[msg] !== undefined)
             clearTimeout(_delayed_messages[msg]);
 

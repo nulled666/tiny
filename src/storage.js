@@ -14,7 +14,7 @@ define([
     // Custom key prefix for data entry filtering
     _storage.keyPrefix = '';
 
-    tiny.fn.add({
+    tiny.x.add({
         storage: _storage
     });
 
