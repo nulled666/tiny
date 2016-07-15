@@ -1,5 +1,6 @@
 define([
-    './global'
+    './global',
+    './base._polyfills'
 ], function (G) {
 
     'use strict';
