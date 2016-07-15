@@ -31,48 +31,27 @@ define([
     });
 
 
-    var TAG_Q = '_q()' + G.TAG_SUFFIX;
+    /**
+     * ```
+     *  _q(html [,parent])              
+     *  _q(tag, attr [,parent])          
+     *  _q(selector [,filter...])        
+     *  _q(selector, nodes [,filter...]) 
+     *  _q(nodes [,filter...])   
+     * 
+     */
+    function _q() { return init_q(null, arguments); }
+    function _q1() { return init_q(null, arguments, 1); }
+
     /**
      * tinyQ constructor
-     * ```
-     *  tinyQ(html [,parent])                 // _q('<a href="#here">Test</a>', document) 
-     *  tinyQ(tag, attr [,parent])            // _q('a', {href: '#here', text: 'Test'}, document)
-     *  tinyQ(selector [,filter...])          // _q('a', '.test')
-     *  tinyQ(selector, nodes [,filter...])   // .q(selector, filter)
-     *  tinyQ(nodes [,filter...])             // _q(nodes, '.test')
-     * 
-     *  tinyQ(obj, param, filter, mode, desc)
-     * 
-     * ```
      */
     var tinyQ = function () {
-        tiny.time('tinyQ');
-        if (arguments.length > 0)
-            init_q.call(this, arguments);
-        tiny.time('tinyQ');
         return this;
     };
 
+    tinyQ.TAG = '_q()' + G.TAG_SUFFIX;
 
-    tinyQ.TAG = TAG_Q;
-
-    function _q() { return construct(tinyQ, arguments); }
-    function _q1() { return construct(tinyQ, arguments, 1); }
-
-    /**
-     * Helper fucntion to pass arguments on constructor
-     */
-    function construct(constructor, args, mode) {
-        if (tiny.type(args) == 'Arguments') args = tiny.fn.toArray(args);
-        if (mode) args.push(mode);
-        function Q() { return constructor.apply(this, args); }
-        Q.prototype = constructor.prototype;
-        return new Q();
-    }
-
-    /**
-     * The prototype
-     */
     tinyQ.prototype = {
 
         tinyQ: true,
@@ -117,49 +96,37 @@ define([
 
     ///////////////////////////// INIT FUNCTIONS ////////////////////////////
 
-    function init_q(args) {
+    function init_q(tinyq, args, set_mode, set_nodes) {
+
+        tinyq = tinyq || new tinyQ();
 
         args = tiny.fn.toArray(args);
 
-        // Last parameter - only used by internal method
         var mode = 0;
-        var tag_start = 'q(';
-        var tag_end = ')';
         var add = false;
-        var prop = { tag_obj: '', filter: '' };
         var filter_list = false;
         var result = [];
+        var tag = { start: 'q(', obj: '', end: ')', filter: '' };
 
-        if (args.length > 1) {
-            var extra = args[args.length - 1];
-            if (extra == 1) {
-                mode = extra;
-                tag_start = 'q1(';
-                args.pop();
-            } else if (args.length > 2 && Array.isArray(extra)) {
-                add = true;
-                this.nodes = extra;
-                args.pop();
-            }
-        }
-
+        if (set_mode == 1) mode == 1, tag.start = 'q1(';
+        if (Array.isArray(set_nodes)) add = true;
 
         var obj = args[0];
         var obj_type = tiny.type(obj);
 
-        obj = normalize_nodelist.call(prop, obj);
+        obj = normalize_nodelist.call(tag, obj);
         obj_type = get_type(obj);
 
         if (obj_type == 'Array') {
             // ==> (nodes [,filter...])
             if (args.length > 1)
-                filter_list = create_filter_list.call(prop, args.slice(1));
+                filter_list = create_filter_list.call(tag, args.slice(1));
             result = to_array(obj, filter_list);
-            tag_start = tag_end = '';
-            if (prop.filter) prop.tag_obj += '.filter(' + prop.filter + ')';
+            tag.start = tag.end = '';
+            if (tag.filter) tag.obj += '.filter(' + tag.filter + ')';
         } else if (obj_type == 'string') {
             // ==> (selector, ...
-            var param = normalize_nodelist.call(prop, args[1]);
+            var param = normalize_nodelist.call(tag, args[1]);
             var param_type = get_type(param);
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,parent])
@@ -168,36 +135,36 @@ define([
             } else {
                 if (param_type == 'Array') {
                     // ==> (selector, nodes [,filter...])
-                    filter_list = create_filter_list.call(prop, args.slice(2));
+                    filter_list = create_filter_list.call(tag, args.slice(2));
                     result = do_query(param, obj, filter_list, mode);
-                    tag_start = prop.tag_obj + '.' + tag_start;
+                    tag.start = tag.obj + '.' + tag.start;
                 } else {
                     // ==> (selector [,filter...])
-                    filter_list = create_filter_list.call(prop, args.slice(1));
+                    filter_list = create_filter_list.call(tag, args.slice(1));
                     result = do_query([document], obj, filter_list, mode);
                 }
-                prop.tag_obj = obj;
-                if (prop.filter) obj += ' {' + prop.filter + '}';
+                tag.obj = obj;
+                if (tag.filter) obj += ' {' + tag.filter + '}';
             }
         } else {
             invalid_parameter(obj_type, obj);
         }
 
         if (!add) {
-            this.nodes = result;
-            this.chain = tag_start + prop.tag_obj + tag_end;
+            tinyq.nodes = result;
+            tinyq.chain = tag.start + tag.obj + tag.end;
         } else {
-            this.nodes = this.nodes.concat(result);
-            this.chain = '.add(' + prop.tag_obj + ')';
+            tinyq.nodes = set_nodes.concat(result);
+            tinyq.chain = '.add(' + tag.obj + ')';
         }
-        this.length = this.nodes.length;
+        tinyq.length = tinyq.nodes.length;
 
-        return this;
+        return tinyq;
 
     }
 
     function invalid_parameter(type, obj) {
-        tiny.error(TAG_Q, 'Invalid parameter. > Got "' + type + '": ', obj);
+        tiny.error(tinyQ.TAG, 'Invalid parameter. > Got "' + type + '": ', obj);
         throw new TypeError(G.SEE_ABOVE);
     }
 
@@ -208,15 +175,15 @@ define([
         var type = tiny.type(obj);
         if (is_element(obj)) {
             // single node -> array
-            this.tag_obj = '[node]';
+            this.obj = '[node]';
             obj = [obj];
         } else if (type == 'q') {
-            this.tag_obj = obj.chain;
+            this.obj = obj.chain;
             obj = obj.nodes;
         } else if (type == 'Array') {
-            this.tag_obj = '[nodes]';
+            this.obj = '[nodes]';
         } else if (type == 'jQuery') {
-            this.tag_obj = '[jquery]';
+            this.obj = '[jquery]';
             obj = obj.toArray();
         }
         return obj;
@@ -379,7 +346,7 @@ define([
                 list.push([tinyQ.prototype.filters['matches'], arg]);
             }
         } else {
-            tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
+            tiny.error(tinyQ.TAG, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -409,7 +376,7 @@ define([
                 func = tinyQ.prototype.filters[name];
                 param = item.substring(pos + 1);
                 if (!param.endsWith(')')) {
-                    tiny.error(TAG_Q, 'Unexpected end of filter. ', item);
+                    tiny.error(tinyQ.TAG, 'Unexpected end of filter. ', item);
                     throw new SyntaxError(G.SEE_ABOVE);
                 }
                 param = param.substring(0, param.length - 1).trim();
@@ -445,45 +412,62 @@ define([
      */
     function sub_query_nodes(selector) {
         var args = tiny.fn.toArray(arguments, 1);
+        var mode = 0;
+
+        // if mode is set to 1
+        if (args[args.length - 1] == 1) {
+            mode = 1;
+            args.pop();
+        }
+
+        // check for invalid parameters
+        chain_method_parameter_check(args);
+
+        // put (selector, this, ...)  ahead
         args.unshift(selector, this);
-        return construct(tinyQ, args);
+
+        return init_q(null, args, mode);
     }
+
+    // check for invalid parameter for .q() .q1() .filter()
+    function chain_method_parameter_check(args) {
+        tiny.each(args, function (item) {
+            var type = typeof item;
+            if (type !== 'string' && type !== 'function') {
+                _error(tinyQ.TAG, '.q(selector [,filters ...]) Invalid parameter.', item);
+                throw new SyntaxError(G.SEE_ABOVE);
+            }
+        });
+    }
+
 
     /**
      * .q1() - query one
      */
     function sub_query_one_node(selector) {
-        var args = tiny.fn.toArray(arguments, 1);
-        args.unshift(selector, this);
+        var args = tiny.fn.toArray(arguments);
         args.push(1);
-        return construct(tinyQ, args);
+        return sub_query_nodes.apply(this, args);
     }
+
 
     /**
      * .filter() - filter items in result set
      */
     function filter_nodes(filter) {
         var args = tiny.fn.toArray(arguments);
+        chain_method_parameter_check(args);
         args.unshift(this);
-        return construct(tinyQ, args);
+        return init_q(null, args);
     }
 
     /**
      * .add() - add items to current tinyQ object
      */
     function add_nodes(selector) {
-
-        var args = tiny.fn.toArray(arguments);
-
-        // add a null parameter to avoid  error
-        // append array should not appear in the second place
-        if (args.length < 2) args.push(null);
-
-        args.push(this.nodes);
-        var r = construct(tinyQ, args);
+        var r = init_q(null, arguments, this.nodes);
         r.chain = this.chain + r.chain;
         return r;
-
     }
 
     /**
