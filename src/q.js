@@ -94,8 +94,9 @@ define([
     };
 
 
-    ///////////////////////////// INIT FUNCTIONS ////////////////////////////
-
+    //////////////////////////////////////////////////////////
+    // INITIALIZATION FUNCTIONS
+    //////////////////////////////////////////////////////////
     function init_q(tinyq, args, set_mode, set_nodes) {
 
         tinyq = tinyq || new tinyQ();
@@ -143,11 +144,12 @@ define([
                     filter_list = create_filter_list.call(tag, args.slice(1));
                     result = do_query([document], obj, filter_list, mode);
                 }
+                if (tag.filter != '') obj += tag.filter;
                 tag.obj = obj;
-                if (tag.filter) obj += ' {' + tag.filter + '}';
             }
         } else {
-            invalid_parameter(obj_type, obj);
+            tiny.error(tinyQ.TAG, 'Invalid parameter. > Got "' + type + '": ', obj);
+            throw new TypeError(G.SEE_ABOVE);
         }
 
         if (!add) {
@@ -161,11 +163,6 @@ define([
 
         return tinyq;
 
-    }
-
-    function invalid_parameter(type, obj) {
-        tiny.error(tinyQ.TAG, 'Invalid parameter. > Got "' + type + '": ', obj);
-        throw new TypeError(G.SEE_ABOVE);
     }
 
     /**
@@ -198,7 +195,9 @@ define([
         return type;
     }
 
-    ///////////////////////////// QUERY FUNCTIONS ////////////////////////////
+    //////////////////////////////////////////////////////////
+    // QUERY FUNCTIONS
+    //////////////////////////////////////////////////////////
 
     /**
      * Execute query on all given nodes and concate the results
@@ -277,7 +276,9 @@ define([
         return obj && (obj.nodeType == 1 || obj.nodeType == 9);
     }
 
-    ///////////////////////////// FILTER SUPPORT FUNCTIONS ////////////////////////////
+    //////////////////////////////////////////////////////////
+    // FILTER FUNCTIONS
+    //////////////////////////////////////////////////////////
 
     /**
      * create a function wrapper for all filters
@@ -331,13 +332,13 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            prop.filter += ':[' + tiny.fn.getFuncName(arg) + ']';
+            prop.filter += '->' + tiny.fn.getFuncName(arg) + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('@:')) {
+            if (arg.startsWith('->')) {
                 //==> '/filter(param)' - build-in custom filter
-                arg = arg.substring(1);
                 prop.filter += arg;
+                arg = arg.substring(2);
                 func = parse_custom_filter_tag(arg);
                 list = list.concat(func);
             } else {
@@ -359,7 +360,7 @@ define([
      */
     function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split(':');
+        var filters = filter.split('->');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 
@@ -393,8 +394,42 @@ define([
 
     }
 
+    /**
+     * build-in custom filters
+     */
+    tiny.extend(tinyQ.prototype, {
+        filters: {
+            first: function (node) { return [node] },
+            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
+            even: function (a, index) { return index % 2 == 1 },
+            odd: function (a, index) { return index % 2 == 0 },
+            eq: function (a, index) { return index != this.p || [node] },
+            lt: function (a, index) { return index < this.p },
+            gt: function (a, index) { return index > this.p },
+            blank: function (node) { return node.innerText.trim() == '' },
+            empty: function (node) { return node.childNodes.length == 0 },
+            matches: function (node) { return node.matches(this.p) },
+            not: function (node) { return !node.matches(this.p) },
+            has: function (node) { return node.querySelector(this.p) != null },
+            contains: function (node) { return node.innerText.includes(this.p) },
+            enabled: function (node) { return !node.disabled },
+            disabled: function (node) { return node.disabled },
+            checked: function (node) { return !!(node.checked) },
+            hidden: function (node) { return !tinyQ.filters.visible(node) },
+            visible: function (node) {
+                return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
+            },
+            'only-child': function (node) {
+                return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node]
+            },
+            'first-child': function (node) { return !(node.parentNode && !node.prevSibling) || [node] },
+            'last-child': function (node) { return !(node.parentNode && !node.nextSibling) || [node] }
+        },
+    })
 
-    ///////////////////////////// CORE METHODS ////////////////////////////
+    //////////////////////////////////////////////////////////
+    // CORE METHODS
+    //////////////////////////////////////////////////////////
 
     /**
      * .is() - selector check
@@ -492,38 +527,6 @@ define([
         return r;
     }
 
-
-    ///////////////////////////// CUSTOM FILTERS ////////////////////////////
-
-    tiny.extend(tinyQ.prototype, {
-        filters: {
-            first: function (node) { return [node] },
-            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
-            even: function (a, index) { return index % 2 == 1 },
-            odd: function (a, index) { return index % 2 == 0 },
-            eq: function (a, index) { return index != this.p || [node] },
-            lt: function (a, index) { return index < this.p },
-            gt: function (a, index) { return index > this.p },
-            blank: function (node) { return node.innerText.trim() == '' },
-            empty: function (node) { return node.childNodes.length == 0 },
-            matches: function (node) { return node.matches(this.p) },
-            not: function (node) { return !node.matches(this.p) },
-            has: function (node) { return node.querySelector(this.p) != null },
-            contains: function (node) { return node.innerText.includes(this.p) },
-            enabled: function (node) { return !node.disabled },
-            disabled: function (node) { return node.disabled },
-            checked: function (node) { return !!(node.checked) },
-            hidden: function (node) { return !tinyQ.filters.visible(node) },
-            visible: function (node) {
-                return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
-            },
-            'only-child': function (node) {
-                return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node]
-            },
-            'first-child': function (node) { return !(node.parentNode && !node.prevSibling) || [node] },
-            'last-child': function (node) { return !(node.parentNode && !node.nextSibling) || [node] }
-        },
-    })
 
     return tinyQ;
 
