@@ -5,6 +5,29 @@ define([
 
     'use strict';
 
+    // IE8 
+    // Source: https://github.com/Alhadis/Snippets/blob/master/js/polyfills/IE8-child-elements.js
+    if (!("nextElementSibling" in document.documentElement)) {
+        Object.defineProperty(Element.prototype, "nextElementSibling", {
+            get: function () {
+                var e = this.nextSibling;
+                while (e && 1 !== e.nodeType)
+                    e = e.nextSibling;
+                return e;
+            }
+        });
+    }
+    if (!("previousElementSibling" in document.documentElement)) {
+        Object.defineProperty(Element.prototype, "previousElementSibling", {
+            get: function () {
+                var e = this.previousSibling;
+                while (e && 1 !== e.nodeType)
+                    e = e.previousSibling;
+                return e;
+            }
+        });
+    }
+
     // Element.matches support for tinyQ
     if (!Element.prototype.matches) {
         Element.prototype.matches =
@@ -406,7 +429,7 @@ define([
             eq: function (a, index) { return index != this.p || [node] },
             lt: function (a, index) { return index < this.p },
             gt: function (a, index) { return index > this.p },
-            blank: function (node) { return node.innerText.trim() == '' },
+            blank: function (node) { return node.innerHTML.trim() == '' },
             empty: function (node) { return node.childNodes.length == 0 },
             matches: function (node) { return node.matches(this.p) },
             not: function (node) { return !node.matches(this.p) },
@@ -420,10 +443,10 @@ define([
                 return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
             },
             'only-child': function (node) {
-                return !(node.parentNode && !node.prevSibling && !node.nextSibling) || [node]
+                return !(node.parentElement && !node.previousElementSibling && !node.nextElementSibling) || [node]
             },
-            'first-child': function (node) { return !(node.parentNode && !node.prevSibling) || [node] },
-            'last-child': function (node) { return !(node.parentNode && !node.nextSibling) || [node] }
+            'first-child': function (node) { return !(node.parentElement && !node.previousElementSibling) || [node] },
+            'last-child': function (node) { return !(node.parentElement && !node.nextElementSibling) || [node] }
         },
     })
 
