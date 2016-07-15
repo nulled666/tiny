@@ -69,7 +69,7 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var sliced_args = Array.prototype.slice.call(arguments, 1);
+        var sliced_args = tiny.fn.toArray(arguments, 1);
         tiny.info(TAG_MSG_POST, 'Post message "' + msg + '" + ', sliced_args);
 
         var handles = _message_handlers[msg];
@@ -109,7 +109,7 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var sliced_args = Array.prototype.slice.call(arguments, 1);
+        var sliced_args = tiny.fn.toArray(arguments, 1);
         if (_delayed_messages[msg] !== undefined)
             clearTimeout(_delayed_messages[msg]);
 

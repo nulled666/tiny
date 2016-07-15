@@ -28,23 +28,12 @@ define([
 
         // IE8 polyfill
         if (typeof console === "undefined") console = {};
-
         tiny.each(['log', 'dir', 'info', 'warn', 'error'], function (item) {
-            if (typeof console[item] === "undefined")
-                console[item] = console_method_polyfill;
+            if (typeof console[item] === "undefined") console[item] = noop();
         });
 
         verbose_level();
 
-    }
-
-    /**
-     * a polyfill function for console methods
-     */
-    function console_method_polyfill() {
-        var arr = Array.prototype.slice.call(arguments);
-        var msg = 'Console Output >>>\n' + arr.join('\n');
-        alert(msg);
     }
 
     /**
