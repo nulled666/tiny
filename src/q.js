@@ -51,6 +51,7 @@ define([
     };
 
     tinyQ.TAG = '_q()' + G.TAG_SUFFIX;
+    tinyQ.time = true;
 
     tinyQ.prototype = {
 
@@ -98,6 +99,8 @@ define([
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
     function init_q(tinyq, args, set_mode, set_nodes) {
+
+        if(tinyQ.time) _time('tinyQ');
 
         tinyq = tinyq || new tinyQ();
 
@@ -160,6 +163,8 @@ define([
             tinyq.chain = '.add(' + tag.obj + ')';
         }
         tinyq.length = tinyq.nodes.length;
+
+        if(tinyQ.time) _time('tinyQ');
 
         return tinyq;
 
