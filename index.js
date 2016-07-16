@@ -34,12 +34,15 @@ function test_code() {
 
     var x = _q('.run-code');
     _log(x);
-    var t = x.q1('.function');
+
+    var t = x.q('.function');
     _log(t);
+
     var z = _q('.function').filter('->even->gt(7)', test).add(x);
     _log(z);
     var t = _q('.function', '->even->gt(7)', test).add('.run-code');
     _log(t);
+    
     return true;
 
 }

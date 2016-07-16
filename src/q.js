@@ -203,16 +203,15 @@ define([
      * Execute query on all given nodes and concate the results
      */
     function do_query(nodes, selector, filter, mode) {
-
         var action = mode == 1 ? action_query_one : action_query_all;
-
         var out = [];
         tiny.each(nodes, function (node) {
-            if (is_element(node)) out = action(node, selector, filter, out);
+            if (is_element(node)) {
+                var arr = action(node, selector, filter);
+                if (arr) out = out.concat(arr);
+            }
         });
-
         return out;
-
     }
 
     /**
@@ -220,11 +219,8 @@ define([
      */
     function action_query_one(node, selector, filter, out) {
         var node = node.querySelector(selector);
-        if (node) {
-            node = to_array([node], filter);
-            out = out.concat(node);
-        }
-        return out;
+        if (node)  node = to_array([node], filter);
+        return node;
     }
 
     /**
@@ -232,11 +228,8 @@ define([
      */
     function action_query_all(node, selector, filter, out) {
         var nodes = node.querySelectorAll(selector);
-        if (nodes) {
-            nodes = to_array(nodes, filter);
-            out = out.concat(nodes);
-        }
-        return out;
+        if (nodes) nodes = to_array(nodes, filter);
+        return nodes;
     }
 
     /**
