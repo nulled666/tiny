@@ -225,8 +225,7 @@ define([
      */
     function action_query_one(node, selector, filter, out) {
         var node = node.querySelector(selector);
-        if (node) node = to_array([node], filter);
-        return node;
+        return to_array([node], filter);
     }
 
     /**
@@ -234,8 +233,7 @@ define([
      */
     function action_query_all(node, selector, filter, out) {
         var nodes = node.querySelectorAll(selector);
-        if (nodes) nodes = to_array(nodes, filter);
-        return nodes;
+        return to_array(nodes, filter);
     }
 
     /**
@@ -243,8 +241,8 @@ define([
      */
     function to_array(nodes, filters) {
 
-        if (Array.isArray(nodes) && !filters)
-            return nodes;
+        if (!nodes) return [];
+        if (Array.isArray(nodes) && !filters) return nodes;
 
         filters = create_filter_executor(filters);
 
