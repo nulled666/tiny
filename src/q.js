@@ -100,7 +100,7 @@ define([
     //////////////////////////////////////////////////////////
     function init_q(tinyq, args, set_mode, set_nodes) {
 
-        if(tinyQ.time) _time('tinyQ');
+        if (tinyQ.time) _time('tinyQ');
 
         tinyq = tinyq || new tinyQ();
 
@@ -164,7 +164,7 @@ define([
         }
         tinyq.length = tinyq.nodes.length;
 
-        if(tinyQ.time) _time('tinyQ');
+        if (tinyQ.time) _time('tinyQ');
 
         return tinyq;
 
@@ -210,12 +210,13 @@ define([
     function do_query(nodes, selector, filter, mode) {
         var action = mode == 1 ? action_query_one : action_query_all;
         var out = [];
-        tiny.each(nodes, function (node) {
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
             if (is_element(node)) {
                 var arr = action(node, selector, filter);
                 if (arr) out = out.concat(arr);
             }
-        });
+        }
         return out;
     }
 
@@ -224,7 +225,7 @@ define([
      */
     function action_query_one(node, selector, filter, out) {
         var node = node.querySelector(selector);
-        if (node)  node = to_array([node], filter);
+        if (node) node = to_array([node], filter);
         return node;
     }
 
@@ -254,11 +255,9 @@ define([
             if (!is_element(node)) continue;
             if (filters) {
                 var r = filters(node, i, nodes);
-                if (r == false) continue;
-                if (r !== true && Array.isArray(r)) {
-                    // a node array returned, end with this node
-                    return r;
-                };
+                if (r === false) continue;
+                // a node array returned, end with it
+                if (Array.isArray(r)) return r;
             }
             arr.push(node);
         }
