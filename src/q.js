@@ -118,7 +118,7 @@ define([
         var obj = args[0];
         var obj_type = tiny.type(obj);
 
-        obj = normalize_nodelist.call(tag, obj);
+        obj = check_input_nodelist.call(tag, obj);
         obj_type = get_type(obj);
 
         if (obj_type == 'Array') {
@@ -130,7 +130,7 @@ define([
             if (tag.filter) tag.obj += '.filter(' + tag.filter + ')';
         } else if (obj_type == 'string') {
             // ==> (selector, ...
-            var param = normalize_nodelist.call(tag, args[1]);
+            var param = check_input_nodelist.call(tag, args[1]);
             var param_type = get_type(param);
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,parent])
@@ -173,14 +173,14 @@ define([
     /**
      * prepare Array-like Node list objects
      */
-    function normalize_nodelist(obj) {
+    function check_input_nodelist(obj) {
         var type = tiny.type(obj);
         if (is_element(obj)) {
             // single node -> array
             this.obj = '[node]';
             obj = [obj];
         } else if (type == 'q') {
-            this.obj = obj.chain;
+            this.obj = '[' + obj.chain + ']';
             obj = obj.nodes;
         } else if (type == 'Array') {
             this.obj = '[nodes]';
@@ -327,10 +327,10 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            prop.filter += '->' + tiny.x.funcName(arg) + '()';
+            prop.filter += '//*' + tiny.x.funcName(arg);
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('->')) {
+            if (arg.startsWith('//')) {
                 //==> '/filter(param)' - build-in custom filter
                 prop.filter += arg;
                 arg = arg.substring(2);
@@ -338,7 +338,7 @@ define([
                 list = list.concat(func);
             } else {
                 // ==> selector
-                prop.filter += ':matches(' + arg + ')';
+                prop.filter += '//' + arg;
                 list.push([tinyQ.prototype.filters['matches'], arg]);
             }
         } else {
@@ -355,7 +355,7 @@ define([
      */
     function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split('->');
+        var filters = filter.split(',');
         var arr = [];
         for (var i = 1, len = filters.length; i < len; ++i) {
 

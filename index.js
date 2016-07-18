@@ -38,9 +38,9 @@ function test_code() {
     var t = x.q('.function');
     _log(t);
 
-    var z = _q('.function').filter('->even->gt(7)', test).add(x);
+    var z = _q('.function').filter('//even,gt(7)', test).add(x);
     _log(z);
-    var t = _q('.function', '->even->gt(7)', test).add('.run-code');
+    var t = _q('.function', '//even,gt(7)', test).add('.run-code');
     _log(t);
     
     return true;
