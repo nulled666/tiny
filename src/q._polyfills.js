@@ -1,7 +1,6 @@
 define(function () {
 
     // Element.matches support for tinyQ
-    
     if (!Element.prototype.matches) {
         Element.prototype.matches =
             Element.prototype.matchesSelector ||
