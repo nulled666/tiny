@@ -24,8 +24,8 @@ define([
      *  _q(nodes [,filter...])   
      * 
      */
-    function _q() { return init_q(null, arguments); }
-    function _q1() { return init_q(null, arguments, 1); }
+    function _q() { return init_q(arguments); }
+    function _q1() { return init_q(arguments, 1); }
 
     /**
      * tinyQ constructor
@@ -77,11 +77,11 @@ define([
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
-    function init_q(tinyq, args, set_mode, set_nodes) {
+    function init_q(args, set_mode, set_nodes) {
 
         if (tinyQ.time) _time('tinyQ');
 
-        tinyq = tinyq || new tinyQ();
+        var tinyq = new tinyQ();
 
         args = tiny.x.toArray(args);
 
@@ -489,16 +489,16 @@ define([
         }
 
         // check for invalid parameters
-        chain_method_parameter_check(args);
+        filter_method_parameter_check(args);
 
         // put (selector, this, ...)  ahead
         args.unshift(selector, this);
 
-        return init_q(null, args, mode);
+        return init_q(args, mode);
     }
 
     // check for invalid parameter for .q() .q1() .filter()
-    function chain_method_parameter_check(args) {
+    function filter_method_parameter_check(args) {
         tiny.each(args, function (item) {
             var type = typeof item;
             if (type !== 'string' && type !== 'function') {
@@ -522,18 +522,18 @@ define([
     /**
      * .filter() - filter items in result set
      */
-    function filter_nodes(filter) {
+    function filter_nodes() {
         var args = tiny.x.toArray(arguments);
-        chain_method_parameter_check(args);
+        filter_method_parameter_check(args);
         args.unshift(this);
-        return init_q(null, args);
+        return init_q(args);
     }
 
     /**
      * .add() - add items to current tinyQ object
      */
     function add_nodes(selector) {
-        var r = init_q(null, arguments, null, this.nodes);
+        var r = init_q(arguments, null, this.nodes);
         r.chain = this.chain + r.chain;
         return r;
     }
@@ -544,7 +544,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        var r = init_q(null, [arr]);
+        var r = init_q([arr]);
         r.chain = this.chain + '.first()';
         return r;
     }
@@ -555,7 +555,7 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        var r = init_q(null, [arr]);
+        var r = init_q([arr]);
         r.chain = this.chain + '.last()';
         return r;
     }
@@ -564,17 +564,24 @@ define([
      * .parent() - get parentElement
      */
     function get_parent() {
-        var arr = traversal_worker(this.nodes, get_parent_func, true);
-        var r = init_q(null, [arr]);
-        r.chain = this.chain + '.parent()';
-        return r;
-    }
-    function get_parent_func(node) {
-        return node.parentElement;
-    }
 
-    // helper function for traversary
-    function traversal_worker(nodes, func, check_duplicate) {
+        var tag = { filter: '' };
+        var filters = false;
+        var args = arguments;
+        if (args.length > 0) filters = create_filter_list.call(tag, args);
+
+        var arr = traversal_worker(this.nodes, get_parent_func, filters, true);
+
+        var r = init_q([arr]);
+        r.chain = this.chain + '.parent(' + tag.filter + ')';
+        return r;
+
+    }
+    function get_parent_func(node) { return node.parentElement; }
+
+    // helper function for batch traversing
+    function traversal_worker(nodes, func, filters, check_duplicate) {
+
         // generate a unique operation id
         var op_id = check_duplicate ? tiny.guid() : 0;
         var arr = [];
@@ -588,34 +595,51 @@ define([
             }
             arr.push(node);
         }
+
+        // do filter after all done
+        if (filters) arr = to_array(arr, filters);
+
         return arr;
+
     }
 
     /**
      * .prev() - get previousElementSibling
      */
     function get_prev() {
-        var arr = traversal_worker(this.nodes, get_prev_func);
-        var r = init_q(null, [arr]);
-        r.chain = this.chain + '.prev()';
+
+        var tag = { filter: '' };
+        var filters = false;
+        var args = arguments;
+        if (args.length > 0) filters = create_filter_list.call(tag, args);
+
+        var arr = traversal_worker(this.nodes, get_prev_func, filters);
+
+        var r = init_q([arr]);
+        r.chain = this.chain + '.prev(' + tag.filter + ')';
         return r;
+
     }
-    function get_prev_func(node) {
-        return node.previousElementSibling;
-    }
+    function get_prev_func(node) { return node.previousElementSibling; }
 
     /**
-     * .prev() - get previousElementSibling
+     * .next() - get nextElementSibling
      */
     function get_next() {
-        var arr = traversal_worker(this.nodes, get_next_func);
-        var r = init_q(null, [arr]);
-        r.chain = this.chain + '.next()';
+
+        var tag = { filter: '' };
+        var filters = false;
+        var args = arguments;
+        if (args.length > 0) filters = create_filter_list.call(tag, args);
+
+        var arr = traversal_worker(this.nodes, get_next_func, filters);
+
+        var r = init_q([arr]);
+        r.chain = this.chain + '.next(' + tag.filter + ')';
         return r;
+
     }
-    function get_next_func(node) {
-        return node.nextElementSibling;
-    }
+    function get_next_func(node) { return node.nextElementSibling; }
 
 
     return tinyQ;

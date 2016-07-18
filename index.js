@@ -32,7 +32,7 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code').parent();
+    var x = _q('.run-code').next();
     _log(x);
     
     return true;
