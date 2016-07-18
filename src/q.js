@@ -48,8 +48,8 @@ define([
         chain: '',
 
         is: is_node_of_type,
-        q: sub_query_nodes,
-        q1: sub_query_one_node,
+        q: sub_query_all,
+        q1: sub_query_one,
         add: add_nodes,
         filter: filter_nodes,
 
@@ -57,20 +57,14 @@ define([
         last: get_last,
 
         parent: get_parent,
-        next: false,
-        prev: false,
+        prev: get_prev,
+        next: get_next,
 
         after: false,
         before: false,
 
-        get: function (index) {
-            return index < this.nodes.length ? this.nodes[index] : null;
-        },
-
-        each: function (start, func, this_arg) {
-            return tiny.each(this.nodes, start, func, this_arg)
-        },
-
+        get: function (index) { return index < this.nodes.length ? this.nodes[index] : null; },
+        each: function (start, func, this_arg) { return tiny.each(this.nodes, start, func, this_arg) },
         toArray: function () { return to_array(this.nodes) },
 
         offset: false,
@@ -484,7 +478,7 @@ define([
     /**
      * .q() - query all
      */
-    function sub_query_nodes(selector) {
+    function sub_query_all(selector) {
         var args = tiny.x.toArray(arguments, 1);
         var mode = 0;
 
@@ -518,10 +512,10 @@ define([
     /**
      * .q1() - query one
      */
-    function sub_query_one_node(selector) {
+    function sub_query_one(selector) {
         var args = tiny.x.toArray(arguments);
         args.push(1);
-        return sub_query_nodes.apply(this, args);
+        return sub_query_all.apply(this, args);
     }
 
 
@@ -567,23 +561,62 @@ define([
     }
 
     /**
-     * .parent() - get parent element
+     * .parent() - get parentElement
      */
     function get_parent() {
-        var op_id = tiny.guid();
-        var arr = [];
-        var nodes = this.nodes;
-        for (var i = 0, len = nodes.length; i < len; ++i) {
-            var parent = nodes[i].parentElement;
-            if (!parent) continue;
-            if (parent[tinyQ.OPID] == op_id) continue;
-            parent[tinyQ.OPID] = op_id;
-            arr.push(parent);
-        }
+        var arr = traversal_worker(this.nodes, get_parent_func, true);
         var r = init_q(null, [arr]);
         r.chain = this.chain + '.parent()';
         return r;
     }
+    function get_parent_func(node) {
+        return node.parentElement;
+    }
+
+    // helper function for traversary
+    function traversal_worker(nodes, func, check_duplicate) {
+        // generate a unique operation id
+        var op_id = check_duplicate ? tiny.guid() : 0;
+        var arr = [];
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = func(nodes[i]);
+            if (!node) continue;
+            // check for pushed element & skip it
+            if (check_duplicate) {
+                if (node[tinyQ.OPID] == op_id) continue;
+                node[tinyQ.OPID] = op_id;
+            }
+            arr.push(node);
+        }
+        return arr;
+    }
+
+    /**
+     * .prev() - get previousElementSibling
+     */
+    function get_prev() {
+        var arr = traversal_worker(this.nodes, get_prev_func);
+        var r = init_q(null, [arr]);
+        r.chain = this.chain + '.prev()';
+        return r;
+    }
+    function get_prev_func(node) {
+        return node.previousElementSibling;
+    }
+
+    /**
+     * .prev() - get previousElementSibling
+     */
+    function get_next() {
+        var arr = traversal_worker(this.nodes, get_next_func);
+        var r = init_q(null, [arr]);
+        r.chain = this.chain + '.next()';
+        return r;
+    }
+    function get_next_func(node) {
+        return node.nextElementSibling;
+    }
+
 
     return tinyQ;
 
