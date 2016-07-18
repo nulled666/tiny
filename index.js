@@ -32,7 +32,7 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code').next();
+    var x = _q('.run-code').next('h4');
     _log(x);
     
     return true;

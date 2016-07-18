@@ -35,8 +35,7 @@ define([
     };
 
     tinyQ.TAG = '_q()' + G.TAG_SUFFIX;
-    tinyQ.OPID = 'xqOpId';
-    tinyQ.time = true;
+    tinyQ.OPID = 'tinyqOPID';
 
     tinyQ.prototype = {
 
@@ -78,8 +77,6 @@ define([
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
     function init_q(args, set_mode, set_nodes) {
-
-        if (tinyQ.time) _time('tinyQ');
 
         var tinyq = new tinyQ();
 
@@ -142,8 +139,6 @@ define([
             tinyq.chain = '.add(' + tag.obj + ')';
         }
         tinyq.length = tinyq.nodes.length;
-
-        if (tinyQ.time) _time('tinyQ');
 
         return tinyq;
 
@@ -539,57 +534,59 @@ define([
     }
 
     /**
+     * Helper function for first(), last()
+     */
+    function get_one_helper(tinyq, type) {
+        var nodes = tinyq.nodes;
+        var arr = [];
+        if (nodes.length > 0) arr.push(type == 1 ? nodes[0] : nodes[nodes.length - 1]);
+        var r = init_q([arr]);
+        r.chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
+        return r;
+    }
+
+    /**
      * .first() - get first element as a tinyQ object
      */
     function get_first() {
-        var arr = [];
-        if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        var r = init_q([arr]);
-        r.chain = this.chain + '.first()';
-        return r;
+        return get_one_helper(this, 1);
     }
 
     /**
      * .last() - get last element as a tinyQ object
      */
     function get_last() {
-        var arr = [];
-        if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        var r = init_q([arr]);
-        r.chain = this.chain + '.last()';
-        return r;
+        return get_one_helper(this, 0);
     }
+
 
     /**
-     * .parent() - get parentElement
+     * Helper function for batch traversing
      */
-    function get_parent() {
+    function do_traversal_helper(tinyq, args, type) {
 
-        var tag = { filter: '' };
-        var filters = false;
-        var args = arguments;
-        if (args.length > 0) filters = create_filter_list.call(tag, args);
-
-        var arr = traversal_worker(this.nodes, get_parent_func, filters, true);
-
-        var r = init_q([arr]);
-        r.chain = this.chain + '.parent(' + tag.filter + ')';
-        return r;
-
-    }
-    function get_parent_func(node) { return node.parentElement; }
-
-    // helper function for batch traversing
-    function traversal_worker(nodes, func, filters, check_duplicate) {
+        // 1: parent(), 2: prev(), 3: next()
+        var prefix = '.parent(';
+        var get_func = get_parent_func;
+        if (type == 2) {
+            prefix = '.prev(';
+            get_func = get_prev_func;
+        } else if (type == 3) {
+            prefix = '.next(';
+            get_func = get_next_func;
+        }
 
         // generate a unique operation id
-        var op_id = check_duplicate ? tiny.guid() : 0;
+        var op_id = type == 1 ? tiny.guid() : 0;
+
+        // do the work
         var arr = [];
+        var nodes = tinyq.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = func(nodes[i]);
+            var node = get_func(nodes[i]);
             if (!node) continue;
-            // check for pushed element & skip it
-            if (check_duplicate) {
+            if (type == 1) {
+                // check for duplicate element & skip it
                 if (node[tinyQ.OPID] == op_id) continue;
                 node[tinyQ.OPID] = op_id;
             }
@@ -597,49 +594,44 @@ define([
         }
 
         // do filter after all done
-        if (filters) arr = to_array(arr, filters);
+        var tag = { filter: '' };
+        if (args.length > 0) {
+            args = create_filter_list.call(tag, args);
+            arr = to_array(arr, args);
+        }
 
-        return arr;
+        // create new tinyQ object
+        var r = init_q([arr]);
+        r.chain = tinyq.chain + prefix + tag.filter + ')';
+        
+        return r;
 
+    }
+    function get_parent_func(node) { return node.parentElement; }
+    function get_prev_func(node) { return node.previousElementSibling; }
+    function get_next_func(node) { return node.nextElementSibling; }
+
+
+    /**
+     * .parent() - get parentElement
+     */
+    function get_parent() {
+        return do_traversal_helper(this, arguments, 1);
     }
 
     /**
      * .prev() - get previousElementSibling
      */
     function get_prev() {
-
-        var tag = { filter: '' };
-        var filters = false;
-        var args = arguments;
-        if (args.length > 0) filters = create_filter_list.call(tag, args);
-
-        var arr = traversal_worker(this.nodes, get_prev_func, filters);
-
-        var r = init_q([arr]);
-        r.chain = this.chain + '.prev(' + tag.filter + ')';
-        return r;
-
+        return do_traversal_helper(this, arguments, 2);
     }
-    function get_prev_func(node) { return node.previousElementSibling; }
 
     /**
      * .next() - get nextElementSibling
      */
     function get_next() {
-
-        var tag = { filter: '' };
-        var filters = false;
-        var args = arguments;
-        if (args.length > 0) filters = create_filter_list.call(tag, args);
-
-        var arr = traversal_worker(this.nodes, get_next_func, filters);
-
-        var r = init_q([arr]);
-        r.chain = this.chain + '.next(' + tag.filter + ')';
-        return r;
-
+        return do_traversal_helper(this, arguments, 3);
     }
-    function get_next_func(node) { return node.nextElementSibling; }
 
 
     return tinyQ;
