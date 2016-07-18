@@ -246,8 +246,10 @@ define([
 
         filters = create_filter_executor(filters);
 
-        // do the loop
+        // 'this' object shared by all filters
         var this_arg = {};
+
+        // do the loop
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
@@ -291,7 +293,6 @@ define([
      */
     function filter_list_executor(node, index, list, len, this_arg) {
         var filter_list = this;
-        // a 'this' context shared by all filters
         return tiny.each(filter_list, function (filter) {
             this_arg.p = filter[1];
             var r = filter[0].call(this_arg, node, index, list, len);
@@ -423,31 +424,62 @@ define([
             'last-child': function (node) {
                 return !(node.parentElement && !node.nextElementSibling) || [node]
             },
-            'nth': function (node, index, t, len) {
-                var a, b;
-                if (!this.parsed && this.p) {
-                    var p = this.p
-                    if (typeof p == 'number') {
-                        a = 0, b = p;
-                    } else {
-                        p = p.split('n');
-                        if (p.length != 2) throw new SyntaxError('Invalid nth(an+b) filter parameter: ' + this.p);
-                        var a = p[0] == '' ? 1 : parseInt(p[0]), b = p[1] == '' ? 0 : parseInt(p[1]);
-                        if (isNaN(a + b)) throw new SyntaxError('a and b in nth(an+b) must be integer. ' + this.p);
-                    }
-                    this.a = a, this.b = b;
-                    this.parsed = true;
-                }
-                a = this.a, b = this.b;
-                var i = index - b + 1;
-                if (a == 0 && i == 0) return [node];
-                if (i % a != 0) return false;
-                if (i / a < 0) return false;
-                return true;
+            'nth-child': function (node) {
+                parse_nth_parameter(this);
+                return check_nth(get_nth_index(node), this.a, this.b, node);
+            },
+            'nth': function (node, index) {
+                parse_nth_parameter(this);
+                return check_nth(index, this.a, this.b, node);
             }
         },
     })
 
+    // helper function for nth & nth-child
+    function get_nth_index(node) {
+        if (!node.parentElement) return -1;
+        var children = node.parentElement.children;
+        for (var i = 0, len = children.length; i < len; ++i) {
+            if (children[i] == node) return i;
+        }
+        return -1;
+    }
+
+    function parse_nth_parameter(obj) {
+
+        if (obj.parsed) return;
+
+        if (!obj.p) throw new TypeError('nth(an+b) requires a parameter.');
+
+        var a, b, p = obj.p;
+        if (typeof p == 'number') {
+            a = 0, b = p;
+        } else {
+            p = p.split('n');
+            if (p.length != 2) throw new SyntaxError('Invalid nth(an+b) filter parameter: ' + this.p);
+            a = p[0] == '' ? 1 : parseInt(p[0]), b = p[1] == '' ? 0 : parseInt(p[1]);
+            if (isNaN(a + b)) throw new SyntaxError('a and b in nth(an+b) must be integer. ' + this.p);
+        }
+
+        obj.a = a, obj.b = b;
+        obj.parsed = true;
+
+    }
+
+    // helper function for nth & nth-child
+    function check_nth(index, a, b, node) {
+
+        if (index < 0) return false;
+
+        var i = index - b + 1;
+        if (a == 0 && i == 0) return [node];
+        if (i % a != 0) return false;
+        if (i / a < 0) return false;
+
+        _log(index + 1, a, b)
+        return true;
+
+    }
 
     //////////////////////////////////////////////////////////
     // CORE METHODS
