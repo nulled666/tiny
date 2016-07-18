@@ -35,6 +35,7 @@ define([
     };
 
     tinyQ.TAG = '_q()' + G.TAG_SUFFIX;
+    tinyQ.OPID = 'xqOpId';
     tinyQ.time = true;
 
     tinyQ.prototype = {
@@ -575,8 +576,8 @@ define([
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var parent = nodes[i].parentElement;
             if (!parent) continue;
-            if (parent.xOpId == op_id) continue;
-            parent.tinyqOpId = op_id;
+            if (parent[tinyQ.OPID] == op_id) continue;
+            parent[tinyQ.OPID] = op_id;
             arr.push(parent);
         }
         var r = init_q(null, [arr]);
