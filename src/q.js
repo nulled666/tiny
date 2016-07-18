@@ -616,6 +616,7 @@ define([
         return r;
 
     }
+    
     function get_prev_func(node) { return node.previousElementSibling; }
     function get_next_func(node) { return node.nextElementSibling; }
     function get_parent_func(node) { return node.parentElement; }
