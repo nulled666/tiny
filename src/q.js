@@ -55,7 +55,7 @@ define([
         first: get_first,
         last: get_last,
 
-        parent: false,
+        parent: get_parent,
         next: false,
         prev: false,
 
@@ -549,7 +549,7 @@ define([
     function get_first() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[0]);
-        var r = construct(tinyQ, [arr]);
+        var r = init_q(null, [arr]);
         r.chain = this.chain + '.first()';
         return r;
     }
@@ -560,11 +560,29 @@ define([
     function get_last() {
         var arr = [];
         if (this.nodes.length > 0) arr.push(this.nodes[this.nodes.length - 1]);
-        var r = construct(tinyQ, [arr]);
+        var r = init_q(null, [arr]);
         r.chain = this.chain + '.last()';
         return r;
     }
 
+    /**
+     * .parent() - get parent element
+     */
+    function get_parent() {
+        var op_id = tiny.guid();
+        var arr = [];
+        var nodes = this.nodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var parent = nodes[i].parentElement;
+            if (!parent) continue;
+            if (parent.xOpId == op_id) continue;
+            parent.tinyqOpId = op_id;
+            arr.push(parent);
+        }
+        var r = init_q(null, [arr]);
+        r.chain = this.chain + '.parent()';
+        return r;
+    }
 
     return tinyQ;
 

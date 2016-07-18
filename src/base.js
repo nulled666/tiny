@@ -24,13 +24,14 @@ define([
         type: _type,
         each: _each,
         extend: _extend,
+        guid: generate_guid,
         hash: murmur3,
 
         // functions shared by internal functions
         x: {
             add: add_to_tiny,
             funcName: get_function_name,
-            toArray: to_array
+            toArray: to_array,
         }
 
     });
@@ -355,6 +356,19 @@ define([
         return arr;
 
     }
+
+    /**
+     * A simple guid generator
+     */
+    function generate_guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
 
     /**
      * 32-bit Murmur3 Hash

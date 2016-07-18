@@ -32,7 +32,7 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code').filter('//nth(10n-1)');
+    var x = _q('.run-code').parent();
     _log(x);
     
     return true;
