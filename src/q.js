@@ -56,6 +56,8 @@ define([
         last: get_last,
 
         parent: get_parent,
+        closest: get_closest,
+
         prev: get_prev,
         next: get_next,
 
@@ -402,7 +404,7 @@ define([
                 parse_nth_parameter(this);
                 return check_nth(get_nth_index(node), this.a, this.b, node);
             },
-            'nth': function (node, index) {
+            nth: function (node, index) {
                 parse_nth_parameter(this);
                 return check_nth(index, this.a, this.b, node);
             }
@@ -567,13 +569,20 @@ define([
 
         // 1: parent(), 2: prev(), 3: next()
         var prefix = '.parent(';
+        var selector = '';
         var get_func = get_parent_func;
         if (type == 2) {
-            prefix = '.prev(';
-            get_func = get_prev_func;
+            get_func = get_closest_func;
+            args = tiny.x.toArray(args);
+            selector = args[0];
+            args.shift();
+            prefix = '.closest(' + selector;
         } else if (type == 3) {
-            prefix = '.next(';
+            get_func = get_prev_func;
+            prefix = '.prev(';
+        } else if (type == 4) {
             get_func = get_next_func;
+            prefix = '.next(';
         }
 
         // generate a unique operation id
@@ -583,9 +592,9 @@ define([
         var arr = [];
         var nodes = tinyq.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = get_func(nodes[i]);
+            var node = get_func(nodes[i], selector);
             if (!node) continue;
-            if (type == 1) {
+            if (type < 3) {
                 // check for duplicate element & skip it
                 if (node[tinyQ.OPID] == op_id) continue;
                 node[tinyQ.OPID] = op_id;
@@ -603,13 +612,20 @@ define([
         // create new tinyQ object
         var r = init_q([arr]);
         r.chain = tinyq.chain + prefix + tag.filter + ')';
-        
+
         return r;
 
     }
-    function get_parent_func(node) { return node.parentElement; }
     function get_prev_func(node) { return node.previousElementSibling; }
     function get_next_func(node) { return node.nextElementSibling; }
+    function get_parent_func(node) { return node.parentElement; }
+    function get_closest_func(node, selector) {
+        while (node) {
+            if (node.matches(selector)) return node;
+            node = node.parentElement;
+        }
+        return null;
+    }
 
 
     /**
@@ -620,17 +636,24 @@ define([
     }
 
     /**
+     * .closest() - get closest element matches selector
+     */
+    function get_closest() {
+        return do_traversal_helper(this, arguments, 2);
+    }
+
+    /**
      * .prev() - get previousElementSibling
      */
     function get_prev() {
-        return do_traversal_helper(this, arguments, 2);
+        return do_traversal_helper(this, arguments, 3);
     }
 
     /**
      * .next() - get nextElementSibling
      */
     function get_next() {
-        return do_traversal_helper(this, arguments, 3);
+        return do_traversal_helper(this, arguments, 4);
     }
 
 
