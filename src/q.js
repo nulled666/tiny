@@ -54,10 +54,8 @@ define([
 
         first: get_first,
         last: get_last,
-
         parent: get_parent,
         closest: get_closest,
-
         prev: get_prev,
         next: get_next,
 
