@@ -247,12 +247,13 @@ define([
         filters = create_filter_executor(filters);
 
         // do the loop
+        var this_arg = {};
         var arr = [];
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
             if (filters) {
-                var r = filters(node, i, nodes);
+                var r = filters(node, i, nodes, len, this_arg);
                 if (r === false) continue;
                 // a node array returned, end with it
                 if (Array.isArray(r)) return r;
@@ -280,21 +281,20 @@ define([
      */
     function create_filter_executor(filters) {
         if (!filters) return false;
-        return function (node, index, list) {
-            return filter_list_executor.call(filters, node, index, list);
+        return function (node, index, list, len, this_arg) {
+            return filter_list_executor.call(filters, node, index, list, len, this_arg);
         }
     }
 
     /**
      * proxy for executing filter function list
      */
-    function filter_list_executor(node, index, list) {
+    function filter_list_executor(node, index, list, len, this_arg) {
         var filter_list = this;
         // a 'this' context shared by all filters
-        var this_arg = {};
         return tiny.each(filter_list, function (filter) {
             this_arg.p = filter[1];
-            var r = filter[0].call(this_arg, node, index, list);
+            var r = filter[0].call(this_arg, node, index, list, len);
             if (r == false) return false;
             if (r != true) return r;
         });
@@ -331,7 +331,7 @@ define([
             list.push([arg, null]);
         } else if (type == 'string') {
             if (arg.startsWith('//')) {
-                //==> '/filter(param)' - build-in custom filter
+                //==> '//filter1(param),filter2' - build-in custom filter
                 prop.filter += arg;
                 arg = arg.substring(2);
                 func = parse_custom_filter_tag(arg);
@@ -357,7 +357,7 @@ define([
 
         var filters = filter.split(',');
         var arr = [];
-        for (var i = 1, len = filters.length; i < len; ++i) {
+        for (var i = 0, len = filters.length; i < len; ++i) {
 
             var item = filters[i].trim();
             var pos = item.indexOf('(');
@@ -376,7 +376,7 @@ define([
                     throw new SyntaxError(G.SEE_ABOVE);
                 }
                 param = param.substring(0, param.length - 1).trim();
-                if (param.search(/^\d$/) > -1) param = parseInt(param);
+                if (param.search(/^\d$/) == 0) param = parseInt(param);
             }
 
             if (func) {
@@ -395,7 +395,7 @@ define([
     tiny.extend(tinyQ.prototype, {
         filters: {
             first: function (node) { return [node] },
-            last: function (a, b, nodes) { return [nodes[nodes.length - 1]] },
+            last: function (a, b, nodes, len) { return [nodes[len - 1]] },
             even: function (a, index) { return index % 2 == 1 },
             odd: function (a, index) { return index % 2 == 0 },
             eq: function (a, index) { return index != this.p || [node] },
@@ -417,10 +417,37 @@ define([
             'only-child': function (node) {
                 return !(node.parentElement && !node.previousElementSibling && !node.nextElementSibling) || [node]
             },
-            'first-child': function (node) { return !(node.parentElement && !node.previousElementSibling) || [node] },
-            'last-child': function (node) { return !(node.parentElement && !node.nextElementSibling) || [node] }
+            'first-child': function (node) {
+                return !(node.parentElement && !node.previousElementSibling) || [node]
+            },
+            'last-child': function (node) {
+                return !(node.parentElement && !node.nextElementSibling) || [node]
+            },
+            'nth': function (node, index, t, len) {
+                var a, b;
+                if (!this.parsed && this.p) {
+                    var p = this.p
+                    if (typeof p == 'number') {
+                        a = 0, b = p;
+                    } else {
+                        p = p.split('n');
+                        if (p.length != 2) throw new SyntaxError('Invalid nth(an+b) filter parameter: ' + this.p);
+                        var a = p[0] == '' ? 1 : parseInt(p[0]), b = p[1] == '' ? 0 : parseInt(p[1]);
+                        if (isNaN(a + b)) throw new SyntaxError('a and b in nth(an+b) must be integer. ' + this.p);
+                    }
+                    this.a = a, this.b = b;
+                    this.parsed = true;
+                }
+                a = this.a, b = this.b;
+                var i = index - b + 1;
+                if (a == 0 && i == 0) return [node];
+                if (i % a != 0) return false;
+                if (i / a < 0) return false;
+                return true;
+            }
         },
     })
+
 
     //////////////////////////////////////////////////////////
     // CORE METHODS

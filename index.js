@@ -32,16 +32,8 @@ function test_code() {
         return true
     }
 
-    var x = _q('.run-code');
+    var x = _q('.run-code').filter('//nth(10n-1)');
     _log(x);
-
-    var t = x.q('.function');
-    _log(t);
-
-    var z = _q('.function').filter('//even,gt(7)', test).add(x);
-    _log(z);
-    var t = _q('.function', '//even,gt(7)', test).add('.run-code');
-    _log(t);
     
     return true;
 
