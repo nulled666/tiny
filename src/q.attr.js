@@ -10,7 +10,8 @@ define([
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
     tiny.extend(tinyQ.prototype, {
-        cls: process_class,
+        _class: process_class, // For IE8
+        class: process_class,
         css: false,
         attr: false
     });
