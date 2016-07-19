@@ -1,20 +1,20 @@
 define([
     './global',
     './base',
-    './q'
-], function (G, tiny, tinyQ) {
+    './q.base'
+], function (G, tiny, TinyQ) {
 
     'use strict';
 
     //////////////////////////////////////////////////////////
     // EVENT METHOD FOR TINYQ
     //////////////////////////////////////////////////////////
-    tiny.extend(tinyQ.prototype, {
+    tiny.extend(TinyQ.prototype, {
         on: listen_to_event
     });
 
     /**
-     * tinyQ.on() method
+     * TinyQ.on() method
      * .on(event, handle)
      * .on(event, class, handle)
      * .on(event, filter, handle)
@@ -22,7 +22,7 @@ define([
     function listen_to_event(event, param, extra) {
 
         if (typeof event != 'string') {
-            tiny.error(tinyQ.TAG, 'Expect an event string. > Got "' + typeof event + '": ', event);
+            tiny.error(TinyQ.TAG, 'Expect an event string. > Got "' + typeof event + '": ', event);
             throw new TypeError(G.SEE_ABOVE);
         }
 

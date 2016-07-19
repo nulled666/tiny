@@ -1,15 +1,15 @@
 define([
     './global',
     './base',
-    './q'
-], function (G, tiny, tinyQ) {
+    './q.base'
+], function (G, tiny, TinyQ) {
 
     'use strict';
 
     //////////////////////////////////////////////////////////
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
-    tiny.extend(tinyQ.prototype, {
+    tiny.extend(TinyQ.prototype, {
         _class: process_class, // For IE8
         class: process_class,
         css: false,
@@ -22,7 +22,7 @@ define([
     function process_class(actions) {
 
         if (typeof actions != 'string') {
-            tiny.error(tinyQ.TAG, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
+            tiny.error(TinyQ.TAG, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
             throw new TypeError(G.SEE_ABOVE);
         }
 

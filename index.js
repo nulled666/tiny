@@ -33,7 +33,7 @@ function test_code() {
     }
 
     var x = _q('.function');
-    _log(x.add('.function'));
+    _log(x);
     
     return true;
 
