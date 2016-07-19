@@ -32,8 +32,8 @@ function test_code() {
         return true
     }
 
-    var x = _q('.function').closest('.run-code', '.collapse');
-    _log(x);
+    var x = _q('.function');
+    _log(x.add('.function'));
     
     return true;
 
