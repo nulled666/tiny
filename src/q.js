@@ -224,7 +224,7 @@ define([
     }
 
     /**
-     * Convert NodeList to Arrays, also do copy, filtering & merge
+     * Convert NodeList to Arrays, also do copy, filter & merge
      */
     function to_array(nodes, filters, base, opid) {
 
@@ -243,16 +243,16 @@ define([
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
+            if (opid) {
+                // check for duplicate
+                if (node[TinyQ.OPID] == opid) continue;
+                node[TinyQ.OPID] = opid;
+            }
             if (filters) {
                 // do filter
                 var r = filters(node, i, nodes, len, this_arg);
                 if (r === false) continue;
                 if (Array.isArray(r)) return r; // end with returned array
-            }
-            if (opid) {
-                // check for duplicate
-                if (node[TinyQ.OPID] == opid) continue;
-                node[TinyQ.OPID] = opid;
             }
             base.push(node);
         }
