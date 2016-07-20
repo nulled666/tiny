@@ -27,24 +27,59 @@ function start() {
 }
 
 function test_code() {
+    var x, y, z;
 
-    function test(node, index) {
-        if (index % 2 == 0) return false;
-        return true
-    }
-
+    _log('tag ------------');
     console.time('q');
-    _each(1000, function () {
-        var x = _q('.function');
+    _each(100, function () {
+        x = _q('h4');
     })
     console.timeEnd('q');
-    
-
     console.time('jquery');
-    _each(1000, function () {
-        var x = $('.function');
+    _each(100, function () {
+        y = $('h4');
     })
     console.timeEnd('jquery');
+    _log(x.length, y.length);
+
+    _log('. ------------');
+    console.time('q');
+    _each(100, function () {
+        x = _q('.function');
+    })
+    console.timeEnd('q');
+    console.time('jquery');
+    _each(100, function () {
+        y = $('.function');
+    })
+    console.timeEnd('jquery');
+    _log(x.length, y.length);
+
+    _log('.. ------------');
+    console.time('q');
+    _each(100, function () {
+        x = _q('.function.token');
+    })
+    console.timeEnd('q');
+    console.time('jquery');
+    _each(100, function () {
+        y = $('.function.token');
+    })
+    console.timeEnd('jquery');
+    _log(x.length, y.length);
+
+    _log('# ------------');
+    console.time('q');
+    _each(100, function () {
+        x = _q('#content-table');
+    })
+    console.timeEnd('q');
+    console.time('jquery');
+    _each(100, function () {
+        y = $('#content-table');
+    })
+    console.timeEnd('jquery');
+    _log(x.length, y.length);
 
     return true;
 
@@ -164,7 +199,7 @@ function check_and_append_link(sidebar, elem) {
     sidebar.append('<a>', {
         href: '#' + name,
         class: a_class,
-        _text: title
+        _text: 'xx' + title
     });
 
 }

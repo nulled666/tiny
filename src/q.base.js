@@ -230,7 +230,19 @@ define([
         if (!opid && nodes.length > 1) opid = tiny.guid();
 
         var result = [];
-        var action = query_mode == 1 ? do_query_one : do_query_all;
+        var action = do_query_all;
+        selector = selector.trim();
+
+        if (/^([\w]+)$/.test(selector)) {
+            action = do_get_by_tag;
+        } else if (/^\.([\w-.]+)\w$/.test(selector)) {
+            selector = selector.replace(/\./g, ' ');
+            action = do_get_by_class;
+        } else if (/^\#([\w-]+)$/.test(selector)) {
+            selector = selector.replace('#', '');
+            action = do_get_by_id;
+            query_mode = 1;
+        }
 
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
@@ -238,6 +250,7 @@ define([
             if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
             if (!r) continue;
+            if (query_mode == 1) return [r[0]];
             result = to_array(r, result, opid);
         }
 
@@ -245,13 +258,21 @@ define([
 
     }
 
-    function do_query_one(node, selector) {
-        var node = node.querySelector(selector);
-        return node ? [node] : null;
-    }
     function do_query_all(node, selector) {
         return node.querySelectorAll(selector);
     }
+    function do_get_by_id(node, selector) {
+        var r = node.getElementById(selector);
+        if (r) r = [r];
+        return r;
+    }
+    function do_get_by_tag(node, selector) {
+        return node.getElementsByTagName(selector);
+    }
+    function do_get_by_class(node, selector) {
+        return node.getElementsByClassName(selector);
+    }
+
 
     /**
      * Convert NodeList to Arrays, also do copy, filter & merge
