@@ -38,5 +38,13 @@ define(function () {
             }
         });
     }
+    if (!Element.prototype.getElementsByClassName) {
+        window.Element.prototype.getElementsByClassName = document.constructor.prototype.getElementsByClassName = function (search) {
+            if (typeof search != 'string') return null;
+            search = search.trim().split(' ');
+            search = '.' + search.join('.');
+            return this.querySelectorAll(search);
+        }
+    }
 
 });
