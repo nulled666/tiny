@@ -238,11 +238,7 @@ define([
             if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
             if (!r) continue;
-            if (opid) {
-                result = to_array(r, result, opid);
-            } else {
-                result = r;
-            }
+            result = to_array(r, result, opid);
         }
 
         return result;
