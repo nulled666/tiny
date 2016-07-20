@@ -6,6 +6,7 @@ function start() {
     tiny.verbose('all');
 
     build_content_table();
+    build_content_table2();
 
     if (test_code() != true)
         setTimeout(run_all_code, 100);
@@ -120,18 +121,19 @@ function smooth_scroll_to(obj, offset) {
 // ====== content table builder
 function build_content_table() {
 
-    var sidebar = _q1('#content-table');
+    var sidebar = _q('#content-table');
 
+    _time('q');
     var a_list = _q('.mark');
     a_list.each(function (elem) {
         check_and_append_link(sidebar, elem);
     });
-
+    _time('q');
 }
 
 function check_and_append_link(sidebar, elem) {
 
-    elem = _q1(elem);
+    elem = _q(elem);
     var name = elem.attr('name');
 
     var parent_elem = elem.parent();
@@ -149,7 +151,6 @@ function check_and_append_link(sidebar, elem) {
         a_class = 'sub';
     }
 
-
     sidebar.append('<a>', {
         href: '#' + name,
         class: a_class,
@@ -158,6 +159,47 @@ function check_and_append_link(sidebar, elem) {
 
 }
 
+// ====== content table builder
+function build_content_table2() {
+
+    var sidebar = $('#content-table');
+
+    _time('jq');
+    var a_list = $('.mark');
+    a_list.each(function (i, elem) {
+        check_and_append_link(sidebar, elem);
+    });
+    _time('jq');
+}
+
+function check_and_append_link2(sidebar, elem) {
+
+    elem = $(elem);
+    var name = elem.attr('name');
+
+    var parent_elem = elem.parent();
+    if (parent_elem.length < 1) return;
+
+    var tag = parent_elem.prop("tagName");
+
+    var title = parent_elem.text();
+
+    var a_class = '';
+    if (tag == 'H2') {
+        a_class = 'header';
+        title = title.toUpperCase();
+    } else {
+        a_class = 'sub';
+    }
+
+    var a = $('<a>', {
+        href: '#' + name,
+        class: a_class
+    }).text(title);
+
+    sidebar.append(a);
+
+}
 
 
 // ====== code runner for unit tests
