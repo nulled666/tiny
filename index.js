@@ -33,8 +33,18 @@ function test_code() {
         return true
     }
 
-    var x = _q('.function');
-    _log(x);
+    console.time('q');
+    _each(1000, function () {
+        var x = _q('.function');
+    })
+    console.timeEnd('q');
+    
+
+    console.time('jquery');
+    _each(1000, function () {
+        var x = $('.function');
+    })
+    console.timeEnd('jquery');
 
     return true;
 
@@ -121,9 +131,9 @@ function smooth_scroll_to(obj, offset) {
 // ====== content table builder
 function build_content_table() {
 
+    _time('q');
     var sidebar = _q('#content-table');
 
-    _time('q');
     var a_list = _q('.mark');
     a_list.each(function (elem) {
         check_and_append_link(sidebar, elem);
@@ -162,12 +172,12 @@ function check_and_append_link(sidebar, elem) {
 // ====== content table builder
 function build_content_table2() {
 
+    _time('jq');
     var sidebar = $('#content-table');
 
-    _time('jq');
     var a_list = $('.mark');
     a_list.each(function (i, elem) {
-        check_and_append_link(sidebar, elem);
+        check_and_append_link2(sidebar, elem);
     });
     _time('jq');
 }

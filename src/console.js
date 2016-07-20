@@ -12,7 +12,7 @@ define([
 
     tiny.x.add({
         inspect: _inspect,
-        time: pref_time,
+        time: perf_time,
         verbose: verbose_level
     });
 
@@ -56,7 +56,7 @@ define([
 
         log = log == false ? false :
             filter_out === false ? false : true;
-            
+
         filter_out = filter_out || null;
 
         if (filter_out) {
@@ -86,7 +86,7 @@ define([
     }
 
     // privates for pref_time()
-    var _pref_time = {};
+    var _perf_time = {};
     var _perf = window.performance || {};
     var _perf_now = window.performance.now
         ? function () { return window.performance.now() }
@@ -95,12 +95,12 @@ define([
     /**
      * Get performance time
      */
-    function pref_time(id, log) {
-        if (!_pref_time[id]) {
-            _pref_time[id] = _perf_now();
+    function perf_time(id, log) {
+        if (_perf_time[id] == undefined || _perf_time[id] == false) {
+            _perf_time[id] = _perf_now();
         } else {
-            var time = (_perf_now() - _pref_time[id]);
-            _pref_time[id] = false;
+            var time = (_perf_now() - _perf_time[id]);
+            _perf_time[id] = false;
             if (log == false) return time;
             _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 0 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
         }

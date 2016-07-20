@@ -169,6 +169,7 @@ define([
     //////////////////////////////////////////////////////////
     // CORE FUNCTIONS
     //////////////////////////////////////////////////////////
+    var TYPE_CACHE = { '[object Object]': 'object' };
 
     /**
      * Get exact type of an object
@@ -185,18 +186,16 @@ define([
         if (type == 'object') {
             if (!obj) {
                 type = 'null';
+            } else if (Array.isArray(obj)) {
+                type = 'Array';
             } else if (obj.nodeType == 1 && obj.nodeType == 9) {
-                type = 'node';
-            } else if (obj.jquery) {
-                type = 'jquery';
-            } else if (obj.tinyQ) {
-                type = 'q';
+                type = 'Element';
             } else {
-                type = Object.prototype.toString.call(obj)
-                if (type == '[object Object]') {
-                    type = 'object';
-                } else {
-                    type = type.replace('[object ', '').replace(']', '');
+                var tmp = Object.prototype.toString.call(obj);
+                type = TYPE_CACHE[tmp];
+                if (!type) {
+                    type = tmp.replace('[object ', '').replace(']', '');
+                    TYPE_CACHE[tmp] = type;
                 }
             }
         }
@@ -221,6 +220,8 @@ define([
      */
     function _each(obj, start, func, this_arg) {
 
+        if (!obj) return;
+
         var start_index = typeof start == 'number' ? start : 0;
 
         if (typeof start == 'function') {
@@ -234,14 +235,16 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var ARRAY_LIKE = ',NodeList,Arguments,HTMLCollection,';
-        var OBJECT_LIKE = ',object,Map,Function,Storage,';
-        var type = _type(obj);
+        this_arg = this_arg || obj;
 
+        var type = typeof obj;
+
+        if (obj.jquery) type = 'q';
+        if (obj.tinyQ) obj = obj.nodes;
 
         var result;
 
-        if (Array.isArray(obj) || ARRAY_LIKE.includes(type)) {
+        if (is_array_like(obj)) {
 
             // ==> Array
             for (var i = start_index, len = obj.length; i < len; ++i) {
@@ -249,7 +252,7 @@ define([
                 if (result !== undefined) return result;
             }
 
-        } else if (OBJECT_LIKE.includes(type)) {
+        } else if (type == 'object') {
 
             // ==> Object
             for (var label in obj) {
@@ -257,10 +260,9 @@ define([
                 if (result !== undefined) return result;
             }
 
+        } else if (type == 'q') {
 
-        } else if (type == 'jquery' || type == 'q') {
-
-            // ==> jQuery or tinyQ Object
+            // ==> jQuery & TinyQ
             for (var i = start_index, len = obj.length; i < len; ++i) {
                 result = func.call(this_arg, obj.get(i), i, obj);
                 if (result !== undefined) return result;
@@ -291,6 +293,14 @@ define([
 
     }
 
+
+    /**
+     * Check if an object is array-like
+     */
+    function is_array_like(obj) {
+        return Array.isArray(obj) ||
+            typeof obj == 'object' && obj.length > 0 && obj[0] != undefined && obj[obj.length - 1] != undefined
+    }
 
     var TAG_EXTEND = '_extend()' + G.TAG_SUFFIX;
     /**

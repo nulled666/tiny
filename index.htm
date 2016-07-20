@@ -67,7 +67,7 @@
         <h2><a class="mark" name="basic-functions">Core Functions</a></h2>
 
         <h3><a class="mark" name="type">_type()</a></h3>
-        <p>Get detailed object type.</p>
+        <p>Get detailed object type. This function is slow on Objects, don't use it in performance critical operations.</p>
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             ASSERT('undefined',      _type() == 'undefined');
@@ -118,7 +118,7 @@
             </code></pre>
 
         <h4>NOTES</h4>
-        <p>Always use <code>for()</code> on Arrays on performance critical operations.</p>
+        <p>Always use <code>for()</code> on Arrays in performance critical operations.</p>
         <p>Below is a test result on an Array:</p>
         <pre><code class="language-javascript">
         for()               109.114ms      // best performance
@@ -201,12 +201,6 @@
         <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
-            try{
-                _each(false, function(){});
-                FAIL('_each() paramter 1 error');
-            }catch(err){
-                ASSERT('_each() paramter 1 error', err instanceof TypeError );
-            }
             try{
                 _each([1, 2, 3], 'error test 2');
                 FAIL('_each() paramter 2 error');

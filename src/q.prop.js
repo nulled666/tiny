@@ -18,7 +18,7 @@ define([
         text: access_text
     });
 
-    tiny.extend(TinyQ.prototype.fn, {
+    tiny.extend(TinyQ.fn, {
         setAttributes: set_node_attribute
     });
 

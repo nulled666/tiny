@@ -17,14 +17,14 @@ define([
 
     /**
      * ```        
-     *  _q(html, [,attr] [,parent])          
-     *  _q(selector [,filter...])        
-     *  _q(selector, nodes [,filter...]) 
-     *  _q(nodes [,filter...])   
+     *  _q(html, [,attr])          
+     *  _q(selector)        
+     *  _q(selector, nodes)
+     *  _q(nodes)   
      * 
      */
-    function _q() { return init_q(arguments); }
-    function _q1() { return init_q(arguments, 1); }
+    function _q(obj, param, extra) { return init_q(obj, param, extra); }
+    function _q1(obj, param, extra) { return init_q(obj, param, extra, 1); }
 
     /**
      * tinyQ constructor
@@ -35,6 +35,7 @@ define([
 
     TinyQ.TAG = '_q()' + G.TAG_SUFFIX;
     TinyQ.OPID = 'tinyq-OPID';
+    TinyQ.fn = {};
 
     TinyQ.prototype = {
 
@@ -59,16 +60,14 @@ define([
         next: get_next,
 
         get: function (index) { return index < this.nodes.length ? this.nodes[index] : null; },
-        each: function (start, func, this_arg) { return tiny.each(this.nodes, start, func, this_arg) },
+        each: each_operation,
         toArray: function () { return to_array(this.nodes) },
 
         append: append_child,
         after: false,
         before: false,
 
-        offset: false,
-
-        fn: {}
+        offset: false
 
     };
 
@@ -76,11 +75,9 @@ define([
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
-    function init_q(args, set_mode, base_nodes) {
+    function init_q(obj, param, extra, set_mode, base_nodes) {
 
-        var tinyq = new TinyQ();
-
-        args = tiny.x.toArray(args);
+        if (!obj) return new TinyQ();
 
         var opid = false;
         var query_mode = 0;
@@ -95,100 +92,107 @@ define([
             tag.start = 'q1(';
         }
 
-        if (Array.isArray(base_nodes)) {
+        if (base_nodes && Array.isArray(base_nodes)) {
             // ==> add() operation
             is_add = true;
+            // plant an opid on original array for duplicate check
             opid = tiny.guid();
-            // plant an opid on original array
             for (var i = 0, len = base_nodes.length; i < len; ++i) {
                 base_nodes[i][TinyQ.OPID] = opid;
             }
             result = base_nodes;
         }
 
-        var obj = args[0];
-        var obj_type = tiny.type(obj);
+        obj = nomalize_nodes(obj);
 
-        obj = check_input_nodelist.call(tag, obj);
-        obj_type = get_type(obj);
-
-        if (obj_type == 'Array') {
-            // ==> (nodes [,filter...])
-            if (args.length > 1) filter_list = create_filter_list.call(tag, args.slice(1));
-            result = to_array(obj, filter_list, result, opid);
-            tag.start = tag.end = '';
-            if (tag.filter) tag.obj += '.filter(' + tag.filter + ')';
-        } else if (obj_type == 'string') {
+        if (typeof obj == 'string') {
             // ==> (selector, ...
-            var param = check_input_nodelist.call(tag, args[1]);
-            var param_type = get_type(param);
             if (obj.startsWith('<')) {
-                // ==> (html_fragment [,attributes] [,parent])
-                result = create_html_fragment.call(tinyq, obj, args[1], args[2]);
+                // ==> (html_fragment [,attributes])
+                result = create_html_fragment(obj, param);
                 tag.obj = '[html]';
             } else {
-                if (param_type == 'Array') {
-                    // ==> (selector, nodes [,filter...])
-                    filter_list = create_filter_list.call(tag, args.slice(2));
-                    result = do_query(param, obj, filter_list, query_mode, result, opid);
-                    tag.start = tag.obj + '.' + tag.start;
-                } else {
-                    // ==> (selector [,filter...])
-                    filter_list = create_filter_list.call(tag, args.slice(1));
-                    result = do_query([document], obj, filter_list, query_mode, result, opid);
+                // ==> (selector [,nodes])
+                var parents = [document];
+                if (param) {
+                    param = nomalize_nodes(param);
+                    if (is_array_like(param)) {
+                        // ==> [,nodes]
+                        parents = param;
+                        tag.start = tag.obj + '.' + tag.start;
+                    }
                 }
-                if (tag.filter != '') obj += tag.filter;
+                // do query
+                result = do_query(parents, obj, query_mode);
                 tag.obj = obj;
             }
+        } else if (is_array_like(obj)) {
+            // ==> (nodes [,filter...])
+            tag.obj = '[nodes]';
+            for (var i = 0, len = obj.length; i < len; ++i) {
+                var item = obj[i];
+                if (is_element(item) && item[TinyQ.OPID] !== opid) {
+                    result.push(obj[i]);
+                    item[TinyQ.OPID] = opid;
+                }
+            }
+            tag.start = tag.end = '';
         } else {
-            tiny.error(TinyQ.TAG, 'Invalid parameter. > Got "' + obj_type + '": ', obj);
+            tiny.error(TinyQ.TAG, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
         // set properties to finish
+        var chain = '';
         if (is_add) {
-            tinyq.chain = '.add(' + tag.obj + ')';
+            chain = '.add(' + tag.obj + ')';
         } else {
-            tinyq.chain = tag.start + tag.obj + tag.end;
+            chain = tag.start + tag.obj + tag.end;
         }
-        tinyq.nodes = result;
-        tinyq.length = tinyq.nodes.length;
 
-        return tinyq;
+        return create_new_tinyq(result, chain);
 
     }
 
-
     /**
-     * prepare Array-like Node list objects
+     * nomalize single node & tinyq parameter
      */
-    function check_input_nodelist(obj) {
-        var type = tiny.type(obj);
-        if (is_element(obj) || type == 'Window') {
-            // single node -> array
-            this.obj = '[node]';
+    function nomalize_nodes(obj) {
+        if (is_element(obj) || obj == window) {
             obj = [obj];
-        } else if (type == 'q') {
-            this.obj = '[' + obj.chain + ']';
+        } else if (obj.tinyQ) {
             obj = obj.nodes;
-        } else if (type == 'Array') {
-            this.obj = '[nodes]';
-        } else if (type == 'jQuery') {
-            this.obj = '[jquery]';
-            obj = obj.toArray();
         }
         return obj;
     }
 
     /**
-     * Custom tiny.type() wrapper for tinyQ
+     * check if an object is array-like
      */
-    function get_type(obj) {
-        var type = tiny.type(obj);
-        if (type == 'NodeList' || type == 'HTMLCollection') type = 'Array';
-        return type;
+    function is_array_like(obj) {
+        return Array.isArray(obj) ||
+            typeof obj == 'object' && obj.length > 0 && obj[0] != undefined && obj[obj.length - 1] != undefined
     }
 
+    /**
+     * check if an object is a html element or document node
+     */
+    function is_element(obj) {
+        if (!obj) return false;
+        var type = obj.nodeType;
+        return (type == 1 || type == 9 || type == 11);
+    }
+
+    /**
+     * create a new tinyq instance
+     */
+    function create_new_tinyq(nodes, chain) {
+        var q = new TinyQ();
+        q.chain = chain;
+        q.nodes = nodes;
+        q.length = nodes.length;
+        return q;
+    }
 
     //////////////////////////////////////////////////////////
     // HTML FUNCTIONS
@@ -196,7 +200,7 @@ define([
     function create_html_fragment(html, attrs, parent) {
 
         if (is_element(attrs)) parent = attrs, attrs = false;
-        if (tiny.type(attrs) != 'object') attrs = false;
+        if (typeof attrs != 'object') attrs = false;
 
         var div = document.createElement('div');
         div.innerHTML = html;
@@ -205,7 +209,7 @@ define([
         var nodes = div.childNodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (attrs) this.fn.setAttributes(node, attrs);
+            if (attrs) TinyQ.fn.setAttributes(node, attrs);
             arr.push(node);
         }
 
@@ -221,12 +225,11 @@ define([
     /**
      * Execute query on all given nodes and concate the results
      */
-    function do_query(nodes, selector, filter, query_mode, base, opid) {
+    function do_query(nodes, selector, query_mode, opid) {
 
-        // only remove duplicate for multiple result sets
-        var opid = opid || (nodes.length > 1 ? tiny.guid() : false);
+        if (!opid && nodes.length > 1) opid = tiny.guid();
 
-        base = base || [];
+        var result = [];
         var action = query_mode == 1 ? do_query_one : do_query_all;
 
         for (var i = 0, len = nodes.length; i < len; ++i) {
@@ -235,12 +238,17 @@ define([
             if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
             if (!r) continue;
-            base = to_array(r, filter, base, opid);
+            if (opid) {
+                result = to_array(r, result, opid);
+            } else {
+                result = r;
+            }
         }
 
-        return base;
+        return result;
 
     }
+
     function do_query_one(node, selector) {
         var node = node.querySelector(selector);
         return node ? [node] : null;
@@ -252,33 +260,17 @@ define([
     /**
      * Convert NodeList to Arrays, also do copy, filter & merge
      */
-    function to_array(nodes, filters, base, opid) {
-
-        if (!nodes) return [];
-
-        // skip operation if it's already an Array and no need to filter or merge
-        if (Array.isArray(nodes) && !filters && !base && !opid) return nodes;
+    function to_array(nodes, base, opid) {
 
         if (!Array.isArray(base)) base = [];
-        filters = create_filter_executor(filters);
+        if (!nodes) return base;
 
-        // 'this' object shared by all filters
-        var this_arg = {};
-
-        // do the loop
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
             if (opid) {
-                // check for duplicate
                 if (node[TinyQ.OPID] == opid) continue;
                 node[TinyQ.OPID] = opid;
-            }
-            if (filters) {
-                // do filter
-                var r = filters(node, i, nodes, len, this_arg);
-                if (r === false) continue;
-                if (Array.isArray(r)) return r; // end with returned array
             }
             base.push(node);
         }
@@ -287,14 +279,6 @@ define([
 
     }
 
-    /**
-     * check if an object is a html element or document node
-     */
-    function is_element(obj) {
-        if (!obj) return false;
-        var type = obj.nodeType;
-        return (type == 1 || type == 9 || type == 11);
-    }
 
     //////////////////////////////////////////////////////////
     // FILTER FUNCTIONS
@@ -510,6 +494,13 @@ define([
     // CORE METHODS
     //////////////////////////////////////////////////////////
 
+    function each_operation(func, this_arg) {
+        var obj = this.nodes;
+        for (var i = 0, len = obj.length; i < len; ++i) {
+            func.call(this_arg, obj[i], i, obj);
+        }
+    }
+
     /**
      * .is() - selector check
      */
@@ -520,8 +511,6 @@ define([
         }
         return true;
     }
-
-
 
     // check for invalid parameter for .q() .q1() .filter()
     function check_filter_parameters(args) {
@@ -535,35 +524,22 @@ define([
         }
     }
 
+
     /**
      * .q() - query all
      */
-    function sub_query_all(selector) {
-        var args = tiny.x.toArray(arguments, 1);
-        var mode = 0;
-
-        // if mode is set to 1
-        if (args[args.length - 1] == 1) {
-            mode = 1;
-            args.pop();
-        }
-
-        // check for invalid filter parameters
-        check_filter_parameters(args);
-
-        // put (selector, this, ...)  ahead
-        args.unshift(selector, this);
-
-        return init_q(args, mode);
+    function sub_query_all(selector, mode) {
+        var arr = do_query(this.nodes, selector, mode);
+        var chain = this.chain + (mode == 1) ? '.q1(' : '.q(';
+        chain += ')';
+        return create_new_tinyq(arr, chain);
     }
 
     /**
      * .q1() - query one
      */
     function sub_query_one(selector) {
-        var args = tiny.x.toArray(arguments);
-        args.push(1);
-        return sub_query_all.apply(this, args);
+        return sub_query_all.apply(this, selector, 1);
     }
 
     /**
@@ -591,10 +567,10 @@ define([
     function get_one_helper(tinyq, type) {
         var nodes = tinyq.nodes;
         var arr = [];
-        if (nodes.length > 0) arr.push(type == 1 ? nodes[0] : nodes[nodes.length - 1]);
-        var r = init_q([arr]);
-        r.chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
-        return r;
+        if (nodes.length > 0)
+            arr.push(type == 1 ? nodes[0] : nodes[nodes.length - 1]);
+        var chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
+        return create_new_tinyq(arr, chain);
     }
 
     /**
@@ -660,11 +636,7 @@ define([
             arr = to_array(arr, args);
         }
 
-        // create new tinyQ object
-        var r = init_q([arr]);
-        r.chain = tinyq.chain + prefix + ')';
-
-        return r;
+        return create_new_tinyq(arr, tinyq.chain + prefix + ')');
 
     }
 
@@ -710,16 +682,15 @@ define([
 
 
     /**
-     * TinyQ.append()
+     * TinyQ.append(node|tinyq|html [,attr])
      */
     function append_child(obj, attrs) {
 
         // check parameter
-        var type = tiny.type(obj);
-        if (type == 'string') {
-            obj = create_html_fragment.call(this, obj, attrs);
-        } else if (type == 'q') {
+        if (obj && obj.tinyQ) {
             obj = obj.nodes;
+        } else if (typeof obj == 'string') {
+            obj = create_html_fragment.call(this, obj, attrs);
         } else if (is_element(obj)) {
             obj = [obj];
         } else {
