@@ -34,7 +34,7 @@ function test_code() {
 
     var x = _q('.function');
     _log(x);
-    
+
     return true;
 
 }
@@ -120,10 +120,10 @@ function smooth_scroll_to(obj, offset) {
 // ====== content table builder
 function build_content_table() {
 
-    var sidebar = $('#content-table');
+    var sidebar = _q1('#content-table');
 
-    var a_list = $('.mark');
-    a_list.each(function (index, elem) {
+    var a_list = _q('.mark');
+    a_list.each(function (elem) {
         check_and_append_link(sidebar, elem);
     });
 
@@ -131,10 +131,8 @@ function build_content_table() {
 
 function check_and_append_link(sidebar, elem) {
 
-    elem = $(elem);
+    elem = _q1(elem);
     var name = elem.attr('name');
-
-    if (typeof name !== 'string') return;
 
     var parent_elem = elem.parent();
     if (parent_elem.length < 1) return;
@@ -151,10 +149,12 @@ function check_and_append_link(sidebar, elem) {
         a_class = 'sub';
     }
 
-    var a = $('<a>', { href: '#' + name, class: a_class });
-    a.text(title);
 
-    sidebar.append(a);
+    sidebar.append('<a>', {
+        href: '#' + name,
+        class: a_class,
+        _text: title
+    });
 
 }
 

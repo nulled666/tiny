@@ -13,7 +13,13 @@ define([
         _class: process_class, // For IE8
         class: process_class,
         css: false,
-        attr: false
+        attr: access_attribute,
+        prop: access_property,
+        text: access_text
+    });
+
+    tiny.extend(TinyQ.prototype.fn, {
+        setAttributes: set_node_attribute
     });
 
     /**
@@ -95,4 +101,82 @@ define([
 
     }
 
+    //////////////////////////////////////////////////////////
+    // ATTRIBUTES
+    //////////////////////////////////////////////////////////
+    /**
+     * TinyQ.attr()
+     */
+    function access_attribute(attr, value) {
+
+        if (this.nodes.length < 1) return;
+
+        if (value == undefined) {
+            return this.nodes[0].getAttribute(attr);
+        } else {
+
+        }
+
+    }
+
+    function set_node_attribute(node, attrs) {
+        for (var key in attrs) {
+            var val = attrs[key];
+            if (key == '_text') {
+                node.innerText = val;
+            } else if (key == '_html') {
+                node.innerHTML = val;
+            } else {
+                node.setAttribute(key, val);
+            }
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // PROPERTY
+    //////////////////////////////////////////////////////////
+    /**
+     * TinyQ.prop()
+     */
+    function access_property(prop, value) {
+
+        if (this.nodes.length < 1) return;
+
+        if (value == undefined) {
+            return this.nodes[0][prop];
+        } else {
+
+        }
+
+
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // TEXT CONTENT
+    //////////////////////////////////////////////////////////
+    /**
+     * TinyQ.text()
+     */
+    function access_text(value) {
+        var nodes = this.nodes;
+
+        if (nodes.length < 1) return '';
+
+        if (value == undefined) {
+
+            var text = '';
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                text += nodes[i].innerText;
+            }
+
+            return text;
+
+        } else {
+
+        }
+
+
+    }
 });

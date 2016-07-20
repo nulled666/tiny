@@ -16,9 +16,8 @@ define([
 
 
     /**
-     * ```
-     *  _q(html [,parent])              
-     *  _q(tag, attr [,parent])          
+     * ```        
+     *  _q(html, [,attr] [,parent])          
      *  _q(selector [,filter...])        
      *  _q(selector, nodes [,filter...]) 
      *  _q(nodes [,filter...])   
@@ -35,7 +34,7 @@ define([
     };
 
     TinyQ.TAG = '_q()' + G.TAG_SUFFIX;
-    TinyQ.OPID = 'tinyqOPID';
+    TinyQ.OPID = 'tinyq-OPID';
 
     TinyQ.prototype = {
 
@@ -63,12 +62,13 @@ define([
         each: function (start, func, this_arg) { return tiny.each(this.nodes, start, func, this_arg) },
         toArray: function () { return to_array(this.nodes) },
 
+        append: append_child,
         after: false,
         before: false,
 
         offset: false,
 
-        on: false
+        fn: {}
 
     };
 
@@ -123,9 +123,9 @@ define([
             var param = check_input_nodelist.call(tag, args[1]);
             var param_type = get_type(param);
             if (obj.startsWith('<')) {
-                // ==> (html_fragment [,parent])
-            } else if (param_type == 'object') {
-                // ==> (tag, attribute_object)
+                // ==> (html_fragment [,attributes] [,parent])
+                result = create_html_fragment.call(tinyq, obj, args[1], args[2]);
+                tag.obj = '[html]';
             } else {
                 if (param_type == 'Array') {
                     // ==> (selector, nodes [,filter...])
@@ -141,7 +141,7 @@ define([
                 tag.obj = obj;
             }
         } else {
-            tiny.error(TinyQ.TAG, 'Invalid parameter. > Got "' + type + '": ', obj);
+            tiny.error(TinyQ.TAG, 'Invalid parameter. > Got "' + obj_type + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -164,7 +164,7 @@ define([
      */
     function check_input_nodelist(obj) {
         var type = tiny.type(obj);
-        if (is_element(obj)) {
+        if (is_element(obj) || type == 'Window') {
             // single node -> array
             this.obj = '[node]';
             obj = [obj];
@@ -189,6 +189,31 @@ define([
         return type;
     }
 
+
+    //////////////////////////////////////////////////////////
+    // HTML FUNCTIONS
+    //////////////////////////////////////////////////////////
+    function create_html_fragment(html, attrs, parent) {
+
+        if (is_element(attrs)) parent = attrs, attrs = false;
+        if (tiny.type(attrs) != 'object') attrs = false;
+
+        var div = document.createElement('div');
+        div.innerHTML = html;
+
+        var arr = [];
+        var nodes = div.childNodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
+            if (attrs) this.fn.setAttributes(node, attrs);
+            arr.push(node);
+        }
+
+        return arr;
+
+    }
+
+
     //////////////////////////////////////////////////////////
     // QUERY FUNCTIONS
     //////////////////////////////////////////////////////////
@@ -207,6 +232,7 @@ define([
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
+            if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
             if (!r) continue;
             base = to_array(r, filter, base, opid);
@@ -265,7 +291,9 @@ define([
      * check if an object is a html element or document node
      */
     function is_element(obj) {
-        return obj && (obj.nodeType == 1 || obj.nodeType == 9);
+        if (!obj) return false;
+        var type = obj.nodeType;
+        return (type == 1 || type == 9 || type == 11);
     }
 
     //////////////////////////////////////////////////////////
@@ -287,24 +315,27 @@ define([
      */
     function filter_list_executor(node, index, list, len, this_arg) {
         var filter_list = this;
-        return tiny.each(filter_list, function (filter) {
+        for (var i = 0, len = filter_list.length; i < len; ++i) {
+            var filter = filter_list[i];
             this_arg.p = filter[1];
             var r = filter[0].call(this_arg, node, index, list, len);
             if (r == false) return false;
             if (r != true) return r;
-        });
+        }
+        return true;
     }
 
     /**
      * build a wrapper function for all filters
      */
     function create_filter_list(args) {
-        var prop = this;
+        var tag = this;
         var arr = [];
-        tiny.each(args, function (item) {
+        for (var i = 0, len = args.length; i < len; ++i) {
+            var item = args[i];
             if (!item) return;
-            arr = parse_arg_to_filter.call(prop, item, arr);
-        })
+            arr = parse_arg_to_filter.call(tag, item, arr);
+        }
         return arr;
     }
 
@@ -316,24 +347,24 @@ define([
 
         if (!arg) return false; // no filter is set
 
-        var prop = this;
+        var tag = this;
         var type = typeof arg;
         var func;
 
         if (type == 'function') {
             // ==> filter() - custom function
-            prop.filter += '//*' + tiny.x.funcName(arg);
+            tag.filter += '//*' + tiny.x.funcName(arg);
             list.push([arg, null]);
         } else if (type == 'string') {
             if (arg.startsWith('//')) {
                 //==> '//filter1(param),filter2' - build-in custom filter
-                prop.filter += arg;
+                tag.filter += arg;
                 arg = arg.substring(2);
                 func = parse_custom_filter_tag(arg);
                 list = list.concat(func);
             } else {
                 // ==> selector
-                prop.filter += '//' + arg;
+                tag.filter += '//' + arg;
                 list.push([TinyQ.prototype.filters['matches'], arg]);
             }
         } else {
@@ -494,13 +525,14 @@ define([
 
     // check for invalid parameter for .q() .q1() .filter()
     function check_filter_parameters(args) {
-        tiny.each(args, function (item) {
+        for (var i = 0, len = args.length; i < len; ++i) {
+            var item = args[i];
             var type = typeof item;
             if (type !== 'string' && type !== 'function') {
                 _error(TinyQ.TAG, '.q(selector [,filters ...]) Invalid parameter.', item);
                 throw new SyntaxError(G.SEE_ABOVE);
             }
-        });
+        }
     }
 
     /**
@@ -676,6 +708,38 @@ define([
         return do_traversal_helper(this, arguments, 4);
     }
 
+
+    /**
+     * TinyQ.append()
+     */
+    function append_child(obj, attrs) {
+
+        // check parameter
+        var type = tiny.type(obj);
+        if (type == 'string') {
+            obj = create_html_fragment.call(this, obj, attrs);
+        } else if (type == 'q') {
+            obj = obj.nodes;
+        } else if (is_element(obj)) {
+            obj = [obj];
+        } else {
+            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object or Element. > Got: ' + type, obj);
+            throw new TypeError(G.SEE_ABOVE);
+        }
+
+        // append child
+        var parent_nodes = this.nodes;
+        for (var i = 0, len = parent_nodes.length; i < len; ++i) {
+            var parent_node = parent_nodes[i];
+            if (!is_element(parent_node)) continue;
+            for (var j = 0, jlen = obj.length; j < jlen; ++j) {
+                var node = obj[j];
+                if (i != (len - 1)) node = node.clone();
+                if (is_element(node))
+                    parent_node.appendChild(node);
+            }
+        }
+    }
 
     return TinyQ;
 

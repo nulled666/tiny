@@ -10,7 +10,8 @@ define([
     // EVENT METHOD FOR TINYQ
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
-        on: listen_to_event
+        on: listen_to_event,
+        off: false
     });
 
     /**
