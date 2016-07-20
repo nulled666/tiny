@@ -131,10 +131,12 @@ define([
             tag.obj = '[nodes]';
             for (var i = 0, len = obj.length; i < len; ++i) {
                 var item = obj[i];
-                if (is_element(item) && item[TinyQ.OPID] !== opid) {
-                    result.push(obj[i]);
+                if (!is_element(item)) continue;
+                if (opid) {
+                    if (item[TinyQ.OPID] == opid) continue;
                     item[TinyQ.OPID] = opid;
                 }
+                result.push(item);
             }
             tag.start = tag.end = '';
         } else {
@@ -707,7 +709,7 @@ define([
         if (obj && obj.tinyQ) {
             obj = obj.nodes;
         } else if (typeof obj == 'string') {
-            obj = create_html_fragment.call(this, obj, attrs);
+            obj = create_html_fragment(obj, attrs);
         } else if (is_element(obj)) {
             obj = [obj];
         } else {
