@@ -286,6 +286,7 @@ define([
 
         base = base || [];
         if (!nodes) return base;
+        var this_arg = {};
 
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
@@ -294,7 +295,7 @@ define([
                 node[TinyQ.OPID] = opid;
             }
             if (filter) {
-                var r = filter(node, i, nodes);
+                var r = filter(node, i, nodes, len, this_arg);
                 if (r == false) continue;
             }
             base.push(node);
@@ -537,19 +538,6 @@ define([
         return true;
     }
 
-    // check for invalid parameter for .q() .q1() .filter()
-    function check_filter_parameters(args) {
-        for (var i = 0, len = args.length; i < len; ++i) {
-            var item = args[i];
-            var type = typeof item;
-            if (type !== 'string' && type !== 'function') {
-                _error(TinyQ.TAG, '.q(selector [,filters ...]) Invalid parameter.', item);
-                throw new SyntaxError(G.SEE_ABOVE);
-            }
-        }
-    }
-
-
     /**
      * .q() - query all
      */
@@ -571,11 +559,18 @@ define([
      * .filter() - filter items in result set
      */
     function filter_nodes() {
-        var args = tiny.x.toArray(arguments);
-        check_filter_parameters(args);
-        args.unshift(this);
-        return init_q(args);
+
+        var tag = { filter: '' };
+
+        var filters = create_filter_list.call(tag, arguments);
+        tag = '.filter(' + tag.filter + ')';
+        var filter_func = create_filter_executor(filters);
+        var arr = to_array(this.nodes, [], false, filter_func);
+
+        return create_new_tinyq(arr, this.chain + tag);
+
     }
+
 
     /**
      * .add() - add items to current tinyQ object
@@ -653,7 +648,7 @@ define([
             if (type < 3) {
                 arr = to_array(node, arr, opid, filter);
             } else {
-                if(filter && !filter(node)) continue;
+                if (filter && !filter(node)) continue;
                 arr.push(node);
             }
         }
@@ -681,7 +676,7 @@ define([
     function get_next_func(node) { return node.nextElementSibling; }
 
     function create_traversal_match_filter(selector) {
-        return function(node){
+        return function (node) {
             return traversal_match_filter.call(selector, node);
         }
     }

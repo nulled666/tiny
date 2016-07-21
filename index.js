@@ -29,10 +29,10 @@ function start() {
 function do_test(tag, loop, func1, func2) {
     var x, y;
     _time('time001');
-    _each(100, function () { x = func1(); })
+    _each(loop, function () { x = func1(); })
     var t1 = _time('time001', false);
     _time('time002');
-    _each(100, function () { y = func2(); })
+    _each(loop, function () { y = func2(); })
     var t2 = _time('time002', false);
     _log(tag, '-', t1.toFixed(3), ':', t2.toFixed(3), '(' + x.length + '/' + y.length + ')');
 }
@@ -96,8 +96,16 @@ function test_code() {
         function () {
             return $(nodelist);
         });
+  
+    do_test('filter', 100,
+        function () {
+            return _q(nodelist).filter('//even');
+        },
+        function () {
+            return $(nodelist).filter(':even');
+        });
 
-    do_test('first', 10,
+    do_test('first', 100,
         function () {
             return _q(nodelist).first();
         },
@@ -105,7 +113,7 @@ function test_code() {
             return $(nodelist).first();
         });
 
-    do_test('last', 10,
+    do_test('last', 100,
         function () {
             return _q(nodelist).last();
         },
@@ -113,15 +121,7 @@ function test_code() {
             return $(nodelist).last();
         });
 
-    do_test('parent', 1,
-        function () {
-            return _q(nodelist).parent('code');
-        },
-        function () {
-            return $(nodelist).parent('code');
-        });
-
-    do_test('children', 1,
+    do_test('children', 100,
         function () {
             return _q(node).children('.function');
         },
@@ -129,7 +129,15 @@ function test_code() {
             return $(node).children('.function');
         });
 
-    do_test('closest', 1,
+    do_test('parent', 50,
+        function () {
+            return _q(nodelist).parent('code');
+        },
+        function () {
+            return $(nodelist).parent('code');
+        });
+
+    do_test('closest', 50,
         function () {
             return _q(nodelist).closest('.run-code');
         },
@@ -137,7 +145,7 @@ function test_code() {
             return $(nodelist).closest('.run-code');
         });
 
-    do_test('prev', 10,
+    do_test('prev', 100,
         function () {
             return _q(nodelist).prev('.function');
         },
@@ -145,7 +153,7 @@ function test_code() {
             return $(nodelist).prev('.function');
         });
   
-    do_test('next', 10,
+    do_test('next', 100,
         function () {
             return _q(nodelist).next('.function');
         },
