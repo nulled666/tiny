@@ -52,10 +52,10 @@ function test_code() {
         //         return $(node).append(child2);
         //     });
 
-        var html2 = '<a href="#" class="test2"><img alt="null">Test</a>';
+        var html2 = '<a href="#" class="test2"><img alt="null">Test2</a>';
         do_test('nodes.append:html', 100,
             function () {
-                return _q(nodes).append(html2, { _text: 'tinyq', class: 'test1' });
+                return _q(nodes).append(html2, { _html: '<img alt="null">Test1', class: 'test1' });
             },
             function () {
                 return $(nodes).append(html2);
@@ -78,8 +78,15 @@ function test_code() {
             },
             function () {
                 return $(nodes2).empty();
-            }, true);
+            });
 
+        do_test('remove', 1,
+            function () {
+                return _q(nodes1).remove('.test1');
+            },
+            function () {
+                return $(nodes2).remove('.test2');
+            });
 
     });
 

@@ -783,8 +783,8 @@ define([
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             var parent = node.parentNode;
-            if (selector && !node.matches(selector)) continue;
-            nodes[i] = node.remove();
+            if (!parent || selector && !node.matches(selector)) continue;
+            nodes[i] = parent.removeChild(node);
         }
 
         this.nodes = nodes;
@@ -801,7 +801,7 @@ define([
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
-            node.innerHTML = '';
+            node.textContent = ''; // the short way
         }
         this.chain += '.empty()';
         return this;
