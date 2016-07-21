@@ -70,6 +70,7 @@ define([
         after: false,
         before: false,
         remove: remove_nodes,
+        empty: empty_nodes,
 
         // node set
         get: function (index) {
@@ -79,8 +80,8 @@ define([
             return to_array(this.nodes)
         },
         each: function (func, this_arg) {
-            for (var obj = this.nodes, i = 0, len = obj.length; i < len; ++i) {
-                func.call(this_arg, obj[i], i, obj);
+            for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+                func.call(this_arg, nodes[i], i, nodes);
             }
         }
 
@@ -116,7 +117,7 @@ define([
             is_add = true;
             // plant an opid on original array for duplicate check
             opid = tiny.guid();
-            for (var i = 0, len = base_nodes.length; i < len; ++i) {
+            for (var nodes = base_nodes, i = 0, len = nodes.length; i < len; ++i) {
                 base_nodes[i][TinyQ.OPID] = opid;
             }
             result = base_nodes;
@@ -148,8 +149,8 @@ define([
         } else if (is_array_like(obj)) {
             // ==> (nodes [,filter...])
             tag.obj = '[nodes]';
-            for (var i = 0, len = obj.length; i < len; ++i) {
-                var item = obj[i];
+            for (var nodes = obj, i = 0, len = nodes.length; i < len; ++i) {
+                var item = nodes[i];
                 if (!is_element(item)) continue;
                 if (opid) {
                     if (item[TinyQ.OPID] == opid) continue;
@@ -293,8 +294,8 @@ define([
         }
 
         // do the query
-        for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
+        for (var list = nodes, i = 0, len = list.length; i < len; ++i) {
+            var node = list[i];
             if (!is_element(node)) continue;
             var r = action(node, selector);
             if (!r || r.length == 0) continue;
@@ -329,16 +330,16 @@ define([
 
         base = base || [];
         if (!nodes) return base;
-        var this_arg = {};
 
-        for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
+        for (var list = nodes, this_arg = {}, i = 0, len = list.length; i < len; ++i) {
+            var node = list[i];
+            if (!is_element(node)) continue;
             if (opid) {
                 if (node[TinyQ.OPID] == opid) continue;
                 node[TinyQ.OPID] = opid;
             }
             if (filter) {
-                var r = filter(node, i, nodes, len, this_arg);
+                var r = filter(node, i, list, len, this_arg);
                 if (r == false) continue;
             }
             base.push(node);
@@ -753,12 +754,12 @@ define([
         }
 
         // append child
-        for (var parent_nodes = this.nodes, i = 0, len = parent_nodes.length, require_clone = len > 1; i < len; ++i) {
+        for (var parent_nodes = this.nodes, i = 0, len = parent_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
             var parent_node = parent_nodes[i];
             if (!is_element(parent_node)) continue;
-            for (var j = 0, j_len = obj.length, j_end = j_len - 1; j < j_len; ++j) {
+            for (var j = 0, j_len = obj.length; j < j_len; ++j) {
                 var node = obj[j];
-                if (require_clone && j != j_end) node = node.cloneNode(true);
+                if (require_clone && i != end) node = node.cloneNode(true);
                 parent_node.appendChild(node);
             }
         }
@@ -778,19 +779,16 @@ define([
 
         selector = typeof selector == 'string' ? selector : false;
 
-        var arr = [];
-        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+        var nodes = this.nodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             var parent = node.parentNode;
-            if (!parent || selector && !node.matches(selector)) {
-                arr.push(node);
-                continue;
-            }
-            parent.removeChild(node, true);
+            if (selector && !node.matches(selector)) continue;
+            nodes[i] = node.remove();
         }
 
-        this.nodes = arr;
-        this.length = arr.length;
+        this.nodes = nodes;
+        this.length = nodes.length;
         this.chain += '.remove(' + (selector ? selector : '') + ')';
         return this;
 
@@ -799,9 +797,11 @@ define([
     /**
      * Empty all node content
      */
-    function empty_node() {
+    function empty_nodes() {
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            nodes[i].innerHTML = '';
+            var node = nodes[i];
+            if (!is_element(node)) continue;
+            node.innerHTML = '';
         }
         this.chain += '.empty()';
         return this;

@@ -28,39 +28,60 @@ function start() {
 
 function test_code() {
 
-    require(['tinyq_test_base', 'tinyq_test'],
-        function (do_test) {
+    require(['tinyq_test_base'//, 'tinyq_test'
+    ], function (do_test) {
 
-            var node = _q1('.content-table').get(0);
-            var html = '<a href="#"><img alt="null">Test</a><a>';
-            do_test('create', 100,
-                function () {
-                    return _q(html, { x: 'test.htm', title: 'test' });
-                },
-                function () {
-                    return $(html, { x: 'test.htm', title: 'test' });
-                });
+        // var node = _q1('.content-table').get(0);
+        // var html = '<a href="#" class="test"><img alt="null">Test</a>';
+        // do_test('create', 100,
+        //     function () {
+        //         return _q(html, { x: 'test.htm', title: 'test' });
+        //     },
+        //     function () {
+        //         return $(html, { x: 'test.htm', title: 'test' });
+        //     });
 
-            var nodes = _q('h3').toArray();
-            var child1 = _q1(html, { _text: 'tinyq' }).toArray();
-            var child2 = _q1(html, { _text: 'jq' }).toArray();
-            do_test('node.append', 100,
-                function () {
-                    return _q(node).append(child1);
-                },
-                function () {
-                    return $(node).append(child2);
-                });
+        var nodes = _q('h3').toArray();
+        // var child1 = _q1(html, { _text: 'tinyq' }).toArray();
+        // var child2 = _q1(html, { _text: 'jq' }).toArray();
+        // do_test('node.append', 100,
+        //     function () {
+        //         return _q(node).append(child1);
+        //     },
+        //     function () {
+        //         return $(node).append(child2);
+        //     });
 
-            do_test('nodes.append:html', 100,
-                function () {
-                    return _q(nodes).append(html, { _text: 'tinyq' });
-                },
-                function () {
-                    return $(nodes).append(html);
-                });
+        var html2 = '<a href="#" class="test2"><img alt="null">Test</a>';
+        do_test('nodes.append:html', 100,
+            function () {
+                return _q(nodes).append(html2, { _text: 'tinyq', class: 'test1' });
+            },
+            function () {
+                return $(nodes).append(html2);
+            });
 
-        });
+        var nodes1 = _q('h3 > .test1').toArray();
+        var nodes2 = _q('h3 > .test2').toArray();
+        
+        do_test('remove.class (no match)', 1,
+            function () {
+                return _q(nodes1).remove('.test2');
+            },
+            function () {
+                return $(nodes2).remove('.test1');
+            });
+
+        do_test('empty', 1,
+            function () {
+                return _q(nodes1).empty();
+            },
+            function () {
+                return $(nodes2).empty();
+            }, true);
+
+
+    });
 
 
     return true;
