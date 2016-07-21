@@ -38,6 +38,7 @@ define(function () {
             }
         });
     }
+    // IE8 Polyfill
     if (!Element.prototype.getElementsByClassName) {
         window.Element.prototype.getElementsByClassName = document.constructor.prototype.getElementsByClassName = function (search) {
             if (typeof search != 'string') return null;
@@ -46,6 +47,7 @@ define(function () {
             return this.querySelectorAll(search);
         }
     }
+    // IE8 Polyfill
     if (Object.defineProperty
         && Object.getOwnPropertyDescriptor
         && Object.getOwnPropertyDescriptor(Element.prototype, "textContent")

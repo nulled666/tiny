@@ -52,40 +52,51 @@ function test_code() {
         //         return $(node).append(child2);
         //     });
 
-        var html2 = '<a href="#" class="test2"><img alt="null">Test2</a>';
+        var html21 = '<a href="#" class="test21"><img alt="null">Test21</a> <b>good21</b>';
+        var html22= '<a href="#" class="test22"><img alt="null">Test22</a> <b>good22</b>';
         do_test('nodes.append:html', 100,
             function () {
-                return _q(nodes).append(html2, { _html: '<img alt="null">Test1', class: 'test1' });
+                return _q(nodes).append(html21);
             },
             function () {
-                return $(nodes).append(html2);
+                return $(nodes).append(html22);
             });
 
-        var nodes1 = _q('h3 > .test1').toArray();
-        var nodes2 = _q('h3 > .test2').toArray();
+        var nodes1 = _q('h3 > a.test21, h3 > b').toArray();
+        var nodes2 = _q('h3 > a.test22, h3 > b').toArray();
         
-        do_test('remove.class (no match)', 1,
+        do_test('remove.class', 1,
             function () {
-                return _q(nodes1).remove('.test2');
+                return _q(nodes1).remove('.test21');
             },
             function () {
-                return $(nodes2).remove('.test1');
+                return $(nodes2).remove('.test22');
             });
 
         do_test('empty', 1,
             function () {
-                return _q(nodes1).empty();
+                return _q(nodes1).filter('b').empty();
             },
             function () {
-                return $(nodes2).empty();
+                return $(nodes2).filter('b').empty();
             });
 
         do_test('remove', 1,
             function () {
-                return _q(nodes1).remove('.test1');
+                return _q(nodes1).remove();
             },
             function () {
-                return $(nodes2).remove('.test2');
+                return $(nodes2).remove();
+            });
+
+        var html31 = '<a href="#" class="test3-1"><img alt="null">Test3-1</a><b>good1</b>';
+        var html32 = '<a href="#" class="test3-2"><img alt="null">Test3-2</a><b>good2</b>';
+        do_test('nodes.prepend:html', 100,
+            function () {
+                return _q(nodes).prepend(html31);
+            },
+            function () {
+                return $(nodes).prepend(html32);
             });
 
     });

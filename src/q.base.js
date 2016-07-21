@@ -65,8 +65,8 @@ define([
         next: get_next,
 
         // dom manipulate
-        append: append_child,
-        prepend: prepend_child,
+        append: add_children_helper,
+        prepend: prepend_node,
         after: false,
         before: false,
         remove: remove_nodes,
@@ -735,9 +735,9 @@ define([
     //////////////////////////////////////////////////////////
 
     /**
-     * TinyQ.append(node|tinyq|html [,attr])
+     * Add children to nodes
      */
-    function append_child(obj, attrs) {
+    function add_children_helper(obj, attrs, type) {
 
         // check parameter
         if (obj && obj.tinyQ) {
@@ -753,23 +753,56 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
+        // determine action type
+        var action = node_append_func; // type == 0
+        var loop = forward_loop_func;
+        if (type == 1) {
+            action = node_prepend_func;
+            loop = backward_loop_func;
+        }
+
         // append child
         for (var parent_nodes = this.nodes, i = 0, len = parent_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
-            var parent_node = parent_nodes[i];
-            if (!is_element(parent_node)) continue;
-            for (var j = 0, j_len = obj.length; j < j_len; ++j) {
-                var node = obj[j];
-                if (require_clone && i != end) node = node.cloneNode(true);
-                parent_node.appendChild(node);
-            }
+            var parent = parent_nodes[i];
+            if (!is_element(parent)) continue;
+            loop(obj, i, end, require_clone && i != end, parent, action);
         }
 
         return this;
 
     }
 
-    function prepend_child() {
+    function forward_loop_func(obj, i, end, need_clone, parent, action) {
+        for (var j = 0, j_len = obj.length; j < j_len; ++j) {
+            var node = obj[j];
+            if (need_clone) node = node.cloneNode(true);
+            action(parent, node);
+        }
+    }
 
+    function backward_loop_func(obj, i, end, need_clone, parent, action) {
+        for (var j = obj.length - 1; j > -1; --j) {
+            var node = obj[j];
+            if (need_clone) node = node.cloneNode(true);
+            action(parent, node);
+        }
+    }
+
+    function node_append_func(parent, node) { parent.appendChild(node); }
+    function node_prepend_func(parent, node) { parent.insertBefore(node, parent.firstChild); }
+
+    /**
+     * TinyQ.append()
+     */
+    function append_node(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 0);
+    }
+
+    /**
+     * TinyQ.prepend()
+     */
+    function prepend_node(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 1);
     }
 
     /**
