@@ -96,7 +96,7 @@ define([
     //////////////////////////////////////////////////////////
     function init_q(obj, param, extra, set_mode, base_nodes) {
 
-        if (!obj) return new TinyQ();
+        if (!obj) obj = document;
 
         var opid = false;
         var query_mode = 0;
@@ -179,7 +179,7 @@ define([
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
-        if (is_element(obj)) {
+        if (is_element(obj) || obj == window) {
             obj = [obj];
         } else if (obj.tinyQ) {
             obj = obj.nodes;
@@ -201,7 +201,7 @@ define([
     function is_element(obj) {
         if (!obj) return false;
         var type = obj.nodeType;
-        return (type == 1 || type == 9 || type == 11);
+        return (type == 1 || type == 9);
     }
 
     /**
