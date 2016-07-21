@@ -789,7 +789,7 @@ define([
     }
 
     function node_append_func(parent, node) { parent.appendChild(node); }
-    function node_prepend_func(parent, node) { parent.insertBefore(node, parent.firstChild); }
+    function node_prepend_func(parent, node) { parent.insertBefore(node, parent.lastChild); }
 
     /**
      * TinyQ.append()
@@ -833,8 +833,7 @@ define([
     function empty_nodes() {
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (!is_element(node)) continue;
-            node.textContent = ''; // the short way
+            while (node.lastChild) node.removeChild(node.lastChild);
         }
         this.chain += '.empty()';
         return this;
