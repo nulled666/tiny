@@ -97,14 +97,29 @@ function test_code() {
             return $(nodelist);
         });
 
-    do_test('filter', 50,
+    do_test('filter.function', 50,
+        function () {
+            return _q(nodelist).filter('.function');
+        },
+        function () {
+            return $(nodelist).filter('.function');
+        });
+    do_test('filter:contains', 50,
         function () {
             return _q(nodelist).filter('!contains(ASSERT)');
         },
         function () {
             return $(nodelist).filter(':contains(ASSERT)');
         });
-        
+
+    do_test('filter:even', 50,
+        function () {
+            return _q(nodelist).filter('!even');
+        },
+        function () {
+            return $(nodelist).filter(':even');
+        });
+
     do_test('first', 100,
         function () {
             return _q(nodelist).first();
