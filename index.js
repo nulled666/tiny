@@ -53,7 +53,7 @@ function test_code() {
         //     });
 
         var html21 = '<a href="#" class="test21"><img alt="null">Test21</a> <b>good21</b>';
-        var html22= '<a href="#" class="test22"><img alt="null">Test22</a> <b>good22</b>';
+        var html22 = '<a href="#" class="test22"><img alt="null">Test22</a> <b>good22</b>';
         do_test('nodes.append:html', 100,
             function () {
                 return _q(nodes).append(html21);
@@ -64,7 +64,7 @@ function test_code() {
 
         var nodes1 = _q('h3 > a.test21, h3 > b').toArray();
         var nodes2 = _q('h3 > a.test22, h3 > b').toArray();
-        
+
         do_test('remove.class', 1,
             function () {
                 return _q(nodes1).remove('.test21');
@@ -89,8 +89,8 @@ function test_code() {
                 return $(nodes2).remove();
             });
 
-        var html31 = '<a href="#" class="test3-1"><img alt="null">Test3-1</a><b>good1</b>';
-        var html32 = '<a href="#" class="test3-2"><img alt="null">Test3-2</a><b>good2</b>';
+        var html31 = '<a href="#" class="test3-1"><img alt="null">Test3-1</a><b class="b1">good1</b>';
+        var html32 = '<a href="#" class="test3-2"><img alt="null">Test3-2</a><b class="b2">good2</b>';
         do_test('nodes.prepend:html', 100,
             function () {
                 return _q(nodes).prepend(html31);
@@ -98,6 +98,15 @@ function test_code() {
             function () {
                 return $(nodes).prepend(html32);
             });
+
+        do_test('remove', 1,
+            function () {
+                return _q('h3 > .test3-1, h3 > .b1').remove();
+            },
+            function () {
+                return $('h3 > .test3-2, h3 > .b2').remove();
+            });
+
 
     });
 
