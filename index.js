@@ -26,75 +26,76 @@ function start() {
 
 }
 
+function do_test(tag, loop, func1, func2) {
+    var x, y;
+    _time('time001');
+    _each(100, function () { x = func1(); })
+    var t1 = _time('time001', false);
+    _time('time002');
+    _each(100, function () { y = func2(); })
+    var t2 = _time('time002', false);
+    _log(tag, '-', t1.toFixed(3), ':', t2.toFixed(3), '(' + x.length + '/' + y.length + ')');
+}
+
 function test_code() {
-    var x, y, z;
 
-    _log('tag ------------');
-    console.time('tinyq');
-    _each(100, function () {
-        x = _q('h4');
-    })
-    console.timeEnd('tinyq');
-    console.time('jquery');
-    _each(100, function () {
-        y = $('h4');
-    })
-    console.timeEnd('jquery');
-    _log(x.length, y.length);
+    do_test('tag', 100,
+        function () {
+            return _q('span');
+        },
+        function () {
+            return $('span');
+        });
 
-    _log('.class ------------');
-    console.time('tinyq');
-    _each(100, function () {
-        x = _q('.token');
-    })
-    console.timeEnd('tinyq');
-    console.time('jquery');
-    _each(100, function () {
-        y = $('.token');
-    })
-    console.timeEnd('jquery');
-    _log(x.length, y.length);
+    do_test('.class', 100,
+        function () {
+            return _q('.token');
+        },
+        function () {
+            return $('.token');
+        });
 
-    _log('.class.class ------------');
-    console.time('tinyq');
-    _each(100, function () {
-        x = _q('.function.token');
-    })
-    console.timeEnd('tinyq');
-    console.time('jquery');
-    _each(100, function () {
-        y = $('.function.token');
-    })
-    console.timeEnd('jquery');
-    _log(x.length, y.length);
+    do_test('.class.class', 100,
+        function () {
+            return _q('.function.token');
+        },
+        function () {
+            return $('.function.token');
+        });
 
-    _log('#id ------------');
-    console.time('tinyq');
-    _each(100, function () {
-        x = _q('#content-table');
-    })
-    console.timeEnd('tinyq');
-    console.time('jquery');
-    _each(100, function () {
-        y = $('#content-table');
-    })
-    console.timeEnd('jquery');
-    _log(x.length, y.length);
+    do_test('.class .class', 100,
+        function () {
+            return _q('.run-code .function');
+        },
+        function () {
+            return $('.run-code .function');
+        });
 
-    _log('elem ------------');
-    var elem = document.getElementById('content-table');
-    _log(elem);
-    console.time('tinyq');
-    _each(100, function () {
-        x = _q(elem);
-    })
-    console.timeEnd('tinyq');
-    console.time('jquery');
-    _each(100, function () {
-        y = $(elem);
-    })
-    console.timeEnd('jquery');
-    _log(x.length, y.length);
+    do_test('#id', 100,
+        function () {
+            return _q('#content-table');
+        },
+        function () {
+            return $('#content-table');
+        });
+
+    var node = document.getElementById('content-table');
+    do_test('node', 100,
+        function () {
+            return _q(node);
+        },
+        function () {
+            return $(node);
+        });
+
+    var nodelist = document.querySelectorAll('.token');
+    do_test('nodelist', 100,
+        function () {
+            return _q(nodelist);
+        },
+        function () {
+            return $(nodelist);
+        });
 
     return true;
 

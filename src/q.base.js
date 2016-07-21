@@ -233,19 +233,21 @@ define([
 
         var result = [];
         var action = do_query_all;
-        selector = selector.trim();
 
-        if (/^([\w]+)$/.test(selector)) {
-            action = do_get_by_tag;
-        } else if (/^\.([\w-.]+)\w$/.test(selector)) {
-            selector = selector.replace(/\./g, ' ');
-            action = do_get_by_class;
-        } else if (/^\#([\w-]+)$/.test(selector)) {
+        // check for shortcuts
+        selector = selector.trim();
+        if (/^\#([\w-]+)$/.test(selector)) {
             selector = selector.replace('#', '');
             action = do_get_by_id;
             query_mode = 1;
+        } else if (/^\.([\w-.]+)\w$/.test(selector)) {
+            selector = selector.replace(/\./g, ' ');
+            action = do_get_by_class;
+        } else if (/^([\w]+)$/.test(selector)) {
+            action = do_get_by_tag;
         }
 
+        // do the query
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;

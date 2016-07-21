@@ -101,8 +101,9 @@ define([
         } else {
             var time = (_perf_now() - _perf_time[id]);
             _perf_time[id] = false;
-            if (log == false) return time;
-            _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 0 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
+            if (log != false)
+                _info('%c' + id + ': ' + time.toFixed(3) + 'ms', 'padding: 0 8px;color:#33c;background:#f9f9ff;border-radius: 1em;');
+            return time;
         }
     }
 
