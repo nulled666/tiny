@@ -5,8 +5,8 @@ function start() {
     tiny.import();
     tiny.verbose('all');
 
-    build_content_table();
-    build_content_table2();
+    // build_content_table();
+    // build_content_table2();
 
     if (test_code() != true)
         setTimeout(run_all_code, 100);
@@ -26,155 +26,42 @@ function start() {
 
 }
 
-function do_test(tag, loop, func1, func2) {
-    var x, y;
-    _time('time001');
-    _each(loop, function () { x = func1(); })
-    var t1 = _time('time001', false);
-    _time('time002');
-    _each(loop, function () { y = func2(); })
-    var t2 = _time('time002', false);
-    _log(tag, '-', t1.toFixed(3), ':', t2.toFixed(3), '(' + x.length + '/' + y.length + ')');
-}
-
 function test_code() {
 
-    do_test('tag', 100,
-        function () {
-            return _q('span');
-        },
-        function () {
-            return $('span');
+    require(['tinyq_test_base'],
+        function (do_test) {
+
+            var node = _q1('.content-table').get(0);
+            var html = '<a href="#"><img alt="null">Test</a><a>';
+            do_test('create', 100,
+                function () {
+                    return _q(html, { x: 'test.htm', title: 'test' });
+                },
+                function () {
+                    return $(html, { x: 'test.htm', title: 'test' });
+                });
+
+            var nodes = _q('.run-code').toArray();
+            var child1 = _q1(html, { _text: 'test1' }).toArray();
+            var child2 = _q1(html, { _text: 'test2' }).toArray();
+            do_test('node.append', 100,
+                function () {
+                    return _q(node).append(child1);
+                },
+                function () {
+                    return $(node).append(child2);
+                });
+
+            do_test('nodes.append:html', 100,
+                function () {
+                    return _q(nodes).append(html, { _text: 'test.htm' });
+                },
+                function () {
+                    return $(nodes).append(html);
+                });
+
         });
 
-    do_test('.class', 100,
-        function () {
-            return _q('.token');
-        },
-        function () {
-            return $('.token');
-        });
-
-    do_test('.class.class', 100,
-        function () {
-            return _q('.function.token');
-        },
-        function () {
-            return $('.function.token');
-        });
-
-    do_test('.class .class', 100,
-        function () {
-            return _q('.run-code .function');
-        },
-        function () {
-            return $('.run-code .function');
-        });
-
-    do_test('#id', 100,
-        function () {
-            return _q('#content-table');
-        },
-        function () {
-            return $('#content-table');
-        });
-
-    var node = document.querySelectorAll('.language-javascript');
-    do_test('node', 100,
-        function () {
-            return _q(node);
-        },
-        function () {
-            return $(node);
-        });
-
-    var nodelist = document.querySelectorAll('.token');
-    do_test('nodelist', 100,
-        function () {
-            return _q(nodelist);
-        },
-        function () {
-            return $(nodelist);
-        });
-
-    do_test('filter.function', 50,
-        function () {
-            return _q(nodelist).filter('.function');
-        },
-        function () {
-            return $(nodelist).filter('.function');
-        });
-    do_test('filter:contains', 50,
-        function () {
-            return _q(nodelist).filter('!contains(ASSERT)');
-        },
-        function () {
-            return $(nodelist).filter(':contains(ASSERT)');
-        });
-
-    do_test('filter:even', 50,
-        function () {
-            return _q(nodelist).filter('!even');
-        },
-        function () {
-            return $(nodelist).filter(':even');
-        });
-
-    do_test('first', 100,
-        function () {
-            return _q(nodelist).first();
-        },
-        function () {
-            return $(nodelist).first();
-        });
-
-    do_test('last', 100,
-        function () {
-            return _q(nodelist).last();
-        },
-        function () {
-            return $(nodelist).last();
-        });
-
-    do_test('children', 100,
-        function () {
-            return _q(node).children('.function');
-        },
-        function () {
-            return $(node).children('.function');
-        });
-
-    do_test('parent', 50,
-        function () {
-            return _q(nodelist).parent('code');
-        },
-        function () {
-            return $(nodelist).parent('code');
-        });
-
-    do_test('closest', 50,
-        function () {
-            return _q(nodelist).closest('.run-code');
-        },
-        function () {
-            return $(nodelist).closest('.run-code');
-        });
-
-    do_test('prev', 100,
-        function () {
-            return _q(nodelist).prev('.function');
-        },
-        function () {
-            return $(nodelist).prev('.function');
-        });
-
-    do_test('next', 100,
-        function () {
-            return _q(nodelist).next('.function');
-        },
-        function () {
-            return $(nodelist).next('.function');
-        });
 
     return true;
 

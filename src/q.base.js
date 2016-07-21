@@ -60,7 +60,7 @@ define([
         prev: get_prev,
         next: get_next,
 
-        get: function (index) { return index < this.nodes.length ? this.nodes[index] : null; },
+        get: function (index) { return this.nodes[index] },
         each: each_operation,
         toArray: function () { return to_array(this.nodes) },
 
@@ -230,6 +230,7 @@ define([
      */
     function do_query(nodes, selector, query_mode, opid) {
 
+        if (!nodes) throw new TypeError('Expect an Array-like node list');
         if (!opid && nodes.length > 1) opid = tiny.guid();
 
         var result = [];
@@ -254,7 +255,7 @@ define([
             if (!is_element(node)) continue;
             if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
-            if (!r) continue;
+            if (!r || r.length == 0) continue;
             if (query_mode == 1) return [r[0]];
             result = to_array(r, result, opid);
         }
@@ -341,7 +342,7 @@ define([
      * .q1() - query one
      */
     function sub_query_one(selector) {
-        return sub_query_all.apply(this, selector, 1);
+        return sub_query_all.call(this, selector, 1);
     }
 
     /**
@@ -505,8 +506,10 @@ define([
             obj = create_html_fragment(obj, attrs);
         } else if (is_element(obj)) {
             obj = [obj];
+        } else if (is_array_like(obj)) {
+            // just ok
         } else {
-            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object or Element. > Got: ' + type, obj);
+            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -517,11 +520,13 @@ define([
             if (!is_element(parent_node)) continue;
             for (var j = 0, jlen = obj.length; j < jlen; ++j) {
                 var node = obj[j];
-                if (i != (len - 1)) node = node.clone();
-                if (is_element(node))
-                    parent_node.appendChild(node);
+                if (i > 0) node = node.cloneNode();
+                parent_node.appendChild(node);
             }
         }
+
+        return this;
+
     }
 
     //////////////////////////////////////////////////////////
