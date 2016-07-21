@@ -79,7 +79,7 @@ function test_code() {
             return $('#content-table');
         });
 
-    var node = document.getElementById('content-table');
+    var node = document.querySelectorAll('.language-javascript');
     do_test('node', 100,
         function () {
             return _q(node);
@@ -95,6 +95,62 @@ function test_code() {
         },
         function () {
             return $(nodelist);
+        });
+
+    do_test('first', 10,
+        function () {
+            return _q(nodelist).first();
+        },
+        function () {
+            return $(nodelist).first();
+        });
+
+    do_test('last', 10,
+        function () {
+            return _q(nodelist).last();
+        },
+        function () {
+            return $(nodelist).last();
+        });
+
+    do_test('parent', 1,
+        function () {
+            return _q(nodelist).parent('code');
+        },
+        function () {
+            return $(nodelist).parent('code');
+        });
+
+    do_test('children', 1,
+        function () {
+            return _q(node).children('.function');
+        },
+        function () {
+            return $(node).children('.function');
+        });
+
+    do_test('closest', 1,
+        function () {
+            return _q(nodelist).closest('.run-code');
+        },
+        function () {
+            return $(nodelist).closest('.run-code');
+        });
+
+    do_test('prev', 10,
+        function () {
+            return _q(nodelist).prev('.function');
+        },
+        function () {
+            return $(nodelist).prev('.function');
+        });
+  
+    do_test('next', 10,
+        function () {
+            return _q(nodelist).next('.function');
+        },
+        function () {
+            return $(nodelist).next('.function');
         });
 
     return true;

@@ -55,6 +55,7 @@ define([
         first: get_first,
         last: get_last,
         parent: get_parent,
+        children: get_children,
         closest: get_closest,
         prev: get_prev,
         next: get_next,
@@ -281,17 +282,20 @@ define([
     /**
      * Convert NodeList to Arrays, also do copy, filter & merge
      */
-    function to_array(nodes, base, opid) {
+    function to_array(nodes, base, opid, filter) {
 
-        if (!Array.isArray(base)) base = [];
+        base = base || [];
         if (!nodes) return base;
 
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (!is_element(node)) continue;
             if (opid) {
                 if (node[TinyQ.OPID] == opid) continue;
                 node[TinyQ.OPID] = opid;
+            }
+            if (filter) {
+                var r = filter(node, i, nodes);
+                if (r == false) continue;
             }
             base.push(node);
         }
@@ -612,17 +616,21 @@ define([
     /**
      * Helper function for batch traversing
      */
-    function do_traversal_helper(tinyq, args, type) {
+    function do_traversal_helper(tinyq, selector, type) {
 
-        // 1: parent(), 2: prev(), 3: next()
-        var prefix = '.parent(';
-        var selector = '';
+        selector = selector || false;
+
+        var prefix = '.parent(';  // type == 0
         var get_func = get_parent_func;
-        if (type == 2) {
+        if (type == 1) {
+            get_func = get_children_func;
+            prefix = '.children(' + selector;
+        } else if (type == 2) {
+            if (!selector) {
+                tiny.error(TinyQ.TAG, 'Expect a selector for closest()');
+                throw new SyntaxError(G.SEE_ABOVE);
+            }
             get_func = get_closest_func;
-            args = tiny.x.toArray(args);
-            selector = args[0];
-            args.shift();
             prefix = '.closest(' + selector;
         } else if (type == 3) {
             get_func = get_prev_func;
@@ -633,7 +641,8 @@ define([
         }
 
         // generate a unique operation id for duplicate-check
-        var op_id = tiny.guid();
+        var opid = tiny.guid();
+        var filter = selector ? create_traversal_match_filter(selector) : false;
 
         // do the work
         var arr = [];
@@ -642,63 +651,78 @@ define([
             var node = get_func(nodes[i], selector);
             if (!node) continue;
             if (type < 3) {
-                // check for duplicate for parent() & closest()
-                if (node[TinyQ.OPID] == op_id) continue;
-                node[TinyQ.OPID] = op_id;
+                arr = to_array(node, arr, opid, filter);
+            } else {
+                if(filter && !filter(node)) continue;
+                arr.push(node);
             }
-            arr.push(node);
-        }
-
-        // do filter after all done
-        if (args.length > 0) {
-            var tag = { filter: '' };
-            args = create_filter_list.call(tag, args);
-            prefix += tag.filter;
-            arr = to_array(arr, args);
         }
 
         return create_new_tinyq(arr, tinyq.chain + prefix + ')');
 
     }
 
-    function get_prev_func(node) { return node.previousElementSibling; }
-    function get_next_func(node) { return node.nextElementSibling; }
-    function get_parent_func(node) { return node.parentElement; }
+    function get_parent_func(node) {
+        var r = node.parentElement;
+        if (r) r = [r];
+        return r;
+    }
+    function get_children_func(node) {
+        return node.children;
+    }
     function get_closest_func(node, selector) {
         while (node) {
-            if (node.matches(selector)) return node;
+            if (node.matches(selector)) return [node];
             node = node.parentElement;
         }
         return null;
     }
+    function get_prev_func(node) { return node.previousElementSibling; }
+    function get_next_func(node) { return node.nextElementSibling; }
 
+    function create_traversal_match_filter(selector) {
+        return function(node){
+            return traversal_match_filter.call(selector, node);
+        }
+    }
+
+    function traversal_match_filter(node) {
+        return node.matches(this);
+    }
 
     /**
      * .parent() - get parentElement
      */
-    function get_parent() {
-        return do_traversal_helper(this, arguments, 1);
+    function get_parent(selector) {
+        return do_traversal_helper(this, selector, 0);
+    }
+
+    /**
+     * .get_children() - get children
+     */
+    function get_children(selector) {
+        return do_traversal_helper(this, selector, 1);
     }
 
     /**
      * .closest() - get closest element matches selector
      */
-    function get_closest() {
-        return do_traversal_helper(this, arguments, 2);
+    function get_closest(selector) {
+        return do_traversal_helper(this, selector, 2);
     }
 
     /**
      * .prev() - get previousElementSibling
      */
-    function get_prev() {
-        return do_traversal_helper(this, arguments, 3);
+    function get_prev(selector) {
+        return do_traversal_helper(this, selector, 3);
     }
 
     /**
      * .next() - get nextElementSibling
      */
-    function get_next() {
-        return do_traversal_helper(this, arguments, 4);
+    function get_next(selector) {
+        return do_traversal_helper(this, selector, 4);
     }
 
 
