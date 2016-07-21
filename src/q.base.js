@@ -363,18 +363,18 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            tag.filter += '//*' + tiny.x.funcName(arg);
+            tag.filter += '*' + tiny.x.funcName(arg) + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('//')) {
+            if (arg.startsWith('!')) {
                 //==> '//filter1(param),filter2' - build-in custom filter
                 tag.filter += arg;
-                arg = arg.substring(2);
+                arg = arg.substring(1);
                 func = parse_custom_filter_tag(arg);
-                list = list.concat(func);
+                if (func) list.push(func);
             } else {
                 // ==> selector
-                tag.filter += '//' + arg;
+                tag.filter += arg;
                 list.push([TinyQ.prototype.filters['matches'], arg]);
             }
         } else {
@@ -386,39 +386,42 @@ define([
 
     }
 
+    var _CUSTOM_FILTER_CACHE = {};
+
     /**
      * Parse custom filter tag into function list
      */
     function parse_custom_filter_tag(filter) {
 
-        var filters = filter.split(',');
-        var arr = [];
-        for (var i = 0, len = filters.length; i < len; ++i) {
+        var arr = _CUSTOM_FILTER_CACHE[filter];
+        if (arr) return arr;
 
-            var item = filters[i].trim();
-            var pos = item.indexOf('(');
-            var name, param;
-            var func = null;
+        var item = filter.trim();
+        var pos = item.indexOf('(');
+        var name, param;
+        var func = null;
 
-            if (pos < 0) {
-                func = TinyQ.prototype.filters[item];
-                param = null;
-            } else {
-                name = item.substring(0, pos);
-                func = TinyQ.prototype.filters[name];
-                param = item.substring(pos + 1);
-                if (!param.endsWith(')')) {
-                    tiny.error(TinyQ.TAG, 'Unexpected end of filter. ', item);
-                    throw new SyntaxError(G.SEE_ABOVE);
-                }
-                param = param.substring(0, param.length - 1).trim();
-                if (param.search(/^\d$/) == 0) param = parseInt(param);
+        if (pos < 0) {
+            name = item;
+            param = null;
+        } else {
+            name = item.substring(0, pos);
+            param = item.substring(pos + 1);
+            if (!param.endsWith(')')) {
+                tiny.error(TinyQ.TAG, 'Unexpected end of filter. ', item);
+                throw new SyntaxError(G.SEE_ABOVE);
             }
+            param = param.substring(0, param.length - 1).trim();
+            if (param.search(/^\d$/) == 0) param = parseInt(param);
+        }
 
-            if (func) {
-                arr.push([func, param]);
-            }
-
+        if (name) func = TinyQ.prototype.filters[name];
+        if (func) {
+            arr = [func, param];
+            _CUSTOM_FILTER_CACHE[filter] = arr;
+        } else {
+            tiny.error(TinyQ.TAG, 'No such custom filter: ', name);
+            throw new SyntaxError(G.SEE_ABOVE);
         }
 
         return arr;
@@ -570,7 +573,6 @@ define([
         return create_new_tinyq(arr, this.chain + tag);
 
     }
-
 
     /**
      * .add() - add items to current tinyQ object

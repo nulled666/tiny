@@ -96,15 +96,15 @@ function test_code() {
         function () {
             return $(nodelist);
         });
-  
-    do_test('filter', 100,
+
+    do_test('filter', 50,
         function () {
-            return _q(nodelist).filter('//even');
+            return _q(nodelist).filter('!contains(ASSERT)');
         },
         function () {
-            return $(nodelist).filter(':even');
+            return $(nodelist).filter(':contains(ASSERT)');
         });
-
+        
     do_test('first', 100,
         function () {
             return _q(nodelist).first();
@@ -152,7 +152,7 @@ function test_code() {
         function () {
             return $(nodelist).prev('.function');
         });
-  
+
     do_test('next', 100,
         function () {
             return _q(nodelist).next('.function');
