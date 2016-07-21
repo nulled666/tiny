@@ -518,9 +518,9 @@ define([
         for (var i = 0, len = parent_nodes.length; i < len; ++i) {
             var parent_node = parent_nodes[i];
             if (!is_element(parent_node)) continue;
-            for (var j = 0, jlen = obj.length; j < jlen; ++j) {
+            for (var j = 0, jlen = obj.length, jend = jlen - 1; j < jlen; ++j) {
                 var node = obj[j];
-                if (i > 0) node = node.cloneNode();
+                if (len > 0 && j != jend) node = node.cloneNode(true);
                 parent_node.appendChild(node);
             }
         }

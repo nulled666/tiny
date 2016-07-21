@@ -41,7 +41,7 @@ function test_code() {
                     return $(html, { x: 'test.htm', title: 'test' });
                 });
 
-            var nodes = _q('.run-code').toArray();
+            var nodes = _q('h3').toArray();
             var child1 = _q1(html, { _text: 'test1' }).toArray();
             var child2 = _q1(html, { _text: 'test2' }).toArray();
             do_test('node.append', 100,
