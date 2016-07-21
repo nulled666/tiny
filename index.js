@@ -28,7 +28,7 @@ function start() {
 
 function test_code() {
 
-    require(['tinyq_test_base'],
+    require(['tinyq_test_base', 'tinyq_test'],
         function (do_test) {
 
             var node = _q1('.content-table').get(0);
@@ -42,8 +42,8 @@ function test_code() {
                 });
 
             var nodes = _q('h3').toArray();
-            var child1 = _q1(html, { _text: 'test1' }).toArray();
-            var child2 = _q1(html, { _text: 'test2' }).toArray();
+            var child1 = _q1(html, { _text: 'tinyq' }).toArray();
+            var child2 = _q1(html, { _text: 'jq' }).toArray();
             do_test('node.append', 100,
                 function () {
                     return _q(node).append(child1);
@@ -54,7 +54,7 @@ function test_code() {
 
             do_test('nodes.append:html', 100,
                 function () {
-                    return _q(nodes).append(html, { _text: 'test.htm' });
+                    return _q(nodes).append(html, { _text: 'tinyq' });
                 },
                 function () {
                     return $(nodes).append(html);

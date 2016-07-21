@@ -46,12 +46,16 @@ define([
         length: 0,
         chain: '',
 
-        is: is_node_of_type,
+        // query
         q: sub_query_all,
         q1: sub_query_one,
         add: add_nodes,
+
+        // filter
+        is: is_node_of_type,
         filter: filter_nodes,
 
+        // traverse
         first: get_first,
         last: get_last,
         parent: get_parent,
@@ -60,15 +64,29 @@ define([
         prev: get_prev,
         next: get_next,
 
-        get: function (index) { return this.nodes[index] },
-        each: each_operation,
-        toArray: function () { return to_array(this.nodes) },
-
+        // dom manipulate
         append: append_child,
+        prepend: prepend_child,
         after: false,
         before: false,
+        remove: remove_nodes,
 
-        offset: false
+        // node set
+        get: function (index) {
+            return this.nodes[index]
+        },
+        toArray: function () {
+            return to_array(this.nodes)
+        },
+        each: function (func, this_arg) {
+            for (var obj = this.nodes, i = 0, len = obj.length; i < len; ++i) {
+                func.call(this_arg, obj[i], i, obj);
+            }
+        }
+
+        // properties -> q.prop.js
+
+        // event -> q.event.js
 
     };
 
@@ -161,7 +179,7 @@ define([
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
-        if (is_element(obj) || obj == window) {
+        if (is_element(obj)) {
             obj = [obj];
         } else if (obj.tinyQ) {
             obj = obj.nodes;
@@ -197,10 +215,10 @@ define([
         return q;
     }
 
-    //////////////////////////////////////////////////////////
-    // HTML FUNCTIONS
-    //////////////////////////////////////////////////////////
-    function create_html_fragment(html, attrs, parent) {
+    /**
+     * html fragement creator
+     */
+    function create_html_fragment(html, attrs) {
 
         if (is_element(attrs)) parent = attrs, attrs = false;
         if (typeof attrs != 'object') attrs = false;
@@ -209,8 +227,7 @@ define([
         div.innerHTML = html;
 
         var arr = [];
-        var nodes = div.childNodes;
-        for (var i = 0, len = nodes.length; i < len; ++i) {
+        for (var nodes = div.childNodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (attrs) TinyQ.fn.setAttributes(node, attrs);
             arr.push(node);
@@ -224,6 +241,32 @@ define([
     //////////////////////////////////////////////////////////
     // QUERY FUNCTIONS
     //////////////////////////////////////////////////////////
+
+    /**
+     * .q() - query all
+     */
+    function sub_query_all(selector, mode) {
+        var arr = do_query(this.nodes, selector, mode);
+        var chain = this.chain + (mode == 1) ? '.q1(' : '.q(';
+        chain += ')';
+        return create_new_tinyq(arr, chain);
+    }
+
+    /**
+     * .q1() - query one
+     */
+    function sub_query_one(selector) {
+        return sub_query_all.call(this, selector, 1);
+    }
+
+    /**
+     * .add() - add items to current tinyQ object
+     */
+    function add_nodes() {
+        var r = init_q(arguments, null, this.nodes);
+        r.chain = this.chain + r.chain;
+        return r;
+    }
 
     /**
      * Execute query on all given nodes and concate the results
@@ -253,7 +296,6 @@ define([
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
-            if (node == window) node = window.document; // window -> document
             var r = action(node, selector);
             if (!r || r.length == 0) continue;
             if (query_mode == 1) return [r[0]];
@@ -306,232 +348,20 @@ define([
 
     }
 
-    //////////////////////////////////////////////////////////
-    // CORE METHODS
-    //////////////////////////////////////////////////////////
 
-    function each_operation(func, this_arg) {
-        var obj = this.nodes;
-        for (var i = 0, len = obj.length; i < len; ++i) {
-            func.call(this_arg, obj[i], i, obj);
-        }
-    }
+    //////////////////////////////////////////////////////////
+    // FILTER FUNCTIONS
+    //////////////////////////////////////////////////////////
 
     /**
      * .is() - selector check
      */
     function is_node_of_type(selector) {
-        var nodes = this.nodes;
-        for (var i = 0, len = nodes.length; i < len; ++i) {
+        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             if (!nodes[i].matches(selector)) return false;
         }
         return true;
     }
-
-    /**
-     * .q() - query all
-     */
-    function sub_query_all(selector, mode) {
-        var arr = do_query(this.nodes, selector, mode);
-        var chain = this.chain + (mode == 1) ? '.q1(' : '.q(';
-        chain += ')';
-        return create_new_tinyq(arr, chain);
-    }
-
-    /**
-     * .q1() - query one
-     */
-    function sub_query_one(selector) {
-        return sub_query_all.call(this, selector, 1);
-    }
-
-    /**
-     * .add() - add items to current tinyQ object
-     */
-    function add_nodes() {
-        var r = init_q(arguments, null, this.nodes);
-        r.chain = this.chain + r.chain;
-        return r;
-    }
-
-    /**
-     * Helper function for first(), last()
-     */
-    function get_one_helper(tinyq, type) {
-        var nodes = tinyq.nodes;
-        var arr = [];
-        if (nodes.length > 0)
-            arr.push(type == 1 ? nodes[0] : nodes[nodes.length - 1]);
-        var chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
-        return create_new_tinyq(arr, chain);
-    }
-
-    /**
-     * .first() - get first element as a tinyQ object
-     */
-    function get_first() {
-        return get_one_helper(this, 1);
-    }
-
-    /**
-     * .last() - get last element as a tinyQ object
-     */
-    function get_last() {
-        return get_one_helper(this, 0);
-    }
-
-
-    /**
-     * Helper function for batch traversing
-     */
-    function do_traversal_helper(tinyq, selector, type) {
-
-        selector = selector || false;
-
-        var prefix = '.parent(';  // type == 0
-        var get_func = get_parent_func;
-        if (type == 1) {
-            get_func = get_children_func;
-            prefix = '.children(' + selector;
-        } else if (type == 2) {
-            if (!selector) {
-                tiny.error(TinyQ.TAG, 'Expect a selector for closest()');
-                throw new SyntaxError(G.SEE_ABOVE);
-            }
-            get_func = get_closest_func;
-            prefix = '.closest(' + selector;
-        } else if (type == 3) {
-            get_func = get_prev_func;
-            prefix = '.prev(';
-        } else if (type == 4) {
-            get_func = get_next_func;
-            prefix = '.next(';
-        }
-
-        // generate a unique operation id for duplicate-check
-        var opid = tiny.guid();
-        var filter = selector ? create_traversal_match_filter(selector) : false;
-
-        // do the work
-        var arr = [];
-        var nodes = tinyq.nodes;
-        for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = get_func(nodes[i], selector);
-            if (!node) continue;
-            if (type < 3) {
-                arr = to_array(node, arr, opid, filter);
-            } else {
-                if (filter && !filter(node)) continue;
-                arr.push(node);
-            }
-        }
-
-        return create_new_tinyq(arr, tinyq.chain + prefix + ')');
-
-    }
-
-    function get_parent_func(node) {
-        var r = node.parentElement;
-        if (r) r = [r];
-        return r;
-    }
-    function get_children_func(node) {
-        return node.children;
-    }
-    function get_closest_func(node, selector) {
-        while (node) {
-            if (node.matches(selector)) return [node];
-            node = node.parentElement;
-        }
-        return null;
-    }
-    function get_prev_func(node) { return node.previousElementSibling; }
-    function get_next_func(node) { return node.nextElementSibling; }
-
-    function create_traversal_match_filter(selector) {
-        return function (node) {
-            return traversal_match_filter.call(selector, node);
-        }
-    }
-
-    function traversal_match_filter(node) {
-        return node.matches(this);
-    }
-
-    /**
-     * .parent() - get parentElement
-     */
-    function get_parent(selector) {
-        return do_traversal_helper(this, selector, 0);
-    }
-
-    /**
-     * .get_children() - get children
-     */
-    function get_children(selector) {
-        return do_traversal_helper(this, selector, 1);
-    }
-
-    /**
-     * .closest() - get closest element matches selector
-     */
-    function get_closest(selector) {
-        return do_traversal_helper(this, selector, 2);
-    }
-
-    /**
-     * .prev() - get previousElementSibling
-     */
-    function get_prev(selector) {
-        return do_traversal_helper(this, selector, 3);
-    }
-
-    /**
-     * .next() - get nextElementSibling
-     */
-    function get_next(selector) {
-        return do_traversal_helper(this, selector, 4);
-    }
-
-
-    /**
-     * TinyQ.append(node|tinyq|html [,attr])
-     */
-    function append_child(obj, attrs) {
-
-        // check parameter
-        if (obj && obj.tinyQ) {
-            obj = obj.nodes;
-        } else if (typeof obj == 'string') {
-            obj = create_html_fragment(obj, attrs);
-        } else if (is_element(obj)) {
-            obj = [obj];
-        } else if (is_array_like(obj)) {
-            // just ok
-        } else {
-            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
-        // append child
-        var parent_nodes = this.nodes;
-        for (var i = 0, len = parent_nodes.length; i < len; ++i) {
-            var parent_node = parent_nodes[i];
-            if (!is_element(parent_node)) continue;
-            for (var j = 0, jlen = obj.length, jend = jlen - 1; j < jlen; ++j) {
-                var node = obj[j];
-                if (len > 0 && j != jend) node = node.cloneNode(true);
-                parent_node.appendChild(node);
-            }
-        }
-
-        return this;
-
-    }
-
-    //////////////////////////////////////////////////////////
-    // FILTER FUNCTIONS
-    //////////////////////////////////////////////////////////
 
     /**
      * .filter() - filter items in result set
@@ -563,8 +393,7 @@ define([
      * proxy for executing filter function list
      */
     function filter_list_executor(node, index, list, len, this_arg) {
-        var filter_list = this;
-        for (var i = 0, len = filter_list.length; i < len; ++i) {
+        for (var filter_list = this, i = 0, len = filter_list.length; i < len; ++i) {
             var filter = filter_list[i];
             this_arg.p = filter[1];
             var r = filter[0].call(this_arg, node, index, list, len);
@@ -715,8 +544,7 @@ define([
     // helper function for nth & nth-child
     function get_nth_index(node) {
         if (!node.parentElement) return -1;
-        var children = node.parentElement.children;
-        for (var i = 0, len = children.length; i < len; ++i) {
+        for (var children = node.parentElement.children, i = 0, len = children.length; i < len; ++i) {
             if (children[i] == node) return i;
         }
         return -1;
@@ -753,9 +581,230 @@ define([
         if (i % a != 0) return false;
         if (i / a < 0) return false;
 
-        _log(index + 1, a, b)
         return true;
 
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // TRAVERSAL FUNCTIONS
+    //////////////////////////////////////////////////////////
+
+    /**
+     * Helper function for first(), last()
+     */
+    function get_one_helper(tinyq, type) {
+        var nodes = tinyq.nodes;
+        var node = type == 1 ? nodes[0] : nodes[nodes.length - 1];
+        node = node ? [node] : [];
+        var chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
+        return create_new_tinyq(node, chain);
+    }
+
+    /**
+     * .first() - get first element as a tinyQ object
+     */
+    function get_first() {
+        return get_one_helper(this, 1);
+    }
+
+    /**
+     * .last() - get last element as a tinyQ object
+     */
+    function get_last() {
+        return get_one_helper(this, 0);
+    }
+
+
+    /**
+     * Helper function for batch traversing
+     */
+    function do_traversal_helper(tinyq, selector, type) {
+
+        selector = selector || false;
+
+        var prefix = '.parent(';  // type == 0
+        var get_func = get_parent_func;
+        if (type == 1) {
+            get_func = get_children_func;
+            prefix = '.children(' + selector;
+        } else if (type == 2) {
+            if (!selector) {
+                tiny.error(TinyQ.TAG, 'Expect a selector for closest()');
+                throw new SyntaxError(G.SEE_ABOVE);
+            }
+            get_func = get_closest_func;
+            prefix = '.closest(' + selector;
+        } else if (type == 3) {
+            get_func = get_prev_func;
+            prefix = '.prev(';
+        } else if (type == 4) {
+            get_func = get_next_func;
+            prefix = '.next(';
+        }
+
+        // generate a unique operation id for duplicate-check
+        var opid = tiny.guid();
+        var filter = selector ? create_traversal_match_filter(selector) : false;
+
+        // do the work
+        var arr = [];
+        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = get_func(nodes[i], selector);
+            if (!node) continue;
+            if (type < 3) {
+                arr = to_array(node, arr, opid, filter);
+            } else {
+                if (filter && !filter(node)) continue;
+                arr.push(node);
+            }
+        }
+
+        return create_new_tinyq(arr, tinyq.chain + prefix + ')');
+
+    }
+
+    function get_parent_func(node) {
+        var r = node.parentElement;
+        if (r) r = [r];
+        return r;
+    }
+    function get_children_func(node) {
+        return node.children;
+    }
+    function get_closest_func(node, selector) {
+        while (node) {
+            if (node.matches(selector)) return [node];
+            node = node.parentElement;
+        }
+        return null;
+    }
+    function get_prev_func(node) { return node.previousElementSibling; }
+    function get_next_func(node) { return node.nextElementSibling; }
+
+    function create_traversal_match_filter(selector) {
+        return function (node) {
+            return traversal_match_filter.call(selector, node);
+        }
+    }
+
+    function traversal_match_filter(node) {
+        return node.matches(this);
+    }
+
+    /**
+     * .parent() - get parentElement
+     */
+    function get_parent(selector) {
+        return do_traversal_helper(this, selector, 0);
+    }
+
+    /**
+     * .get_children() - get children
+     */
+    function get_children(selector) {
+        return do_traversal_helper(this, selector, 1);
+    }
+
+    /**
+     * .closest() - get closest element matches selector
+     */
+    function get_closest(selector) {
+        return do_traversal_helper(this, selector, 2);
+    }
+
+    /**
+     * .prev() - get previousElementSibling
+     */
+    function get_prev(selector) {
+        return do_traversal_helper(this, selector, 3);
+    }
+
+    /**
+     * .next() - get nextElementSibling
+     */
+    function get_next(selector) {
+        return do_traversal_helper(this, selector, 4);
+    }
+
+
+
+    //////////////////////////////////////////////////////////
+    // DOM MANIPULATE FUNCTIONS
+    //////////////////////////////////////////////////////////
+
+    /**
+     * TinyQ.append(node|tinyq|html [,attr])
+     */
+    function append_child(obj, attrs) {
+
+        // check parameter
+        if (obj && obj.tinyQ) {
+            obj = obj.nodes;
+        } else if (typeof obj == 'string') {
+            obj = create_html_fragment(obj, attrs);
+        } else if (is_element(obj)) {
+            obj = [obj];
+        } else if (is_array_like(obj)) {
+            // just ok
+        } else {
+            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
+            throw new TypeError(G.SEE_ABOVE);
+        }
+
+        // append child
+        for (var parent_nodes = this.nodes, i = 0, len = parent_nodes.length, require_clone = len > 1; i < len; ++i) {
+            var parent_node = parent_nodes[i];
+            if (!is_element(parent_node)) continue;
+            for (var j = 0, j_len = obj.length, j_end = j_len - 1; j < j_len; ++j) {
+                var node = obj[j];
+                if (require_clone && j != j_end) node = node.cloneNode(true);
+                parent_node.appendChild(node);
+            }
+        }
+
+        return this;
+
+    }
+
+    function prepend_child() {
+
+    }
+
+    /**
+     * remove given node
+     */
+    function remove_nodes(selector) {
+
+        selector = typeof selector == 'string' ? selector : false;
+
+        var arr = [];
+        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
+            var parent = node.parentNode;
+            if (!parent || selector && !node.matches(selector)) {
+                arr.push(node);
+                continue;
+            }
+            parent.removeChild(node, true);
+        }
+
+        this.nodes = arr;
+        this.length = arr.length;
+        this.chain += '.remove(' + (selector ? selector : '') + ')';
+        return this;
+
+    }
+
+    /**
+     * Empty all node content
+     */
+    function empty_node() {
+        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            nodes[i].innerHTML = '';
+        }
+        this.chain += '.empty()';
+        return this;
     }
 
 

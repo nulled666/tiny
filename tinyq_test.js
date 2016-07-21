@@ -132,7 +132,6 @@ define([
             return $(nodelist).last();
         });
 
-
     do_test('parent', 50,
         function () {
             return _q(nodelist).parent('code');
@@ -149,6 +148,7 @@ define([
             return $(nodelist).closest('.run-code');
         });
 
+    var node = _q('code').toArray();
     do_test('children', 100,
         function () {
             return _q(node).children('.function');
@@ -173,4 +173,11 @@ define([
             return $(nodelist).next('.function');
         });
 
+    do_test('toArray', 100,
+        function () {
+            return _q('.run-code').toArray();
+        },
+        function () {
+            return $('.run-code').toArray();
+        });
 })

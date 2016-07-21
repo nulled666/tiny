@@ -8,8 +8,9 @@ define(function () {
         _time('time002');
         _each(loop, function () { y = func2(); })
         var t2 = _time('time002', false);
-        _log(tag, '-', t1.toFixed(3), ':', t2.toFixed(3), '(' + x.length + '/' + y.length + ')', x.length == y.length);
-        if(show){
+        var color = t1 < t2 ? 'color: #090' : 'color: #900';
+        _log('%c' + tag + ' >', color, t1.toFixed(3), ':', t2.toFixed(3), '(' + x.length + '/' + y.length + ')', x.length == y.length);
+        if (show) {
             _log(x);
             _log(y);
         }
