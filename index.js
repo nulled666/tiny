@@ -34,21 +34,24 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_query',
-        'tinyq_test_add'
+        'tinyq_test_base',
     ], function (do_test) {
 
+        _warn('---------')
+        var nodes = _q('h3').toArray();
         function tinyq_get() {
-            return _q('#content-table');
+            return _q(nodes).add('.run-code');
         }
         function jquery_get() {
-            return $('#content-table');
+            return $(nodes).add('.run-code');
         }
 
-        do_test('#id', 10000,
+        do_test('#id', 1,
             tinyq_get, jquery_get
-        );
+             //,true
+       );
 
+        _warn('---------')
     });
 
 

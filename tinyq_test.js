@@ -13,8 +13,8 @@ define(function () {
         var t2 = _time('time002', false);
         var color = t1 < t2 ? 'color: #090' : 'color: #900';
 
-        var xl = x != undefined && x.length ? x.length : x;
-        var yl = y != undefined && y.length ? y.length : y;
+        var xl = x != false && x.length != undefined ? x.length : x;
+        var yl = y != false && y.length != undefined ? y.length : y;
 
         _log('%c' + tag + ' >', color, t1.toFixed(3), ':', t2.toFixed(3), '(' + xl + '/' + yl + ')', xl == yl);
 

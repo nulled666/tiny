@@ -124,9 +124,10 @@ define([
             // plant an opid on original array for duplicate check
             opid = tiny.guid();
             for (var nodes = base_nodes, i = 0, len = nodes.length; i < len; ++i) {
-                base_nodes[i][TinyQ.OPID] = opid;
+                var node = nodes[i];
+                node[TinyQ.OPID] = opid;
+                result.push(node);
             }
-            result = base_nodes;
         }
 
         obj = nomalize_nodes(obj);
@@ -149,20 +150,20 @@ define([
                     }
                 }
                 // do query
-                result = do_query(parents, obj, query_mode);
+                result = do_query(parents, obj, query_mode, opid, result);
                 tag.obj = obj;
             }
         } else if (is_array_like(obj)) {
             // ==> (nodes [,filter...])
             tag.obj = '[nodes]';
             for (var nodes = obj, i = 0, len = nodes.length; i < len; ++i) {
-                var item = nodes[i];
-                if (!is_element(item)) continue;
+                var node = nodes[i];
+                if (!is_element(node)) continue;
                 if (opid) {
-                    if (item[TinyQ.OPID] == opid) continue;
-                    item[TinyQ.OPID] = opid;
+                    if (node[TinyQ.OPID] == opid) continue;
+                    node[TinyQ.OPID] = opid;
                 }
-                result.push(item);
+                result.push(node);
             }
             tag.start = tag.end = '';
         } else {
@@ -273,9 +274,9 @@ define([
     /**
      * .add() - add items to current tinyQ object
      */
-    function add_nodes() {
+    function add_nodes(selector, param) {
         var tinyq = this;
-        var r = init_q(arguments, null, tinyq.nodes);
+        var r = init_q(selector, param, null, 0, tinyq.nodes);
         r.chain = tinyq.chain + r.chain;
         return r;
     }
@@ -283,12 +284,12 @@ define([
     /**
      * Execute query on all given nodes and concate the results
      */
-    function do_query(nodes, selector, query_mode, opid) {
+    function do_query(nodes, selector, query_mode, opid, base) {
 
         if (!nodes) throw new TypeError('Expect an Array-like node list');
         if (!opid && nodes.length > 1) opid = tiny.guid();
 
-        var result = [];
+        var result = base || [];
         var action = do_query_all;
 
         // check for shortcuts
