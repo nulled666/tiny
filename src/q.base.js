@@ -35,7 +35,9 @@ define([
 
     TinyQ.TAG = '_q()' + G.TAG_SUFFIX;
     TinyQ.OPID = 'tinyq-OPID';
-    TinyQ.fn = {};
+    TinyQ.x = {
+        isArrayLike: is_array_like
+    };
 
     TinyQ.prototype = {
 
@@ -91,6 +93,9 @@ define([
 
     };
 
+    if ( typeof Symbol === "function" ) {
+        TinyQ.prototype[ Symbol.iterator ] = Array.prototype[ Symbol.iterator ];
+    }
 
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
@@ -180,7 +185,7 @@ define([
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
-        if (is_element(obj) || obj == window) {
+        if (is_element(obj) || is_window(obj)) {
             obj = [obj];
         } else if (obj.tinyQ) {
             obj = obj.nodes;
@@ -192,8 +197,7 @@ define([
      * check if an object is array-like
      */
     function is_array_like(obj) {
-        return Array.isArray(obj) ||
-            typeof obj == 'object' && obj.length > 0 && obj[0] != undefined && obj[obj.length - 1] != undefined
+        return Array.isArray(obj) || typeof obj == 'object' && "length" in obj
     }
 
     /**
@@ -203,6 +207,10 @@ define([
         if (!obj) return false;
         var type = obj.nodeType;
         return (type == 1 || type == 9);
+    }
+
+    function is_window(obj) {
+        return !!obj && obj == obj.window
     }
 
     /**
@@ -230,7 +238,7 @@ define([
         var arr = [];
         for (var nodes = div.childNodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (attrs) TinyQ.fn.setAttributes(node, attrs);
+            if (attrs) TinyQ.x.setAttributes(node, attrs);
             arr.push(node);
         }
 

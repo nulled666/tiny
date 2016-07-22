@@ -1,4 +1,7 @@
-requirejs(["src/tiny"], start);
+requirejs([
+    "src/tiny",
+    "lib/prism"
+], start);
 
 function start() {
 
@@ -10,6 +13,7 @@ function start() {
 
     if (test_code() != true)
         setTimeout(run_all_code, 100);
+
 
     // the smooth scroll effect
     $(".content-table a").click(function () {
@@ -30,10 +34,20 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_query',
-        'tinyq_test_add'
+        //'tinyq_test_query',
+        // 'tinyq_test_add'
     ], function (do_test) {
 
+        function tinyq_get() {
+            return _q('#content-table');
+        }
+        function jquery_get() {
+            return $('#content-table');
+        }
+
+        do_test('#id', 10000,
+            tinyq_get, jquery_get
+        );
 
     });
 

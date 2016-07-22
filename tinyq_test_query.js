@@ -140,7 +140,7 @@ define([
             return $(nodelist).parent('code');
         });
 
-    do_test('closest', 50,
+    do_test('closest', 10,
         function () {
             return _q(nodelist).closest('.run-code');
         },
