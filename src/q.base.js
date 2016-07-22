@@ -536,7 +536,7 @@ define([
     tiny.extend(TinyQ, {
         filters: {
             blank: function (node) { return node.textContent.trim() == '' },
-            contains: function (node) { return node.textContent.includes(this.p) },
+            contains: function (node, i, l, param) { return node.textContent.includes(param) },
             enabled: function (node) { return !node.disabled },
             disabled: function (node) { return node.disabled },
             checked: function (node) { return !!(node.checked) },
@@ -545,9 +545,9 @@ define([
                 return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
             },
             // internal used
-            matches: function (node, i, l, param) { return node.matches(this.p) },
-            not: function (node, i, l, param) { return !node.matches(this.p) },
-            has: function (node, i, l, param) { return node.querySelector(this.p) != null },
+            matches: function (node, i, l, param) { return node.matches(param) },
+            not: function (node, i, l, param) { return !node.matches(param) },
+            has: function (node, i, l, param) { return node.querySelector(param) != null },
             // extensions
             even: function (n, index) { return index % 2 == 1 },
             odd: function (n, index) { return index % 2 == 0 },
