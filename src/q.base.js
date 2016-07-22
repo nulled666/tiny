@@ -107,7 +107,7 @@ define([
         var opid = false;
         var is_add = false;
 
-        if (query_mode == 1) tag.start = 'q1(';
+        if (query_mode == 1) tag_start = 'q1(';
 
         if (base_nodes && Array.isArray(base_nodes)) {
             // ==> add() operation
