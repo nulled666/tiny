@@ -32,15 +32,19 @@ define([
     var TinyQ = function () {
         return this;
     };
+    var OPID_MARK = 'tinyq-OPID';
 
-    TinyQ.TAG = '_q()' + G.TAG_SUFFIX;
-    TinyQ.OPID = 'tinyq-OPID';
+    var TAG_Q = '_q()' + G.TAG_SUFFIX;
+
+    // shared function store
     TinyQ.x = {
+        TAG: TAG_Q,
         isArrayLike: is_array_like
     };
 
     TinyQ.prototype = {
 
+        // signature
         tinyQ: true,
 
         // properties
@@ -126,7 +130,7 @@ define([
             opid = tiny.guid();
             for (var nodes = base_nodes, i = 0, len = nodes.length; i < len; ++i) {
                 var node = nodes[i];
-                node[TinyQ.OPID] = opid;
+                node[OPID_MARK] = opid;
                 result.push(node);
             }
         }
@@ -161,14 +165,14 @@ define([
                 var node = nodes[i];
                 if (!is_element(node)) continue;
                 if (opid) {
-                    if (node[TinyQ.OPID] == opid) continue;
-                    node[TinyQ.OPID] = opid;
+                    if (node[OPID_MARK] == opid) continue;
+                    node[OPID_MARK] = opid;
                 }
                 result.push(node);
             }
             tag.start = tag.end = '';
         } else {
-            tiny.error(TinyQ.TAG, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
+            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -363,8 +367,8 @@ define([
             var node = list[i];
             if (!is_element(node)) continue;
             if (opid) {
-                if (node[TinyQ.OPID] == opid) continue;
-                node[TinyQ.OPID] = opid;
+                if (node[OPID_MARK] == opid) continue;
+                node[OPID_MARK] = opid;
             }
             if (filter) {
                 var r = filter(node, i, list, this_arg);
@@ -492,7 +496,7 @@ define([
                 list.push([TinyQ.filters['matches'], arg]);
             }
         } else {
-            tiny.error(TinyQ.TAG, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
+            tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -523,7 +527,7 @@ define([
             name = item.substring(0, pos);
             param = item.substring(pos + 1);
             if (!param.endsWith(')')) {
-                tiny.error(TinyQ.TAG, 'Unexpected end of filter. ', item);
+                tiny.error(TAG_Q, 'Unexpected end of filter. ', item);
                 throw new SyntaxError(G.SEE_ABOVE);
             }
             param = param.substring(0, param.length - 1).trim();
@@ -535,7 +539,7 @@ define([
             arr = [func, param];
             _CUSTOM_FILTER_CACHE[filter] = arr;
         } else {
-            tiny.error(TinyQ.TAG, 'No such custom filter: ', name);
+            tiny.error(TAG_Q, 'No such custom filter: ', name);
             throw new SyntaxError(G.SEE_ABOVE);
         }
 
@@ -634,7 +638,7 @@ define([
             prefix = '.children(' + selector;
         } else if (type == 2) {
             if (!selector) {
-                tiny.error(TinyQ.TAG, 'Expect a selector for closest()');
+                tiny.error(TAG_Q, 'Expect a selector for closest()');
                 throw new SyntaxError(G.SEE_ABOVE);
             }
             get_func = get_closest_func;
@@ -765,7 +769,7 @@ define([
         } else if (is_array_like(obj)) {
             // just ok
         } else {
-            _error(TinyQ.TAG, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
+            _error(TAG_Q, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 

@@ -27,7 +27,7 @@ define([
     function process_class(actions) {
 
         if (typeof actions != 'string') {
-            tiny.error(TinyQ.TAG, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
+            tiny.error(TinyQ.x.TAG, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
             throw new TypeError(G.SEE_ABOVE);
         }
 
