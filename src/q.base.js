@@ -529,9 +529,6 @@ define([
         filters: {
             even: function (a, index) { return index % 2 == 1 },
             odd: function (a, index) { return index % 2 == 0 },
-            eq: function (a, index) { return index != this.p || [node] },
-            lt: function (a, index) { return index < this.p },
-            gt: function (a, index) { return index > this.p },
             blank: function (node) { return node.textContent.trim() == '' },
             empty: function (node) { return node.childNodes.length == 0 },
             matches: function (node) { return node.matches(this.p) },
