@@ -38,18 +38,7 @@ function test_code() {
     ], function (do_test) {
 
         _warn('---------')
-        var nodes = _q('h3').toArray();
-        function tinyq_get() {
-            return _q(nodes).add('.run-code');
-        }
-        function jquery_get() {
-            return $(nodes).add('.run-code');
-        }
 
-        do_test('#id', 1,
-            tinyq_get, jquery_get
-             //,true
-       );
 
         _warn('---------')
     });

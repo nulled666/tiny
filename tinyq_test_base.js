@@ -103,7 +103,23 @@ define([
             return $(nodelist).find('.function').first();
         });
 
+    var nodes = _q('.function').toArray();
+    do_test('add(.selector)', 10,
+        function () {
+            return _q(nodes).add('.token');
+        },
+        function () {
+            return $(nodes).add('.token');
+        }, true);
 
+    var add_nodes = _q('.token').toArray();
+    do_test('add(nodes)', 10,
+        function () {
+            return _q(nodes).add(add_nodes);
+        },
+        function () {
+            return $(nodes).add(add_nodes);
+        });
 
     _warn('filter', '--------------------------------')
 
@@ -317,5 +333,5 @@ define([
         function () {
             return $('h3 > .test3-2, h3 > .b2').remove();
         });
-        
+
 })
