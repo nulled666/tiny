@@ -669,7 +669,14 @@ define([
         return r;
     }
     function get_children_func(node) {
-        return node.children;
+        // NOTE: this loop is faster than node.children
+        var arr = [];
+        var child = node.firstElementChild;
+        while (child) {
+            arr.push(child);
+            child = child.nextElementSibling
+        }
+        return arr;
     }
     function get_closest_func(node, selector) {
         while (node) {
