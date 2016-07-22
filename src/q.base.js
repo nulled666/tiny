@@ -29,11 +29,14 @@ define([
     /**
      * tinyQ constructor
      */
-    var TinyQ = function () {
+    var TinyQ = function (nodes, chain) {
+        this.chain = chain;
+        this.nodes = nodes;
+        this.length = nodes.length;
         return this;
     };
-    var OPID_MARK = 'tinyq-OPID';
 
+    var OPID_MARK = 'tinyq-OPID';
     var TAG_Q = '_q()' + G.TAG_SUFFIX;
 
     // shared function store
@@ -106,22 +109,16 @@ define([
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
-    function init_q(obj, param, extra, set_mode, base_nodes) {
+    function init_q(obj, param, extra, query_mode, base_nodes) {
 
         if (!obj) obj = document;
 
-        var opid = false;
-        var query_mode = 0;
-        var is_add = false;
-        var filter_list = false;
         var result = [];
-        var tag = { start: 'q(', obj: '', end: ')', filter: '' };
+        var tag_start = 'q(', tag_obj = '', tag_end = ')';
+        var opid = false;
+        var is_add = false;
 
-        if (set_mode == 1) {
-            // ==> q1()
-            query_mode == 1;
-            tag.start = 'q1(';
-        }
+        if (query_mode == 1) tag.start = 'q1(';
 
         if (base_nodes && Array.isArray(base_nodes)) {
             // ==> add() operation
@@ -138,11 +135,12 @@ define([
         obj = nomalize_nodes(obj);
 
         if (typeof obj == 'string') {
+
             // ==> (selector, ...
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,attributes])
                 result = create_html_fragment(obj, param);
-                tag.obj = '[html]';
+                tag_obj = '[html]';
             } else {
                 // ==> (selector [,nodes])
                 var parents = [document];
@@ -151,38 +149,35 @@ define([
                     if (is_array_like(param)) {
                         // ==> [,nodes]
                         parents = param;
-                        tag.start = tag.obj + '.' + tag.start;
+                        tag.start = tag_obj + '.' + tag_start;
                     }
                 }
                 // do query
                 result = do_query(parents, obj, query_mode, opid, result);
-                tag.obj = obj;
+                tag_obj = obj;
             }
+
         } else if (is_array_like(obj)) {
+
             // ==> (nodes [,filter...])
-            tag.obj = '[nodes]';
-            for (var nodes = obj, i = 0, len = nodes.length; i < len; ++i) {
-                var node = nodes[i];
-                if (!is_element(node)) continue;
-                if (opid) {
-                    if (node[OPID_MARK] == opid) continue;
-                    node[OPID_MARK] = opid;
-                }
-                result.push(node);
-            }
-            tag.start = tag.end = '';
+            result = to_array(obj, result, opid);
+            tag_obj = '[nodes]';
+            tag_start = tag_end = '';
+
+
+        } else if (is_window(obj)) {
+
+            return create_tinyq([window], '[window]');
+
         } else {
+
             tiny.error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
+
         }
 
-        // set properties to finish
-        var chain = '';
-        if (is_add) {
-            chain = '.add(' + tag.obj + ')';
-        } else {
-            chain = tag.start + tag.obj + tag.end;
-        }
+        // ready to create the object
+        var chain = !is_add ? '.add(' + tag_obj + ')' : tag_start + tag_obj + tag_end;
 
         return create_tinyq(result, chain);
 
@@ -192,7 +187,7 @@ define([
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
-        if (is_element(obj) || is_window(obj)) {
+        if (is_element(obj)) {
             obj = [obj];
         } else if (obj.tinyQ) {
             obj = obj.nodes;
@@ -224,11 +219,7 @@ define([
      * create a new tinyq instance
      */
     function create_tinyq(nodes, chain) {
-        var q = new TinyQ();
-        q.chain = chain;
-        q.nodes = nodes;
-        q.length = nodes.length;
-        return q;
+        return new TinyQ(nodes, chain);
     }
 
     /**

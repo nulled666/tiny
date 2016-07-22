@@ -34,19 +34,19 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_base',
+        //'tinyq_test_base',
     ], function (do_test) {
 
         _warn('---------')
 
-        // var nodes = _q('.function').toArray();
-        // do_test('add(.selector)', 1,
-        //     function () {
-        //         return _q(nodes).add('.token');
-        //     },
-        //     function () {
-        //         return $(nodes).add('.token');
-        //     }, true);
+        var nodes = document.querySelectorAll('.token');
+        do_test('add(.selector)', 1000,
+            function () {
+                return _q(nodes);
+            },
+            function () {
+                return $(nodes);
+            });
 
         _warn('---------')
     });
