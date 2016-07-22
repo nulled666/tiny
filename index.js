@@ -39,6 +39,14 @@ function test_code() {
 
         _warn('---------')
 
+        // var nodes = _q('.function').toArray();
+        // do_test('add(.selector)', 1,
+        //     function () {
+        //         return _q(nodes).add('.token');
+        //     },
+        //     function () {
+        //         return $(nodes).add('.token');
+        //     }, true);
 
         _warn('---------')
     });

@@ -278,8 +278,23 @@ define([
     function add_nodes(selector, param) {
         var tinyq = this;
         var r = init_q(selector, param, null, 0, tinyq.nodes);
+        r.nodes.sort(compare_node_position);
         r.chain = tinyq.chain + r.chain;
         return r;
+    }
+
+    /**
+     * a helper for determine node order
+     */
+    function compare_node_position(a, b) {
+        var a_check = is_element(a);
+        var b_check = is_element(b);
+        if (!a_check) return b_check ? -1 : 0;
+        if (!b_check) return 1;
+        var r = a.compareDocumentPosition(b);
+        if (r == 2 || r == 8) return 1;
+        if (r == 4 || r == 16) return -1;
+        return 0;
     }
 
     /**
@@ -692,7 +707,9 @@ define([
      * .parent() - get parentElement
      */
     function get_parent(selector) {
-        return do_traversal_helper(this, selector, 0);
+        var r = do_traversal_helper(this, selector, 0);
+        r.nodes.sort(compare_node_position);
+        return r;
     }
 
     /**
@@ -706,7 +723,9 @@ define([
      * .closest() - get closest element matches selector
      */
     function get_closest(selector) {
-        return do_traversal_helper(this, selector, 2);
+        var r = do_traversal_helper(this, selector, 2);
+        r.nodes.sort(compare_node_position);
+        return r;
     }
 
     /**

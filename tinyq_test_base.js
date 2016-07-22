@@ -110,7 +110,7 @@ define([
         },
         function () {
             return $(nodes).add('.token');
-        }, true);
+        });
 
     var add_nodes = _q('.token').toArray();
     do_test('add(nodes)', 10,
