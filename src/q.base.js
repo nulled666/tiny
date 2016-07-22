@@ -57,6 +57,7 @@ define([
         is: is_node_of_type,
         filter: filter_nodes,
         not: not_nodes,
+        has: has_nodes,
 
         // traverse
         parent: get_parent,
@@ -349,7 +350,7 @@ define([
                 node[TinyQ.OPID] = opid;
             }
             if (filter) {
-                var r = filter(node, i, list, len, this_arg);
+                var r = filter(node, i, list, this_arg);
                 if (r == false) continue;
             }
             base.push(node);
@@ -389,6 +390,14 @@ define([
     }
 
     /**
+     * .has() - remove not match nodes
+     */
+    function has_nodes(selector) {
+        // TODO
+    }
+
+
+    /**
      * .filter() - filter items in result set
      */
     function filter_nodes() {
@@ -410,19 +419,18 @@ define([
      */
     function create_filter_executor(filters) {
         if (!filters) return false;
-        return function (node, index, list, len, this_arg) {
-            return filter_list_executor.call(filters, node, index, list, len, this_arg);
+        return function (node, index, list, this_arg) {
+            return filter_list_executor.call(filters, node, index, list, this_arg);
         }
     }
 
     /**
      * proxy for executing filter function list
      */
-    function filter_list_executor(node, index, list, len, this_arg) {
+    function filter_list_executor(node, index, list, this_arg) {
         for (var filter_list = this, i = 0, len = filter_list.length; i < len; ++i) {
             var filter = filter_list[i];
-            this_arg.p = filter[1];
-            var r = filter[0].call(this_arg, node, index, list, len);
+            var r = filter[0].call(this_arg, node, index, list, filter[1]);
             if (r == false) return false;
             if (r != true) return r;
         }
@@ -469,7 +477,7 @@ define([
             } else {
                 // ==> selector
                 tag.filter += arg;
-                list.push([TinyQ.prototype.filters['matches'], arg]);
+                list.push([TinyQ.filters['matches'], arg]);
             }
         } else {
             tiny.error(TinyQ.TAG, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
@@ -509,7 +517,7 @@ define([
             if (param.search(/^\d$/) == 0) param = parseInt(param);
         }
 
-        if (name) func = TinyQ.prototype.filters[name];
+        if (name) func = TinyQ.filters[name];
         if (func) {
             arr = [func, param];
             _CUSTOM_FILTER_CACHE[filter] = arr;
@@ -525,15 +533,9 @@ define([
     /**
      * build-in custom filters
      */
-    tiny.extend(TinyQ.prototype, {
+    tiny.extend(TinyQ, {
         filters: {
-            even: function (a, index) { return index % 2 == 1 },
-            odd: function (a, index) { return index % 2 == 0 },
             blank: function (node) { return node.textContent.trim() == '' },
-            empty: function (node) { return node.childNodes.length == 0 },
-            matches: function (node) { return node.matches(this.p) },
-            not: function (node) { return !node.matches(this.p) },
-            has: function (node) { return node.querySelector(this.p) != null },
             contains: function (node) { return node.textContent.includes(this.p) },
             enabled: function (node) { return !node.disabled },
             disabled: function (node) { return node.disabled },
@@ -542,21 +544,15 @@ define([
             visible: function (node) {
                 return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
             },
-            'only-child': function (node) {
-                return !(node.parentElement && !node.previousElementSibling && !node.nextElementSibling) || [node]
-            },
-            'first-child': function (node) {
-                return !(node.parentElement && !node.previousElementSibling) || [node]
-            },
-            'last-child': function (node) {
-                return !(node.parentElement && !node.nextElementSibling) || [node]
-            },
-            'nth-child': function (node) {
-                parse_nth_parameter(this);
-                return check_nth(get_nth_index(node), this.a, this.b, node);
-            },
-            nth: function (node, index) {
-                parse_nth_parameter(this);
+            // internal used
+            matches: function (node, i, l, param) { return node.matches(this.p) },
+            not: function (node, i, l, param) { return !node.matches(this.p) },
+            has: function (node, i, l, param) { return node.querySelector(this.p) != null },
+            // extensions
+            even: function (n, index) { return index % 2 == 1 },
+            odd: function (n, index) { return index % 2 == 0 },
+            nth: function (node, index,l, param) {
+                parse_nth_parameter(this, param);
                 return check_nth(index, this.a, this.b, node);
             }
         },
@@ -571,13 +567,13 @@ define([
         return -1;
     }
 
-    function parse_nth_parameter(obj) {
+    function parse_nth_parameter(obj, param) {
 
         if (obj.parsed) return;
 
-        if (!obj.p) throw new TypeError('nth(an+b) requires a parameter.');
+        if (!param) throw new TypeError('nth(an+b) requires a parameter.');
 
-        var a, b, p = obj.p;
+        var a, b, p = param;
         if (typeof p == 'number') {
             a = 0, b = p;
         } else {
