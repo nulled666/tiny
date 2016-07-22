@@ -47,7 +47,7 @@ define([
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
-        tiny.log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', tiny.x.funcName(handler) + '()');
+        tiny.log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', handler.name + '()');
 
         _message_handlers[msg].push(handler);
 

@@ -8,7 +8,7 @@ define([
     // CONSOLE SHORTHAND METHODS
     //////////////////////////////////////////////////////////
     var _log, _dir, _info, _warn, _error;
-
+    var _win = window;
 
     tiny.x.add({
         inspect: _inspect,
@@ -19,27 +19,8 @@ define([
     var DEFAULT_VERBOSE = 'warn|error';
     var con = console;
 
-    assign_console_shorthand();
-
-    /**
-     * Assign the console shorthands
-     */
-    function assign_console_shorthand() {
-
-        // IE8 polyfill
-        if (typeof console === "undefined") console = {};
-        tiny.each(['log', 'dir', 'info', 'warn', 'error'], function (item) {
-            if (typeof console[item] === "undefined") console[item] = noop();
-        });
-
-        verbose_level();
-
-    }
-
-    /**
-     * A blank no-operation placeholder function
-     */
-    function noop() { }
+    // enable console shorthands now
+    verbose_level();
 
     /**
      * Expand object to an JSON string
@@ -70,7 +51,7 @@ define([
 
             switch (typeof value) {
                 case 'function':
-                    return '[function: ' + tiny.x.funcName(value) + '()]';
+                    return '[function ' + value.name + '()]';
                 case 'undefined':
                     return '[undefined]';
                 default:
@@ -87,9 +68,9 @@ define([
 
     // privates for pref_time()
     var _perf_time = {};
-    var _perf = window.performance || {};
-    var _perf_now = window.performance.now
-        ? function () { return window.performance.now() }
+    var _perf = _win.performance || {};
+    var _perf_now = _win.performance.now
+        ? function () { return _win.performance.now() }
         : function () { return (new Date()).getTime() };
 
     /**
@@ -107,6 +88,8 @@ define([
         }
     }
 
+    // lazy function
+    function noop(){}
 
     /**
      * Enable/disable console method output
@@ -139,11 +122,11 @@ define([
         });
 
         if (G.GLOBAL_INJECTED) {
-            window._log = _log;
-            window._dir = _dir;
-            window._info = _info;
-            window._warn = _warn;
-            window._error = _error;
+            _win._log = _log;
+            _win._dir = _dir;
+            _win._info = _info;
+            _win._warn = _warn;
+            _win._error = _error;
         }
 
     }

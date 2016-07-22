@@ -12,8 +12,11 @@ define([
     var tiny = {};
     var _prototype_extensions = [];
 
+    // a quick reference to console object
+    var _con = console;
+
     // skip this method when export to global namespace
-    var SKIP_GLOBAL = ',fn,consts,import,me,verbose,fnv1a,';
+    var SKIP_GLOBAL = ',x,consts,import,me,verbose,';
 
     // extend the tiny object
     add_to_tiny({
@@ -30,7 +33,6 @@ define([
         // functions shared by internal functions
         x: {
             add: add_to_tiny,
-            funcName: get_function_name,
             toArray: to_array,
         }
 
@@ -43,8 +45,6 @@ define([
     ]);
     function each_extension(start, func, this_arg) { return _each(this.valueOf(), start, func, this_arg) }
 
-    // a quick reference to console object
-    var con = console;
 
     /**
      * Add entry to _tiny_definition
@@ -62,27 +62,6 @@ define([
 
     }
 
-    /**
-     * get a function's name - with IE8 support
-     */
-    function get_function_name(func) {
-
-        if (typeof func !== 'function')
-            return '';
-
-        // use native if avaiblable - IE 9 and above
-        if (func.name !== undefined) return func.name;
-
-        // search for it - for performance, no RegExp
-        var str = func.toString();
-        var pos1 = str.indexOf('function');
-        var pos2 = str.indexOf('(');
-        if (pos1 < 0 || pos2 < pos1) return '';
-        str = str.substring(pos1 + 8, pos2).trim();
-
-        return str;
-
-    }
 
     /**
     * Register functions to G namespace
@@ -94,7 +73,7 @@ define([
         var win = window;
 
         if (!win) {
-            con.error(G.TAG_TINY, 'window object is not available. global functions will not be registered.');
+            _con.error(G.TAG_TINY, 'window object is not available. global functions will not be registered.');
             return;
         }
 
@@ -104,7 +83,7 @@ define([
             if (SKIP_GLOBAL.includes(label)) return;
 
             if (win['_' + label] !== undefined) {
-                con.error(G.TAG_TINY, 'global function name already taken : ', '_' + label);
+                _con.error(G.TAG_TINY, 'global function name already taken : ', '_' + label);
                 throw new Error(G.SEE_ABOVE);
             }
 
@@ -116,7 +95,7 @@ define([
         _each(_prototype_extensions, function (item, index) {
 
             if (typeof item[0] !== 'function') {
-                con.error(G.TAG_TINY, 'Prototype not found : ', item[0]);
+                _con.error(G.TAG_TINY, 'Prototype not found : ', item[0]);
                 throw new Error(G.SEE_ABOVE);
             }
 
@@ -124,7 +103,7 @@ define([
 
         })
 
-        con.info(G.TAG_TINY, 'global objects imported.');
+        _con.info(G.TAG_TINY, 'global objects imported.');
 
     }
 
@@ -134,7 +113,7 @@ define([
     function show_tiny_definition() {
 
         // show the namespace
-        con.info('tiny = ' + _inspect(tiny, ['fn', 'consts']));
+        _con.info('tiny = ' + _inspect(tiny, ['x'], false));
 
         // show global objects
         if (G.GLOBAL_INJECTED !== true) return;
@@ -146,22 +125,22 @@ define([
             if (SKIP_GLOBAL.includes(label)) return;
 
             var value = win['_' + label];
-            value = _inspect(value);
+            value = _inspect(value, false);
 
             result += '\n_' + label + ' = ' + value;
         });
-        con.info(result);
+        _con.info(result);
 
         // show prototype extensions
         result = 'Injected prototype extensions:';
         _each(_prototype_extensions, function (item, label) {
 
-            var name = get_function_name(item[0]);
-            var value = _inspect(item[1]);
+            var name = item[0].name;
+            var value = _inspect(item[1], false);
 
             result += '\n' + name + '.prototype + ' + value;
         });
-        con.info(result);
+        _con.info(result);
 
     }
 
@@ -231,7 +210,7 @@ define([
         }
 
         if (typeof func !== 'function') {
-            con.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
+            _con.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -242,51 +221,50 @@ define([
         if (obj.jquery) type = 'q';
         if (obj.tinyQ) obj = obj.nodes;
 
-        var result;
-
         if (is_array_like(obj)) {
 
             // ==> Array
-            for (var i = start_index, len = obj.length; i < len; ++i) {
-                result = func.call(this_arg, obj[i], i, obj);
-                if (result !== undefined) return result;
+            for (var f = func, t = this_arg, i = start_index, len = obj.length; i < len; ++i) {
+                var r = f.call(t, obj[i], i, obj);
+                if (r !== undefined) return r;
             }
 
         } else if (type == 'object') {
 
             // ==> Object
+            var f = func, t = this_arg;
             for (var label in obj) {
-                result = func.call(this_arg, obj[label], label, obj);
-                if (result !== undefined) return result;
+                var r = f.call(t, obj[label], label, obj);
+                if (r !== undefined) return r;
             }
 
         } else if (type == 'q') {
 
             // ==> jQuery & TinyQ
-            for (var i = start_index, len = obj.length; i < len; ++i) {
-                result = func.call(this_arg, obj.get(i), i, obj);
-                if (result !== undefined) return result;
+            for (var f = func, t = this_arg, i = start_index, len = obj.length; i < len; ++i) {
+                var r = f.call(t, obj.get(i), i, obj);
+                if (r !== undefined) return r;
             }
 
         } else if (type === 'string') {
 
             // ==> String
-            for (var i = start_index, len = obj.length; i < len; ++i) {
-                result = func.call(this_arg, obj.charAt(i), i, obj);
-                if (result !== undefined) return result;
+            for (var f = func, t = this_arg, i = start_index, len = obj.length; i < len; ++i) {
+                var r = f.call(t, obj.charAt(i), i, obj);
+                if (r !== undefined) return r;
             }
 
         } else if (type === 'number') {
 
             // ==> Number
-            for (var i = start_index, len = obj; i < len; ++i) {
-                result = func.call(this_arg, i + 1, i, obj);
-                if (result !== undefined) return result;
+            for (var f = func, t = this_arg, i = start_index, len = obj; i < len; ++i) {
+                var r = f.call(t, i + 1, i, len);
+                if (r !== undefined) return r;
             }
 
         } else {
 
-            con.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
+            _con.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
 
         }
@@ -323,11 +301,11 @@ define([
         // Don't extend non-objects
         var type = typeof target;
         if (type !== 'object' && type !== 'function') {
-            con.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
+            _con.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
             throw new TypeError(G.SEE_ABOVE);
         }
         if (typeof extensions !== 'object') {
-            con.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
+            _con.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
             throw new TypeError(G.SEE_ABOVE);
         }
 

@@ -31,26 +31,40 @@ function test_code() {
     require(['tinyq_test_base'//, 'tinyq_test'
     ], function (do_test) {
 
-        // var node = _q1('.content-table').get(0);
-        // var html = '<a href="#" class="test"><img alt="null">Test</a>';
-        // do_test('create', 100,
-        //     function () {
-        //         return _q(html, { x: 'test.htm', title: 'test' });
-        //     },
-        //     function () {
-        //         return $(html, { x: 'test.htm', title: 'test' });
-        //     });
+        var a = 0;
+        _time('each')
+        _each(1000000, function () {
+            a++;
+        })
+        _time('each')
+
+        var b = 0;
+        _time('for')
+        for (var i = 0; i < 1000000; ++i) {
+            b++;
+        }
+        _time('for')
+
+        var node = _q1('.content-table').get(0);
+        var html = '<a href="#" class="test"><img alt="null">Test</a>';
+        do_test('create', 100,
+            function () {
+                return _q(html, { x: 'test.htm', title: 'test' });
+            },
+            function () {
+                return $(html, { x: 'test.htm', title: 'test' });
+            });
 
         var nodes = _q('h3').toArray();
-        // var child1 = _q1(html, { _text: 'tinyq' }).toArray();
-        // var child2 = _q1(html, { _text: 'jq' }).toArray();
-        // do_test('node.append', 100,
-        //     function () {
-        //         return _q(node).append(child1);
-        //     },
-        //     function () {
-        //         return $(node).append(child2);
-        //     });
+        var child1 = _q1(html, { _text: 'tinyq' }).toArray();
+        var child2 = _q1(html, { _text: 'jq' }).toArray();
+        do_test('node.append', 100,
+            function () {
+                return _q(node).append(child1);
+            },
+            function () {
+                return $(node).append(child2);
+            });
 
         var html21 = '<a href="#" class="test21"><img alt="null">Test21</a> <b>good21</b>';
         var html22 = '<a href="#" class="test22"><img alt="null">Test22</a> <b>good22</b>';

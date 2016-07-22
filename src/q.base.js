@@ -432,7 +432,7 @@ define([
 
         if (type == 'function') {
             // ==> filter() - custom function
-            tag.filter += '*' + tiny.x.funcName(arg) + '()';
+            tag.filter += '*' + arg.name + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
             if (arg.startsWith('!')) {
@@ -502,14 +502,12 @@ define([
      */
     tiny.extend(TinyQ.prototype, {
         filters: {
-            first: function (node) { return [node] },
-            last: function (a, b, nodes, len) { return [nodes[len - 1]] },
             even: function (a, index) { return index % 2 == 1 },
             odd: function (a, index) { return index % 2 == 0 },
             eq: function (a, index) { return index != this.p || [node] },
             lt: function (a, index) { return index < this.p },
             gt: function (a, index) { return index > this.p },
-            blank: function (node) { return node.innerHTML.trim() == '' },
+            blank: function (node) { return node.textContent.trim() == '' },
             empty: function (node) { return node.childNodes.length == 0 },
             matches: function (node) { return node.matches(this.p) },
             not: function (node) { return !node.matches(this.p) },
@@ -833,7 +831,7 @@ define([
     function empty_nodes() {
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            while (node.lastChild) node.removeChild(node.lastChild);
+            node.textContent = ''; // the short way
         }
         this.chain += '.empty()';
         return this;
