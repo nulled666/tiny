@@ -56,10 +56,9 @@ define([
         // filter
         is: is_node_of_type,
         filter: filter_nodes,
+        not: not_nodes,
 
         // traverse
-        first: get_first,
-        last: get_last,
         parent: get_parent,
         children: get_children,
         closest: get_closest,
@@ -67,14 +66,19 @@ define([
         next: get_next,
 
         // dom manipulate
-        append: add_children_helper,
-        prepend: prepend_node,
+        append: append_child,
+        prepend: prepend_child,
         after: false,
         before: false,
         remove: remove_nodes,
         empty: empty_nodes,
 
-        // node set
+        // node collection access
+        first: get_first,
+        last: get_last,
+        eq: get_one,
+        slice: slice_nodes,
+
         get: function (index) {
             return this.nodes[index]
         },
@@ -92,10 +96,6 @@ define([
         // event -> q.event.js
 
     };
-
-    if ( typeof Symbol === "function" ) {
-        TinyQ.prototype[ Symbol.iterator ] = Array.prototype[ Symbol.iterator ];
-    }
 
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
@@ -177,7 +177,7 @@ define([
             chain = tag.start + tag.obj + tag.end;
         }
 
-        return create_new_tinyq(result, chain);
+        return create_tinyq(result, chain);
 
     }
 
@@ -216,7 +216,7 @@ define([
     /**
      * create a new tinyq instance
      */
-    function create_new_tinyq(nodes, chain) {
+    function create_tinyq(nodes, chain) {
         var q = new TinyQ();
         q.chain = chain;
         q.nodes = nodes;
@@ -255,10 +255,11 @@ define([
      * .q() - query all
      */
     function sub_query_all(selector, mode) {
-        var arr = do_query(this.nodes, selector, mode);
-        var chain = this.chain + (mode == 1) ? '.q1(' : '.q(';
+        var tinyq = this;
+        var arr = do_query(tinyq.nodes, selector, mode);
+        var chain = tinyq.chain + (mode == 1) ? '.q1(' : '.q(';
         chain += ')';
-        return create_new_tinyq(arr, chain);
+        return create_tinyq(arr, chain);
     }
 
     /**
@@ -272,8 +273,9 @@ define([
      * .add() - add items to current tinyQ object
      */
     function add_nodes() {
-        var r = init_q(arguments, null, this.nodes);
-        r.chain = this.chain + r.chain;
+        var tinyq = this;
+        var r = init_q(arguments, null, tinyq.nodes);
+        r.chain = tinyq.chain + r.chain;
         return r;
     }
 
@@ -373,18 +375,33 @@ define([
     }
 
     /**
+     * .not() - remove not match nodes
+     */
+    function not_nodes(selector) {
+        var tinyq = this;
+        var arr = [];
+        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
+            if (node.matches(selector)) continue;
+            arr.push(node);
+        }
+        return create_tinyq(arr, tinyq.chain + '.not(' + selector + ')');
+    }
+
+    /**
      * .filter() - filter items in result set
      */
     function filter_nodes() {
 
+        var tinyq = this;
         var tag = { filter: '' };
 
         var filters = create_filter_list.call(tag, arguments);
         tag = '.filter(' + tag.filter + ')';
         var filter_func = create_filter_executor(filters);
-        var arr = to_array(this.nodes, [], false, filter_func);
+        var arr = to_array(tinyq.nodes, [], false, filter_func);
 
-        return create_new_tinyq(arr, this.chain + tag);
+        return create_tinyq(arr, tinyq.chain + tag);
 
     }
 
@@ -598,32 +615,6 @@ define([
     //////////////////////////////////////////////////////////
 
     /**
-     * Helper function for first(), last()
-     */
-    function get_one_helper(tinyq, type) {
-        var nodes = tinyq.nodes;
-        var node = type == 1 ? nodes[0] : nodes[nodes.length - 1];
-        node = node ? [node] : [];
-        var chain = tinyq.chain + (type == 1 ? '.first()' : '.last()');
-        return create_new_tinyq(node, chain);
-    }
-
-    /**
-     * .first() - get first element as a tinyQ object
-     */
-    function get_first() {
-        return get_one_helper(this, 1);
-    }
-
-    /**
-     * .last() - get last element as a tinyQ object
-     */
-    function get_last() {
-        return get_one_helper(this, 0);
-    }
-
-
-    /**
      * Helper function for batch traversing
      */
     function do_traversal_helper(tinyq, selector, type) {
@@ -667,7 +658,7 @@ define([
             }
         }
 
-        return create_new_tinyq(arr, tinyq.chain + prefix + ')');
+        return create_tinyq(arr, tinyq.chain + prefix + ')');
 
     }
 
@@ -752,6 +743,8 @@ define([
      */
     function add_children_helper(obj, attrs, type) {
 
+        var tinyq = this;
+
         // check parameter
         if (obj && obj.tinyQ) {
             obj = obj.nodes;
@@ -775,13 +768,13 @@ define([
         }
 
         // append child
-        for (var parent_nodes = this.nodes, i = 0, len = parent_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
+        for (var parent_nodes = tinyq.nodes, i = 0, len = parent_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
             var parent = parent_nodes[i];
             if (!is_element(parent)) continue;
             loop(obj, i, end, require_clone && i != end, parent, action);
         }
 
-        return this;
+        return tinyq;
 
     }
 
@@ -807,14 +800,14 @@ define([
     /**
      * TinyQ.append()
      */
-    function append_node(obj, attrs) {
+    function append_child(obj, attrs) {
         return add_children_helper.call(this, obj, attrs, 0);
     }
 
     /**
      * TinyQ.prepend()
      */
-    function prepend_node(obj, attrs) {
+    function prepend_child(obj, attrs) {
         return add_children_helper.call(this, obj, attrs, 1);
     }
 
@@ -825,7 +818,8 @@ define([
 
         selector = typeof selector == 'string' ? selector : false;
 
-        var nodes = this.nodes;
+        var tinyq = this;
+        var nodes = tinyq.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             var parent = node.parentNode;
@@ -833,10 +827,10 @@ define([
             nodes[i] = parent.removeChild(node);
         }
 
-        this.nodes = nodes;
-        this.length = nodes.length;
-        this.chain += '.remove(' + (selector ? selector : '') + ')';
-        return this;
+        tinyq.nodes = nodes;
+        tinyq.length = nodes.length;
+        tinyq.chain += '.remove(' + (selector ? selector : '') + ')';
+        return tinyq;
 
     }
 
@@ -844,14 +838,58 @@ define([
      * Empty all node content
      */
     function empty_nodes() {
-        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+        var tinyq = this;
+        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             node.textContent = ''; // the short way
         }
-        this.chain += '.empty()';
-        return this;
+        tinyq.chain += '.empty()';
+        return tinyq;
     }
 
+
+    //////////////////////////////////////////////////////////
+    // NDOE COLLECTION ACCESS FUNCTIONS
+    //////////////////////////////////////////////////////////
+
+    /**
+     * Helper function for first(), last()
+     */
+    function get_one(index) {
+        if (typeof index != 'number') {
+            throw new TypeError('Expect a number');
+        }
+        var tinyq = this;
+        var nodes = tinyq.nodes;
+        index = index < 0 ? nodes.length + index : index;
+        var node = nodes[index];
+        node = node ? [node] : [];
+        var chain = tinyq.chain + (index == 0 ? '.first()' : index == nodes.length - 1 ? '.last()' : '');
+        return create_tinyq(node, chain);
+    }
+
+    /**
+     * .first() - get first element as a tinyQ object
+     */
+    function get_first() {
+        return get_one.call(this, 0);
+    }
+
+    /**
+     * .last() - get last element as a tinyQ object
+     */
+    function get_last() {
+        return get_one.call(this, -1);
+    }
+
+    /**
+     * .slice() - get a range of nodes
+     */
+    function slice_nodes(start, end) {
+        var tinyq = this;
+        var arr = tinyq.nodes.slice(start, end);
+        return create_tinyq(arr, tinyq.chain + '.slice(' + start + (end != undefined ? ',' + end : '') + ')');
+    }
 
     return TinyQ;
 

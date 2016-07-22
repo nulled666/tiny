@@ -34,8 +34,8 @@ function test_code() {
 
     require([
         'tinyq_test',
-        //'tinyq_test_query',
-        // 'tinyq_test_add'
+        'tinyq_test_query',
+        'tinyq_test_add'
     ], function (do_test) {
 
         function tinyq_get() {
