@@ -449,7 +449,6 @@ define([
         return arr;
     }
 
-
     /**
      * Returns a filter function of given filter type
      */
@@ -486,6 +485,7 @@ define([
 
     }
 
+    // for parsed custom filter tags
     var _CUSTOM_FILTER_CACHE = {};
 
     /**
