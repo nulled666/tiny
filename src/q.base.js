@@ -10,21 +10,10 @@ define([
     //////////////////////////////////////////////////////////
 
     tiny.x.add({
-        q: _q,
-        q1: _q1
+        q: function (obj, param, extra) { return init_q(obj, param, extra) },
+        q1: function (obj, param, extra) { return init_q(obj, param, extra, 1) }
     });
 
-
-    /**
-     * ```        
-     *  _q(html, [,attr])          
-     *  _q(selector)        
-     *  _q(selector, nodes)
-     *  _q(nodes)   
-     * 
-     */
-    function _q(obj, param, extra) { return init_q(obj, param, extra); }
-    function _q1(obj, param, extra) { return init_q(obj, param, extra, 1); }
 
     /**
      * tinyQ constructor
@@ -167,6 +156,7 @@ define([
 
         } else if (is_window(obj)) {
 
+            // ==> (window) for events
             return create_tinyq([window], '[window]');
 
         } else {
