@@ -74,12 +74,13 @@ define([
         remove: remove_nodes,
         empty: empty_nodes,
 
-        // node collection access
+        // collection access
         first: get_first,
         last: get_last,
         eq: get_one,
         slice: slice_nodes,
 
+        // node access
         get: function (index) {
             return this.nodes[index]
         },
