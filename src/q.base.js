@@ -379,36 +379,32 @@ define([
      * .not() - remove not match nodes
      */
     function not_nodes(selector) {
-        var tinyq = this;
-        var arr = [];
-        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
-            if (node.matches(selector)) continue;
-            arr.push(node);
-        }
-        return create_tinyq(arr, tinyq.chain + '.not(' + selector + ')');
+        return do_filter(this, ['@not(' + selector + ')'], 'not');
     }
 
     /**
      * .has() - remove not match nodes
      */
     function has_nodes(selector) {
-        // TODO
+        return do_filter(this, ['@has(' + selector + ')'], 'has');
     }
-
 
     /**
      * .filter() - filter items in result set
      */
     function filter_nodes() {
+        return do_filter(this, arguments, 'filter');
+    }
 
-        var tinyq = this;
+    function do_filter(tinyq, args, method_tag) {
+
         var tag = { filter: '' };
-
-        var filters = create_filter_list.call(tag, arguments);
-        tag = '.filter(' + tag.filter + ')';
+        var filters = create_filter_list.call(tag, args);
         var filter_func = create_filter_executor(filters);
+
         var arr = to_array(tinyq.nodes, [], false, filter_func);
+
+        tag = '.' + method_tag + '(' + tag.filter + ')';
 
         return create_tinyq(arr, tinyq.chain + tag);
 
@@ -468,14 +464,14 @@ define([
             tag.filter += '*' + arg.name + '()';
             list.push([arg, null]);
         } else if (type == 'string') {
-            if (arg.startsWith('!')) {
-                //==> '//filter1(param),filter2' - build-in custom filter
+            if (arg.startsWith('@')) {
+                //==> '@custom' - build-in custom filter
                 tag.filter += arg;
                 arg = arg.substring(1);
                 func = parse_custom_filter_tag(arg);
                 if (func) list.push(func);
             } else {
-                // ==> selector
+                // ==> '@matches()'
                 tag.filter += arg;
                 list.push([TinyQ.filters['matches'], arg]);
             }
@@ -535,29 +531,27 @@ define([
      */
     tiny.extend(TinyQ, {
         filters: {
-            blank: function (node) { return node.textContent.trim() == '' },
-            contains: function (node, i, l, param) { return node.textContent.includes(param) },
-            enabled: function (node) { return !node.disabled },
-            disabled: function (node) { return node.disabled },
-            checked: function (node) { return !!(node.checked) },
-            hidden: function (node) { return !TinyQ.filters.visible(node) },
-            visible: function (node) {
-                return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
-            },
 
             // internal used
-            matches: function (node, i, l, param) { return node.matches(param) },
-            not: function (node, i, l, param) { return !node.matches(param) },
-            has: function (node, i, l, param) { return node.querySelector(param) != null },
+            matches: function (node, i, l, param) { return node.matches(param) }, // css4
+            not: function (node, i, l, param) { return !node.matches(param) }, // css3
+            has: function (node, i, l, param) { return node.querySelector(param) != null }, // css4
+            blank: function (node) { return node.textContent.trim() == '' }, // css4
+
+            // custom filters
+            contains: function (node, i, l, param) { return node.textContent.includes(param) },
+            visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
+            hidden: function (node) { return !TinyQ.filters.visible(node) },
 
             // collection-based extensions
             even: function (n, index) { return index % 2 == 1 },
             odd: function (n, index) { return index % 2 == 0 },
-            nth: function (node, index,l, param) {
+            nth: function (node, index, l, param) {
                 parse_nth_parameter(this, param);
                 return check_nth(index, this.a, this.b, node);
             }
-        },
+
+        }
     })
 
     // helper function for nth & nth-child

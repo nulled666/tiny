@@ -2,6 +2,16 @@ define([
     'tinyq_test'
 ], function (do_test) {
 
+    _warn('query', '--------------------------------')
+
+    do_test('#id', 100,
+        function () {
+            return _q('#content-table');
+        },
+        function () {
+            return $('#content-table');
+        });
+
     do_test('tag', 100,
         function () {
             return _q('span');
@@ -34,14 +44,6 @@ define([
             return $('.run-code .function');
         });
 
-    do_test('#id', 100,
-        function () {
-            return _q('#content-table');
-        },
-        function () {
-            return $('#content-table');
-        });
-
     var node = document.querySelector('.run-code');
     do_test('node', 100,
         function () {
@@ -51,7 +53,7 @@ define([
             return $(node);
         });
 
-    do_test('node.q', 100,
+    do_test('node.q()', 100,
         function () {
             return _q(node).q('.function');
         },
@@ -59,28 +61,12 @@ define([
             return $(node).find('.function');
         });
 
-    do_test('node.q1', 100,
+    do_test('node.q1()', 100,
         function () {
             return _q(node).q1('.function');
         },
         function () {
             return $(node).find('.function').first();
-        });
-
-    var nodelist = document.querySelectorAll('.run-code');
-    do_test('nodelist.q', 100,
-        function () {
-            return _q(nodelist).q('.function');
-        },
-        function () {
-            return $(nodelist).find('.function');
-        });
-    do_test('nodelist.q1', 100,
-        function () {
-            return _q(nodelist).q1('.function');
-        },
-        function () {
-            return $(nodelist).find('.function').first();
         });
 
     var nodelist = document.querySelectorAll('.token');
@@ -92,7 +78,37 @@ define([
             return $(nodelist);
         });
 
-    do_test('filter.function', 50,
+    var nodelist = document.querySelectorAll('.run-code');
+    do_test('nodelist.q()', 100,
+        function () {
+            return _q(nodelist).q('.function');
+        },
+        function () {
+            return $(nodelist).find('.function');
+        });
+    do_test('nodelist.q1()', 100,
+        function () {
+            return _q(nodelist).q1('.function');
+        },
+        function () {
+            return $(nodelist).find('.function').first();
+        });
+
+
+
+    _warn('filter', '--------------------------------')
+
+    var nodelist = document.querySelectorAll('.token');
+
+    do_test('.is()', 50,
+        function () {
+            return _q(nodelist).is('.function');
+        },
+        function () {
+            return $(nodelist).is('.function');
+        });
+
+    do_test('.filter()', 50,
         function () {
             return _q(nodelist).filter('.function');
         },
@@ -100,21 +116,41 @@ define([
             return $(nodelist).filter('.function');
         });
 
-    do_test('filter:contains', 50,
+    do_test('.not()', 50,
         function () {
-            return _q(nodelist).filter('!contains(ASSERT)');
+            return _q(nodelist).not('.function');
+        },
+        function () {
+            return $(nodelist).not('.function');
+        });
+
+    var nodelist = document.querySelectorAll('code');
+    do_test('.has()', 50,
+        function () {
+            return _q(nodelist).has('.comment');
+        },
+        function () {
+            return $(nodelist).has('.comment');
+        });
+
+    do_test('.filter(@contains)', 50,
+        function () {
+            return _q(nodelist).filter('@contains(ASSERT)');
         },
         function () {
             return $(nodelist).filter(':contains(ASSERT)');
         });
 
-    do_test('filter:even', 50,
+    do_test('.filter(@even)', 50,
         function () {
-            return _q(nodelist).filter('!even');
+            return _q(nodelist).filter('@even');
         },
         function () {
             return $(nodelist).filter(':odd');
         });
+
+
+    _warn('collection', '--------------------------------')
 
     do_test('eq', 100,
         function () {
@@ -147,6 +183,16 @@ define([
         function () {
             return $(nodelist).slice(10, -5);
         });
+
+    do_test('toArray', 100,
+        function () {
+            return _q('.run-code').toArray();
+        },
+        function () {
+            return $('.run-code').toArray();
+        });
+
+    _warn('traverse', '--------------------------------')
 
     do_test('parent', 50,
         function () {
@@ -189,11 +235,4 @@ define([
             return $(nodelist).next('.function');
         });
 
-    do_test('toArray', 100,
-        function () {
-            return _q('.run-code').toArray();
-        },
-        function () {
-            return $('.run-code').toArray();
-        });
 })
