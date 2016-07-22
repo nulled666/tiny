@@ -116,6 +116,14 @@ define([
             return $(nodelist).filter(':odd');
         });
 
+    do_test('eq', 100,
+        function () {
+            return _q(nodelist).eq(10);
+        },
+        function () {
+            return $(nodelist).eq(10);
+        });
+
     do_test('first', 100,
         function () {
             return _q(nodelist).first();
@@ -130,6 +138,14 @@ define([
         },
         function () {
             return $(nodelist).last();
+        });
+
+    do_test('slice', 100,
+        function () {
+            return _q(nodelist).slice(10, -5);
+        },
+        function () {
+            return $(nodelist).slice(10, -5);
         });
 
     do_test('parent', 50,

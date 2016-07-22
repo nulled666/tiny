@@ -544,11 +544,13 @@ define([
             visible: function (node) {
                 return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length)
             },
+
             // internal used
             matches: function (node, i, l, param) { return node.matches(param) },
             not: function (node, i, l, param) { return !node.matches(param) },
             has: function (node, i, l, param) { return node.querySelector(param) != null },
-            // extensions
+
+            // collection-based extensions
             even: function (n, index) { return index % 2 == 1 },
             odd: function (n, index) { return index % 2 == 0 },
             nth: function (node, index,l, param) {
