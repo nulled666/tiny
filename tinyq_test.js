@@ -13,7 +13,7 @@ define(function () {
         var t2 = _time('time002', false);
         var color = t1 < t2 ? 'color: #090' : 'color: #900';
 
-        var xl = x != false && x.length != undefined ? x.length : x;
+        var xl = x == false ? false : x.length || x.count || x;
         var yl = y != false && y.length != undefined ? y.length : y;
 
         _log('%c' + tag + ' >', color, t1.toFixed(3), ':', t2.toFixed(3), '(' + xl + '/' + yl + ')', xl == yl);

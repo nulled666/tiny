@@ -21,7 +21,7 @@ define([
     var TinyQ = function (nodes, chain) {
         this.chain = chain;
         this.nodes = nodes;
-        this.length = nodes.length;
+        this.count = nodes.length;
         return this;
     };
 
@@ -41,7 +41,7 @@ define([
 
         // properties
         nodes: [],
-        length: 0,
+        count: 0,
         chain: '',
 
         // query
@@ -73,21 +73,13 @@ define([
         // collection access
         first: get_first,
         last: get_last,
-        eq: get_one,
+        get: get_one,
         slice: slice_nodes,
 
         // node access
-        get: function (index) {
-            return this.nodes[index]
-        },
-        toArray: function () {
-            return to_array(this.nodes)
-        },
-        each: function (func, this_arg) {
-            for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-                func.call(this_arg, nodes[i], i, nodes);
-            }
-        }
+        toArray: function () { return to_array(this.nodes) },
+        each: each_operation,
+        eachNode: each_node
 
         // properties -> q.prop.js
 
@@ -156,8 +148,8 @@ define([
 
         } else if (is_window(obj)) {
 
-            // ==> (window) for events
-            return create_tinyq([window], '[window]');
+            // ==> (window) for events - use empty nodes
+            return create_tinyq([], '[window]');
 
         } else {
 
@@ -243,11 +235,17 @@ define([
      * .q() - query all
      */
     function sub_query_all(selector, mode) {
+
         var tinyq = this;
-        var arr = do_query(tinyq.nodes, selector, mode);
-        var chain = tinyq.chain + (mode == 1) ? '.q1(' : '.q(';
-        chain += ')';
+
+        var nodes = tinyq.nodes;
+        if (nodes.length == 0) nodes = [document];
+
+        var arr = do_query(nodes, selector, mode);
+
+        var chain = tinyq.chain + (mode == 1 ? '.q1(' : '.q(') + selector + ')';
         return create_tinyq(arr, chain);
+
     }
 
     /**
@@ -255,31 +253,6 @@ define([
      */
     function sub_query_one(selector) {
         return sub_query_all.call(this, selector, 1);
-    }
-
-    /**
-     * .add() - add items to current tinyQ object
-     */
-    function add_nodes(selector, param) {
-        var tinyq = this;
-        var r = init_q(selector, param, null, 0, tinyq.nodes);
-        r.nodes.sort(compare_node_position);
-        r.chain = tinyq.chain + r.chain;
-        return r;
-    }
-
-    /**
-     * a helper for determine node order
-     */
-    function compare_node_position(a, b) {
-        var a_check = is_element(a);
-        var b_check = is_element(b);
-        if (!a_check) return b_check ? -1 : 0;
-        if (!b_check) return 1;
-        var r = a.compareDocumentPosition(b);
-        if (r == 2 || r == 8) return 1;
-        if (r == 4 || r == 16) return -1;
-        return 0;
     }
 
     /**
@@ -360,6 +333,32 @@ define([
 
         return base;
 
+    }
+
+
+    /**
+     * .add() - add items to current tinyQ object
+     */
+    function add_nodes(selector, param) {
+        var tinyq = this;
+        var r = init_q(selector, param, null, 0, tinyq.nodes);
+        r.nodes.sort(compare_node_position);
+        r.chain = tinyq.chain + r.chain;
+        return r;
+    }
+
+    /**
+     * a helper for determine node order
+     */
+    function compare_node_position(a, b) {
+        var a_check = is_element(a);
+        var b_check = is_element(b);
+        if (!a_check) return b_check ? -1 : 0;
+        if (!b_check) return 1;
+        var r = a.compareDocumentPosition(b);
+        if (r == 2 || r == 8) return 1;
+        if (r == 4 || r == 16) return -1;
+        return 0;
     }
 
 
@@ -543,62 +542,10 @@ define([
             // custom filters
             contains: function (node, i, l, param) { return node.textContent.includes(param) },
             visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
-            hidden: function (node) { return !TinyQ.filters.visible(node) },
-
-            // collection-based extensions
-            even: function (n, index) { return index % 2 == 1 },
-            odd: function (n, index) { return index % 2 == 0 },
-            nth: function (node, index, l, param) {
-                parse_nth_parameter(this, param);
-                return check_nth(index, this.a, this.b, node);
-            }
+            hidden: function (node) { return !TinyQ.filters.visible(node) }
 
         }
-    })
-
-    // helper function for nth & nth-child
-    function get_nth_index(node) {
-        if (!node.parentElement) return -1;
-        for (var children = node.parentElement.children, i = 0, len = children.length; i < len; ++i) {
-            if (children[i] == node) return i;
-        }
-        return -1;
-    }
-
-    function parse_nth_parameter(obj, param) {
-
-        if (obj.parsed) return;
-
-        if (!param) throw new TypeError('nth(an+b) requires a parameter.');
-
-        var a, b, p = param;
-        if (typeof p == 'number') {
-            a = 0, b = p;
-        } else {
-            p = p.split('n');
-            if (p.length != 2) throw new SyntaxError('Invalid nth(an+b) filter parameter: ' + this.p);
-            a = p[0] == '' ? 1 : parseInt(p[0]), b = p[1] == '' ? 0 : parseInt(p[1]);
-            if (isNaN(a + b)) throw new SyntaxError('a and b in nth(an+b) must be integer. ' + this.p);
-        }
-
-        obj.a = a, obj.b = b;
-        obj.parsed = true;
-
-    }
-
-    // helper function for nth & nth-child
-    function check_nth(index, a, b, node) {
-
-        if (index < 0) return false;
-
-        var i = index - b + 1;
-        if (a == 0 && i == 0) return [node];
-        if (i % a != 0) return false;
-        if (i / a < 0) return false;
-
-        return true;
-
-    }
+    });
 
 
     //////////////////////////////////////////////////////////
@@ -851,14 +798,19 @@ define([
      * Helper function for first(), last()
      */
     function get_one(index) {
+
         if (typeof index != 'number') {
             throw new TypeError('Expect a number');
         }
+
         var tinyq = this;
         var nodes = tinyq.nodes;
+
         index = index < 0 ? nodes.length + index : index;
+        
         var node = nodes[index];
         node = node ? [node] : [];
+
         var chain = tinyq.chain + (index == 0 ? '.first()' : index == nodes.length - 1 ? '.last()' : '');
         return create_tinyq(node, chain);
     }
@@ -885,6 +837,27 @@ define([
         var arr = tinyq.nodes.slice(start, end);
         return create_tinyq(arr, tinyq.chain + '.slice(' + start + (end != undefined ? ',' + end : '') + ')');
     }
+
+    /**
+     * .each() - loop through nodes as TinyQ object
+     */
+    function each_operation(func, this_arg, node_mode) {
+        var tinyq = this;
+        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i]
+            if (node_mode) node = create_tinyq([node], tinyq.chain + '.get(' + i + ')');
+            func.call(this_arg, node, i, nodes);
+        }
+        return tinyq;
+    }
+
+    /**
+     * .eachNode() - loop through nodes
+     */
+    function each_node(func, this_arg) {
+        return each_operation.call(this, func, this_arg, true);
+    }
+
 
     return TinyQ;
 

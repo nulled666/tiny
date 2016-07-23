@@ -166,20 +166,20 @@ define([
             return $(nodelist).filter(':contains(ASSERT)');
         });
 
-    do_test('.filter(@even)', 500,
+    do_test('.filter(@visible)', 500,
         function () {
-            return _q(nodelist).filter('@even');
+            return _q(nodelist).filter('@visible');
         },
         function () {
-            return $(nodelist).filter(':odd');
+            return $(nodelist).filter(':visible');
         });
 
 
     _warn('collection', '--------------------------------')
 
-    do_test('eq', 1000,
+    do_test('get', 1000,
         function () {
-            return _q(nodelist).eq(10);
+            return _q(nodelist).get(10);
         },
         function () {
             return $(nodelist).eq(10);
@@ -215,6 +215,14 @@ define([
         },
         function () {
             return $('.run-code').toArray();
+        });
+
+    do_test('each', 100,
+        function () {
+            return _q('.run-code').each(function(){});
+        },
+        function () {
+            return $('.run-code').each(function(){});
         });
 
     _warn('traverse', '--------------------------------')
@@ -261,13 +269,11 @@ define([
         });
 
 
-
-
     _warn('manipulate', '--------------------------------')
 
     var html = '<a href="#" class="test"><img alt="null">Test</a>';
 
-    var node = _q1('.content-table').get(0);
+    var node = _q('#content-table').nodes[0];
     var nodes = _q('h3').toArray();
     var child1 = _q1(html, { _text: 'tinyq' }).toArray();
     var child2 = _q1(html, { _text: 'jq' }).toArray();
