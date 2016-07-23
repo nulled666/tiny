@@ -217,12 +217,20 @@ define([
             return $('.run-code').toArray();
         });
 
-    do_test('each', 100,
+    do_test('eachNode()', 100,
         function () {
-            return _q('.run-code').each(function(){});
+            return _q('.run-code').each(function (node) { });
         },
         function () {
-            return $('.run-code').each(function(){});
+            return $('.run-code').each(function (i, elem) { });
+        });
+
+    do_test('each()', 100,
+        function () {
+            return _q('.run-code').each(function (obj) { });
+        },
+        function () {
+            return $('.run-code').each(function (i, elem) { elem = $(elem) });
         });
 
     _warn('traverse', '--------------------------------')

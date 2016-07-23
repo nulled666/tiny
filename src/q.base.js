@@ -77,9 +77,9 @@ define([
         slice: slice_nodes,
 
         // node access
+        each: each_tinyq,
+        eachNode: each_operation,
         toArray: function () { return to_array(this.nodes) },
-        each: each_operation,
-        eachNode: each_node
 
         // properties -> q.prop.js
 
@@ -839,22 +839,22 @@ define([
     }
 
     /**
-     * .each() - loop through nodes as TinyQ object
+     * .eachNode() - loop through nodes as TinyQ object
      */
-    function each_operation(func, this_arg, node_mode) {
+    function each_operation(func, this_arg, wrap_object) {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i]
-            if (node_mode) node = create_tinyq([node], tinyq.chain + '.get(' + i + ')');
+            if (wrap_object) node = create_tinyq([node], tinyq.chain + '.get(' + i + ')');
             func.call(this_arg, node, i, nodes);
         }
         return tinyq;
     }
 
     /**
-     * .eachNode() - loop through nodes
+     * .each() - loop through nodes
      */
-    function each_node(func, this_arg) {
+    function each_tinyq(func, this_arg) {
         return each_operation.call(this, func, this_arg, true);
     }
 
