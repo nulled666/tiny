@@ -514,13 +514,13 @@ define([
     tiny.extend(TinyQ, {
         filters: {
 
-            // css 4 helper
-            'matches': function (node, i, l, param) { return node.matches(param) },
-            'has': function (node, i, l, param) { return node.querySelector(param) != null },
-            'blank': function (node) { return node.textContent.trim() == '' },
+            // css pseudo-class helper
+            matches: function (node, i, l, param) { return node.matches(param) }, // css4
+            has: function (node, i, l, param) { return node.querySelector(param) != null }, // css4
+            blank: function (node) { return node.textContent.trim() == '' }, // css4
+            contains: function (node, i, l, param) { return node.textContent.includes(param) }, // css3 - removed
 
             // custom filters
-            contains: function (node, i, l, param) { return node.textContent.includes(param) },
             visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
             hidden: function (node) { return !TinyQ.filters.visible(node) }
 
