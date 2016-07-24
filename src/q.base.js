@@ -416,9 +416,7 @@ define([
      */
     function create_filter_executor(filters) {
         if (!filters) return false;
-        return function (node, index, list, this_arg) {
-            return filter_list_executor.call(filters, node, index, list, this_arg);
-        }
+        return filter_list_executor.bind(filters);
     }
 
     /**
@@ -581,7 +579,7 @@ define([
 
         // generate a unique operation id for duplicate-check
         var opid = tiny.guid();
-        var filter = selector ? create_traversal_match_filter(selector) : false;
+        var filter = selector ? traversal_match_filter.bind(selector) : false;
 
         // do the work
         var arr = [];
@@ -624,16 +622,7 @@ define([
     }
     function get_prev_func(node) { return node.previousElementSibling; }
     function get_next_func(node) { return node.nextElementSibling; }
-
-    function create_traversal_match_filter(selector) {
-        return function (node) {
-            return traversal_match_filter.call(selector, node);
-        }
-    }
-
-    function traversal_match_filter(node) {
-        return node.matches(this);
-    }
+    function traversal_match_filter(node) { return node.matches(this); }
 
     /**
      * .parent() - get parentElement
@@ -807,7 +796,7 @@ define([
         var nodes = tinyq.nodes;
 
         index = index < 0 ? nodes.length + index : index;
-        
+
         var node = nodes[index];
         node = node ? [node] : [];
 
