@@ -9,19 +9,20 @@ define([
     // TINY BASE OBJECT
     //////////////////////////////////////////////////////////
 
-    var tiny = {};
+    var _tiny = {};
     var _prototype_extensions = [];
+    var _global_prefix = '_';
+
+    // skip this method when export to global namespace
+    var SKIP_GLOBAL = ',x,import,me,verbose,';
 
     // a quick reference to console object
     var _con = console;
 
-    // skip this method when export to global namespace
-    var SKIP_GLOBAL = ',x,consts,import,me,verbose,';
-
     // extend the tiny object
     add_to_tiny({
 
-        import: inject_globals,
+        import: import_globals,
         me: show_tiny_definition,
 
         type: _type,
@@ -57,7 +58,7 @@ define([
         if (obj && obj.length) {
             _prototype_extensions = _prototype_extensions.concat(obj);
         } else {
-            tiny = _extend(tiny, obj);
+            _tiny = _extend(_tiny, obj);
         }
 
     }
@@ -66,7 +67,9 @@ define([
     /**
     * Register functions to G namespace
     */
-    function inject_globals() {
+    function import_globals(prefix) {
+
+        if (typeof prefix == 'string') _global_prefix = prefix;
 
         G.GLOBAL_INJECTED = true;
 
@@ -78,16 +81,16 @@ define([
         }
 
         // inject G functions
-        _each(tiny, function (item, label) {
+        _each(_tiny, function (item, label) {
 
             if (SKIP_GLOBAL.includes(label)) return;
 
-            if (win['_' + label] !== undefined) {
-                _con.error(G.TAG_TINY, 'global function name already taken : ', '_' + label);
+            if (win[_global_prefix + label] !== undefined) {
+                _con.error(G.TAG_TINY, 'global function name already taken : ', _global_prefix + label);
                 throw new Error(G.SEE_ABOVE);
             }
 
-            win['_' + label] = item;
+            win[_global_prefix + label] = item;
 
         });
 
@@ -113,21 +116,21 @@ define([
     function show_tiny_definition() {
 
         // show the namespace
-        _con.info('tiny = ' + _inspect(tiny, ['x'], false));
+        _con.info('tiny = ' + _inspect(_tiny, ['x'], false));
 
         // show global objects
         if (G.GLOBAL_INJECTED !== true) return;
 
         var win = window;
         var result = 'Injected global objects:';
-        _each(tiny, function (item, label) {
+        _each(_tiny, function (item, label) {
 
             if (SKIP_GLOBAL.includes(label)) return;
 
-            var value = win['_' + label];
+            var value = win[_global_prefix + label];
             value = _inspect(value, false);
 
-            result += '\n_' + label + ' = ' + value;
+            result += '\n' + _global_prefix + label + ' = ' + value;
         });
         _con.info(result);
 
@@ -346,7 +349,7 @@ define([
         return arr;
 
     }
-    
+
 
     /**
      * A simple guid generator
@@ -422,6 +425,6 @@ define([
 
     }
 
-    return tiny;
+    return _tiny;
 
 });
