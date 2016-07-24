@@ -141,18 +141,10 @@ define([
             return $(nodelist).filter('.function');
         });
 
-    do_test('.not()', 50,
-        function () {
-            return _q(nodelist).not('.function');
-        },
-        function () {
-            return $(nodelist).not('.function');
-        });
-
     var nodelist = document.querySelectorAll('code');
-    do_test('.has()', 50,
+    do_test('.filter(@has)', 50,
         function () {
-            return _q(nodelist).has('.comment');
+            return _q(nodelist).filter('@has(.comment)');
         },
         function () {
             return $(nodelist).has('.comment');

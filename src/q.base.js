@@ -52,8 +52,6 @@ define([
         // filter
         is: is_node_of_type,
         filter: filter_nodes,
-        not: exclude_nodes,
-        has: node_contains,
 
         // traverse
         parent: get_parent,
@@ -374,19 +372,6 @@ define([
         return true;
     }
 
-    /**
-     * .not() - remove not match nodes
-     */
-    function exclude_nodes(selector) {
-        return do_filter(this, ['@not(' + selector + ')'], 'not');
-    }
-
-    /**
-     * .has() - remove not match nodes
-     */
-    function node_contains(selector) {
-        return do_filter(this, ['@has(' + selector + ')'], 'has');
-    }
 
     /**
      * .filter() - filter items in result set
@@ -529,11 +514,10 @@ define([
     tiny.extend(TinyQ, {
         filters: {
 
-            // internal used
-            matches: function (node, i, l, param) { return node.matches(param) }, // css4
-            not: function (node, i, l, param) { return !node.matches(param) }, // css3
-            has: function (node, i, l, param) { return node.querySelector(param) != null }, // css4
-            blank: function (node) { return node.textContent.trim() == '' }, // css4
+            // css 4 helper
+            'matches': function (node, i, l, param) { return node.matches(param) },
+            'has': function (node, i, l, param) { return node.querySelector(param) != null },
+            'blank': function (node) { return node.textContent.trim() == '' },
 
             // custom filters
             contains: function (node, i, l, param) { return node.textContent.includes(param) },
