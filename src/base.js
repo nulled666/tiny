@@ -170,6 +170,7 @@ define([
             } else if (obj.nodeType == 1 && obj.nodeType == 9) {
                 type = 'Element';
             } else {
+                // this is slow
                 var tmp = Object.prototype.toString.call(obj);
                 type = TYPE_CACHE[tmp];
                 if (!type) {
@@ -323,6 +324,7 @@ define([
 
     }
 
+
     /**
      * Convert Array-like object into Array
      */
@@ -344,6 +346,7 @@ define([
         return arr;
 
     }
+    
 
     /**
      * A simple guid generator

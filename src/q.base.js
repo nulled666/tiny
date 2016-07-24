@@ -52,8 +52,8 @@ define([
         // filter
         is: is_node_of_type,
         filter: filter_nodes,
-        not: not_nodes,
-        has: has_nodes,
+        not: exclude_nodes,
+        has: node_contains,
 
         // traverse
         parent: get_parent,
@@ -379,14 +379,14 @@ define([
     /**
      * .not() - remove not match nodes
      */
-    function not_nodes(selector) {
+    function exclude_nodes(selector) {
         return do_filter(this, ['@not(' + selector + ')'], 'not');
     }
 
     /**
      * .has() - remove not match nodes
      */
-    function has_nodes(selector) {
+    function node_contains(selector) {
         return do_filter(this, ['@has(' + selector + ')'], 'has');
     }
 
