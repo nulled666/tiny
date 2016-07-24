@@ -518,7 +518,7 @@ define([
             matches: function (node, i, l, param) { return node.matches(param) }, // css4
             has: function (node, i, l, param) { return node.querySelector(param) != null }, // css4
             blank: function (node) { return node.textContent.trim() == '' }, // css4
-            contains: function (node, i, l, param) { return node.textContent.includes(param) }, // css3 - removed
+            contains: function (node, i, l, param) { return node.textContent.includes(param) }, // css3 (removed from spec by unknown reason)
 
             // custom filters
             visible: function (node) { return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length) },
