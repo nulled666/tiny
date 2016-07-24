@@ -65,20 +65,18 @@ define([
         // dom manipulate
         append: append_child,
         prepend: prepend_child,
-        after: false,
-        before: false,
-        remove: remove_nodes,
-        empty: empty_nodes,
+        after: insert_after_this,
+        before: insert_before_this,
+        remove: remove_node,
+        empty: empty_node,
 
         // collection access
         first: get_first,
         last: get_last,
-        get: get_one,
-        slice: slice_nodes,
-
-        // node access
-        each: each_tinyq,
-        eachNode: each_operation,
+        get: get_by_index,
+        slice: get_by_slice,
+        each: each_q,
+        eachNode: each_node,
         toArray: function () { return to_array(this.nodes) },
 
         // properties -> q.prop.js
@@ -670,6 +668,34 @@ define([
     //////////////////////////////////////////////////////////
 
     /**
+     * .append() obj /////////////////////////////////
+     */
+    function append_child(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 0);
+    }
+
+    /**
+     * .prepend() obj /////////////////////////////////
+     */
+    function prepend_child(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 1);
+    }
+
+    /**
+     * .after() insert obj after this /////////////////////////////////
+     */
+    function insert_after_this(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 2);
+    }
+
+    /**
+     * .before() insert obj before this /////////////////////////////////
+     */
+    function insert_before_this(obj, attrs) {
+        return add_children_helper.call(this, obj, attrs, 3);
+    }
+
+    /**
      * Add children to nodes
      */
     function add_children_helper(obj, attrs, type) {
@@ -696,27 +722,31 @@ define([
         if (type == 1) {
             action = node_prepend_func;
             loop = backward_loop_func;
+        } else if (type == 2) {
+            action = node_insert_after_func;
+        } else if (type == 3) {
+            action = node_insert_before_func;
+            loop = backward_loop_func;
         }
 
         // append child
-        for (var parent_nodes = tinyq.nodes, i = 0, len = parent_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
-            var parent = parent_nodes[i];
-            if (!is_element(parent)) continue;
-            loop(obj, i, end, require_clone && i != end, parent, action);
+        for (var this_nodes = tinyq.nodes, i = 0, len = this_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
+            var this_node = this_nodes[i];
+            if (!is_element(this_node)) continue;
+            loop(obj, i, end, require_clone && i != end, this_node, action);
         }
 
         return tinyq;
 
     }
 
-    function forward_loop_func(obj, i, end, need_clone, parent, action) {
+    function forward_loop_func(obj, i, end, need_clone, this_node, action) {
         for (var j = 0, j_len = obj.length; j < j_len; ++j) {
             var node = obj[j];
             if (need_clone) node = node.cloneNode(true);
-            action(parent, node);
+            action(this_node, node);
         }
     }
-
     function backward_loop_func(obj, i, end, need_clone, parent, action) {
         for (var j = obj.length - 1; j > -1; --j) {
             var node = obj[j];
@@ -727,25 +757,20 @@ define([
 
     function node_append_func(parent, node) { parent.appendChild(node); }
     function node_prepend_func(parent, node) { parent.insertBefore(node, parent.lastChild); }
-
-    /**
-     * TinyQ.append()
-     */
-    function append_child(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 0);
+    function node_insert_before_func(this_node, node) {
+        var parent = this_node.parentElement;
+        if (parent) parent.insertBefore(node, this_node);
+    }
+    function node_insert_after_func(this_node, node) {
+        var parent = this_node.parentElement;
+        if (parent) parent.insertBefore(node, this_node.nextSibling);
     }
 
-    /**
-     * TinyQ.prepend()
-     */
-    function prepend_child(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 1);
-    }
 
     /**
-     * remove given node
+     * .remove() node /////////////////////////////////
      */
-    function remove_nodes(selector) {
+    function remove_node(selector) {
 
         selector = typeof selector == 'string' ? selector : false;
 
@@ -765,10 +790,11 @@ define([
 
     }
 
+
     /**
-     * Empty all node content
+     * .empty() node content & children /////////////////////////////////
      */
-    function empty_nodes() {
+    function empty_node() {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
@@ -786,7 +812,7 @@ define([
     /**
      * Helper function for first(), last()
      */
-    function get_one(index) {
+    function get_by_index(index) {
 
         if (typeof index != 'number') {
             throw new TypeError('Expect a number');
@@ -808,20 +834,20 @@ define([
      * .first() - get first element as a tinyQ object
      */
     function get_first() {
-        return get_one.call(this, 0);
+        return get_by_index.call(this, 0);
     }
 
     /**
      * .last() - get last element as a tinyQ object
      */
     function get_last() {
-        return get_one.call(this, -1);
+        return get_by_index.call(this, -1);
     }
 
     /**
      * .slice() - get a range of nodes
      */
-    function slice_nodes(start, end) {
+    function get_by_slice(start, end) {
         var tinyq = this;
         var arr = tinyq.nodes.slice(start, end);
         return create_tinyq(arr, tinyq.chain + '.slice(' + start + (end != undefined ? ',' + end : '') + ')');
@@ -830,7 +856,7 @@ define([
     /**
      * .eachNode() - loop through nodes as TinyQ object
      */
-    function each_operation(func, this_arg, wrap_object) {
+    function each_node(func, this_arg, wrap_object) {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i]
@@ -843,8 +869,8 @@ define([
     /**
      * .each() - loop through nodes
      */
-    function each_tinyq(func, this_arg) {
-        return each_operation.call(this, func, this_arg, true);
+    function each_q(func, this_arg) {
+        return each_node.call(this, func, this_arg, true);
     }
 
 

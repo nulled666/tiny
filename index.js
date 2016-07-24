@@ -34,12 +34,12 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_base',
+        //'tinyq_test_base',
     ], function (do_test) {
 
         _warn('---------')
 
-        var nodes = document.querySelectorAll('.token');
+        var nodes = document.querySelectorAll('h3');
         do_test('add(.selector)', 10,
             function () {
                 return _q(nodes);
