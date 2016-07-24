@@ -671,34 +671,34 @@ define([
      * .append() obj /////////////////////////////////
      */
     function append_child(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 0);
+        return add_nodes_helper.call(this, obj, attrs, 0);
     }
 
     /**
      * .prepend() obj /////////////////////////////////
      */
     function prepend_child(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 1);
+        return add_nodes_helper.call(this, obj, attrs, 1);
     }
 
     /**
      * .after() insert obj after this /////////////////////////////////
      */
     function insert_after_this(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 2);
+        return add_nodes_helper.call(this, obj, attrs, 2);
     }
 
     /**
      * .before() insert obj before this /////////////////////////////////
      */
     function insert_before_this(obj, attrs) {
-        return add_children_helper.call(this, obj, attrs, 3);
+        return add_nodes_helper.call(this, obj, attrs, 3);
     }
 
     /**
      * Add children to nodes
      */
-    function add_children_helper(obj, attrs, type) {
+    function add_nodes_helper(obj, attrs, type) {
 
         var tinyq = this;
 
@@ -724,9 +724,9 @@ define([
             loop = backward_loop_func;
         } else if (type == 2) {
             action = node_insert_after_func;
+            loop = backward_loop_func;
         } else if (type == 3) {
             action = node_insert_before_func;
-            loop = backward_loop_func;
         }
 
         // append child

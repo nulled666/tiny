@@ -285,7 +285,7 @@ define([
     var nodes = _q('h3').toArray();
     var child1 = _q1(html, { _text: 'tinyq' }).toArray();
     var child2 = _q1(html, { _text: 'jq' }).toArray();
-    do_test('node.append', 500,
+    do_test('node.append(node)', 500,
         function () {
             return _q(node).append(child1);
         },
@@ -293,9 +293,9 @@ define([
             return $(node).append(child2);
         });
 
-    var html21 = '<a href="#" class="test21"><img alt="null">Test21</a> <b>good21</b>';
-    var html22 = '<a href="#" class="test22"><img alt="null">Test22</a> <b>good22</b>';
-    do_test('nodes.append:html', 100,
+    var html21 = '<a href="#" class="test21"><img alt="21">q21</a> <b>q21</b>';
+    var html22 = '<a href="#" class="test22"><img alt="22">jquery22</a> <b>jquery22</b>';
+    do_test('nodes.append(html)', 100,
         function () {
             return _q(nodes).append(html21);
         },
@@ -330,9 +330,9 @@ define([
             return $(nodes2).remove();
         });
 
-    var html31 = '<a href="#" class="test3-1"><img alt="null">Test3-1</a><b class="b1">good1</b>';
-    var html32 = '<a href="#" class="test3-2"><img alt="null">Test3-2</a><b class="b2">good2</b>';
-    do_test('nodes.prepend:html', 100,
+    var html31 = '<a href="#" class="test31"><img alt="31">q31</a> <b class="b31">q31</b>';
+    var html32 = '<a href="#" class="test32"><img alt="32">jquery32</a> <b class="b32">jquery32</b>';
+    do_test('nodes.prepend(html)', 100,
         function () {
             return _q(nodes).prepend(html31);
         },
@@ -340,12 +340,33 @@ define([
             return $(nodes).prepend(html32);
         });
 
-    do_test('remove', 1,
+    _q('h3 > .test31, h3 > .b31').remove();
+    $('h3 > .test32, h3 > .b32').remove();
+
+    var html41 = '<a href="#" class="test41"><img alt="41">q41</a> <b class="b41">q41</b>';
+    var html42 = '<a href="#" class="test42"><img alt="42">jquery42</a> <b class="b42">jquery42</b>';
+    do_test('before()', 100,
         function () {
-            return _q('h3 > .test3-1, h3 > .b1').remove();
+            return _q(nodes).before(html41);
         },
         function () {
-            return $('h3 > .test3-2, h3 > .b2').remove();
+            return $(nodes).before(html42);
         });
+
+    _q('.test41, .b41').remove();
+    $('.test42,.b42').remove();
+
+    var html51 = '<a href="#" class="test51"><img alt="51">q51</a> <b class="b51">q51</b>';
+    var html52 = '<a href="#" class="test52"><img alt="52">jquery52</a> <b class="b52">jquery52</b>';
+    do_test('after()', 100,
+        function () {
+            return _q(nodes).after(html51);
+        },
+        function () {
+            return $(nodes).after(html52);
+        });
+
+    _q('.test51, .b51').remove();
+    $('.test52, .b52').remove();
 
 })
