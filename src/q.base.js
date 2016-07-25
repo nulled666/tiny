@@ -265,8 +265,9 @@ define([
         selector = selector.trim();
         if (/^\#([\w-]+)$/.test(selector)) {
             selector = selector.replace('#', '');
-            action = do_get_by_id;
-            query_mode = 1;
+            var r = document.getElementById(selector);
+            if (r) result.push(r);
+            return result;
         } else if (/^\.([\w-.]+)\w$/.test(selector)) {
             selector = selector.replace(/\./g, ' ');
             action = do_get_by_class;
@@ -290,11 +291,6 @@ define([
 
     function do_query_all(node, selector) {
         return node.querySelectorAll(selector);
-    }
-    function do_get_by_id(node, selector) {
-        var r = node.getElementById(selector);
-        if (r) r = [r];
-        return r;
     }
     function do_get_by_tag(node, selector) {
         return node.getElementsByTagName(selector);
