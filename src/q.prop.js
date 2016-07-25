@@ -10,13 +10,18 @@ define([
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
-        class: process_class,
-        style: false,
+
+        text: access_text,
+        html: access_html,
+
         attr: access_attribute,
         prop: access_property,
-        text: access_text,
+        class: process_class,
+        style: access_style,
+
         position: access_position,
         offset: access_offset
+
     });
 
     tiny.extend(TinyQ.x, {
@@ -24,6 +29,97 @@ define([
     });
 
 
+    //////////////////////////////////////////////////////////
+    // TEXT CONTENT & HTML
+    //////////////////////////////////////////////////////////
+    /**
+     * .text()
+     */
+    function access_text(value) {
+        var nodes = this.nodes;
+
+        if (nodes.length < 1) return '';
+
+        if (value == undefined) {
+
+            var text = '';
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                text += nodes[i].innerText;
+            }
+
+            return text;
+
+        } else {
+
+        }
+
+
+    }
+
+
+    /**
+     * .html()
+     */
+    function access_html(value) {
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // ATTRIBUTES
+    //////////////////////////////////////////////////////////
+    /**
+     * TinyQ.attr()
+     */
+    function access_attribute(attr, value) {
+
+        if (this.nodes.length < 1) return;
+
+        if (value == undefined) {
+            return this.nodes[0].getAttribute(attr);
+        } else {
+
+        }
+
+    }
+
+    function set_node_attribute(node, attrs) {
+        for (var key in attrs) {
+            var val = attrs[key];
+            if (key == '_text') {
+                node.innerText = val;
+            } else if (key == '_html') {
+                node.innerHTML = val;
+            } else {
+                node.setAttribute(key, val);
+            }
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // PROPERTIES
+    //////////////////////////////////////////////////////////
+    /**
+     * TinyQ.prop()
+     */
+    function access_property(prop, value) {
+
+        if (this.nodes.length < 1) return;
+
+        if (value == undefined) {
+            return this.nodes[0][prop];
+        } else {
+
+        }
+
+
+    }
+
+
+
+    //////////////////////////////////////////////////////////
+    // CSS CLASS
+    //////////////////////////////////////////////////////////
     /**
      * .class() method
      */
@@ -163,84 +259,9 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // ATTRIBUTES
+    // CSS STYLE
     //////////////////////////////////////////////////////////
-    /**
-     * TinyQ.attr()
-     */
-    function access_attribute(attr, value) {
-
-        if (this.nodes.length < 1) return;
-
-        if (value == undefined) {
-            return this.nodes[0].getAttribute(attr);
-        } else {
-
-        }
-
-    }
-
-    function set_node_attribute(node, attrs) {
-        for (var key in attrs) {
-            var val = attrs[key];
-            if (key == '_text') {
-                node.innerText = val;
-            } else if (key == '_html') {
-                node.innerHTML = val;
-            } else {
-                node.setAttribute(key, val);
-            }
-        }
-    }
-
-
-    //////////////////////////////////////////////////////////
-    // PROPERTY
-    //////////////////////////////////////////////////////////
-    /**
-     * TinyQ.prop()
-     */
-    function access_property(prop, value) {
-
-        if (this.nodes.length < 1) return;
-
-        if (value == undefined) {
-            return this.nodes[0][prop];
-        } else {
-
-        }
-
-
-    }
-
-
-    //////////////////////////////////////////////////////////
-    // TEXT CONTENT
-    //////////////////////////////////////////////////////////
-    /**
-     * TinyQ.text()
-     */
-    function access_text(value) {
-        var nodes = this.nodes;
-
-        if (nodes.length < 1) return '';
-
-        if (value == undefined) {
-
-            var text = '';
-            for (var i = 0, len = nodes.length; i < len; ++i) {
-                text += nodes[i].innerText;
-            }
-
-            return text;
-
-        } else {
-
-        }
-
-
-    }
-
+    function access_style() { }
 
     function access_position() { }
 
