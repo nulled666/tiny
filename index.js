@@ -43,20 +43,16 @@ function test_code() {
 
         var nodes = document.querySelectorAll('pre');
 
-        var x = _q(nodes)
-            .class('passed -run-code ^collapse')
-            .class('-passed -collapse ^run-code ?collapse');
-        _log(x);
 
-        do_test('xxx', 1,
+        do_test('xxx', 99,
             function () {
-                // return _q(nodes)
-                //     .class('passed -run-code ^collapse')
-                //     .class('-passed -collapse run-code ?language-javascript');
+                return _q(nodes)
+                    .class('passed -run-code ^collapse')
+                    .class('-passed -collapse ^run-code ?run-code');
             },
             function () {
-                // return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
-                //     .removeClass('passed collapse').addClass('run-code').hasClass('language-javascript');
+                return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
+                    .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
             });
 
         _warn('---------')

@@ -105,7 +105,7 @@ define([
 
         // if we need to check class
         var result, check_list = this.check;
-        if (check_list) result = class_has_func(cl, check_list);
+        if (check_list) result = class_has_func(new_cl, check_list);
 
         // update only on change
         new_cl = new_cl.trim();
