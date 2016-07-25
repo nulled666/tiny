@@ -34,7 +34,7 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var has_check = actions.indexOf('?');
+        var has_check = actions.indexOf('?') > -1;
         var action_func = prepare_class_actions(actions);
         var result = false;
 
@@ -96,31 +96,20 @@ define([
      */
     function do_class_actions(node) {
 
-        var cl = node.className;
-
-        // class string to set object
-        var set = {};
-
-        var list = cl.split(' ');
-        for (var i = 0, len = list.length; i < len; ++i) {
-            set[list[i]] = true;
-        }
+        var cl = ' ' + node.className + ' ';
+        var new_cl = cl;
 
         for (var list = this.do, i = 0, len = list.length; i < len; ++i) {
-            set = list[i](set);
+            new_cl = list[i](new_cl);
         }
 
         // if we need to check class
         var result, check_list = this.check;
-        if(check_list) result = class_has_func(set, check_list);
-
-        // set to class string
-        for (var item in set) {
-            if (set[item]) list = item + ' ';
-        }
+        if (check_list) result = class_has_func(cl, check_list);
 
         // update only on change
-        if (cl != list) node.setAttribute('class', list.trim());
+        new_cl = new_cl.trim();
+        if (cl != new_cl) node.setAttribute('class', new_cl);
 
         return result;
 
@@ -132,29 +121,36 @@ define([
         '-': class_remove_func,
         '^': class_toggle_func
     };
-
-    function class_add_func(set) {
+    
+    function class_add_func(cl) {
         for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            set[arr[i]] = true;
+            var item = arr[i];
+            if (!cl.includes(' ' + item + ' ')) cl += item + ' ';
         }
-        return set;
+        return cl;
     }
-    function class_remove_func(set) {
+    function class_remove_func(cl) {
         for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            set[arr[i]] = false;
+            var item = arr[i];
+            while (cl.includes(' ' + item + ' ')) cl = cl.replace(item + ' ', '');
         }
-        return set;
+        return cl;
     }
-    function class_toggle_func(set) {
+    function class_toggle_func(cl) {
         for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            var cls = arr[i];
-            set[cls] = !set[cls];
+            var item = arr[i];
+            var tag = ' ' + item + ' ';
+            if (!cl.includes(tag)) {
+                cl += item + ' ';
+            } else {
+                while (cl.includes(tag)) cl = cl.replace(item + ' ', '');
+            }
+            return cl;
         }
-        return set;
     }
-    function class_has_func(set, check_list) {
+    function class_has_func(cl, check_list) {
         for (var arr = check_list, i = 0, len = arr.length; i < len; ++i) {
-            if (set[arr[i]]) return true;
+            if (cl.includes(' ' + arr[i] + ' ')) return true;
         }
         return false;
     }

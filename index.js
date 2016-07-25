@@ -41,14 +41,22 @@ function test_code() {
 
         _warn('---------')
 
-        var nodes = document.querySelectorAll('.run-code');
+        var nodes = document.querySelectorAll('pre');
 
-        do_test('xxx', 100,
+        var x = _q(nodes)
+            .class('passed -run-code ^collapse')
+            .class('-passed -collapse ^run-code ?collapse');
+        _log(x);
+
+        do_test('xxx', 1,
             function () {
-                return _q(nodes).class('failed');
+                // return _q(nodes)
+                //     .class('passed -run-code ^collapse')
+                //     .class('-passed -collapse run-code ?language-javascript');
             },
             function () {
-                return $(nodes).addClass('failed');
+                // return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
+                //     .removeClass('passed collapse').addClass('run-code').hasClass('language-javascript');
             });
 
         _warn('---------')
