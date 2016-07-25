@@ -32,28 +32,52 @@ define([
     //////////////////////////////////////////////////////////
     // TEXT CONTENT & HTML
     //////////////////////////////////////////////////////////
+    
+    /**
+     * helper function
+     */
+    function do_prop_stuff(nodes, value, func) {
+
+        if (value == undefined) {
+            // ==> read
+            var r = '';
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                var node = nodes[i];
+                if (!node) continue;
+                r = func(node, r, true);
+            }
+            return r;
+        } else {
+            // ==> write
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                var node = nodes[i];
+                if (!node) continue;
+                func(node, value);
+            }
+        }
+
+    }
+
     /**
      * .text()
      */
     function access_text(value) {
-        var nodes = this.nodes;
+        return do_prop_stuff(this.nodes, value, access_text_func) || this;
+    }
 
-        if (nodes.length < 1) return '';
-
-        if (value == undefined) {
-
-            var text = '';
-            for (var i = 0, len = nodes.length; i < len; ++i) {
-                text += nodes[i].innerText;
+    function access_text_func(node, val, is_get) {
+        var node_type = node.nodeType;
+        if (is_get) {
+            if (node_type == 1) {
+                val += node.textContent;
+            } else if (node_type == 8) {
+                val += do_prop_stuff(node.children);
             }
-
-            return text;
-
+            return val;
         } else {
-
+            if (node_type != 1) return;
+            node.textContent = val;
         }
-
-
     }
 
 

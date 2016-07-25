@@ -41,5 +41,21 @@ require([
                 .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
         });
 
+        do_test('.text()', 99,
+            function () {
+                return _q(nodes).text();
+            },
+            function () {
+                return $(nodes).text();
+            });
+
+        var html21 = '<a href="#" class="test21"><img alt="21">q21</a> <b>q21</b>';
+        do_test('.text(val)', 99,
+            function () {
+                return _q(nodes).text(html21);
+            },
+            function () {
+                return $(nodes).text(html21);
+            });
 
 });
