@@ -313,7 +313,7 @@ define([
         base = base || [];
         if (!nodes) return base;
 
-        for (var list = nodes, this_arg = {}, i = 0, len = list.length; i < len; ++i) {
+        for (var list = nodes, i = 0, len = list.length; i < len; ++i) {
             var node = list[i];
             if (!is_element(node)) continue;
             if (opid) {
@@ -321,7 +321,7 @@ define([
                 node[OPID_MARK] = opid;
             }
             if (filter) {
-                var r = filter(node, i, list, this_arg);
+                var r = filter(node, i, list);
                 if (r == false) continue;
             }
             base.push(node);
@@ -405,12 +405,11 @@ define([
     /**
      * proxy for executing filter function list
      */
-    function filter_list_executor(node, index, list, this_arg) {
+    function filter_list_executor(node, index, list) {
         for (var filter_list = this, i = 0, len = filter_list.length; i < len; ++i) {
             var filter = filter_list[i];
-            var r = filter[0].call(this_arg, node, index, list, filter[1]);
+            var r = filter[0](node, index, list, filter[1]);
             if (r == false) return false;
-            if (r != true) return r;
         }
         return true;
     }
@@ -843,7 +842,7 @@ define([
     function each_node(func, this_arg, wrap_object) {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i]
+            var node = nodes[i];
             if (wrap_object) node = create_tinyq([node], tinyq.chain + '.get(' + i + ')');
             func.call(this_arg, node, i, nodes);
         }
