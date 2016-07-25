@@ -4,7 +4,7 @@ require([
 
         var nodes = document.querySelectorAll('pre');
 
-        do_test('aa/remove class', 99,
+        do_test('add/remove class', 99,
             function () {
                 return _q(nodes).class('passed failed test ok collapse')
                     .class('-passed -failed -test -ok -collapse');

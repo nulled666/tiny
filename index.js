@@ -34,7 +34,7 @@ function test_code() {
 
     require([
         'tinyq_test',
-        //'tinyq_test_base',
+        'tinyq_test_prop',
     ], function (do_test) {
 
         _q('.run-code').q('.function');
@@ -44,16 +44,16 @@ function test_code() {
         var nodes = document.querySelectorAll('pre');
 
 
-        do_test('mixed action', 99,
-            function () {
-                return _q(nodes)
-                    .class('passed -run-code ^collapse')
-                    .class('-passed -collapse ^run-code ?run-code');
-            },
-            function () {
-                return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
-                    .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
-            });
+        // do_test('mixed action', 99,
+        //     function () {
+        //         return _q(nodes)
+        //             .class('passed -run-code ^collapse')
+        //             .class('-passed -collapse ^run-code ?run-code');
+        //     },
+        //     function () {
+        //         return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
+        //             .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
+        //     });
         _warn('---------')
 
     });

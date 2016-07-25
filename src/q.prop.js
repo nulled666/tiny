@@ -98,9 +98,10 @@ define([
         var cl = ' ' + node.className + ' ';
         var new_cl = cl;
 
-        for (var list = this.do, i = 0, len = list.length; i < len; ++i) {
-            new_cl = list[i](new_cl);
-        }
+        // do the actions
+        var list = this.do, i = -1, item;
+        while (item = list[++i])
+            new_cl = item(new_cl);
 
         // if we need to check class
         var result, check_list = this.check;
