@@ -14,7 +14,6 @@ define([
         q1: function (obj, param, extra) { return init_q(obj, param, extra, 1) }
     });
 
-
     /**
      * tinyQ constructor
      */
@@ -141,7 +140,6 @@ define([
             result = to_array(obj, result, opid);
             tag_obj = '[nodes]';
             tag_start = tag_end = '';
-
 
         } else if (is_window(obj)) {
 

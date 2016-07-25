@@ -11,7 +11,7 @@ define([
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
         class: process_class,
-        css: false,
+        style: false,
         attr: access_attribute,
         prop: access_property,
         text: access_text,
@@ -27,20 +27,23 @@ define([
     /**
      * .class() method
      */
-    function process_class(actions) {
+    function process_class(action_str) {
 
-        if (typeof actions != 'string') {
-            tiny.error(TinyQ.x.TAG, 'Expect an action string. > Got "' + typeof actions + '": ', actions);
+        if (typeof action_str != 'string') {
+            tiny.error(TinyQ.x.TAG, 'Expect an action string. > Got "' + typeof action_str + '": ', action_str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        var has_check = actions.indexOf('?') > -1;
-        var action_func = prepare_class_actions(actions);
+        // a little startup overhead (for the flexible syntax)
+        var action_func = prepare_class_actions(action_str);
+
+        var has_check = action_str.indexOf('?') > -1;
         var result = false;
 
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
-            if (!TinyQ.x.isElement(node)) continue;
+            if (!node) continue;
+            if (node.nodeType != 1) continue;
             var r = action_func(node);
             if (r == true) result = true;
         }
