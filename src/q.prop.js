@@ -14,15 +14,18 @@ define([
         css: false,
         attr: access_attribute,
         prop: access_property,
-        text: access_text
+        text: access_text,
+        position: access_position,
+        offset: access_offset
     });
 
     tiny.extend(TinyQ.x, {
         setAttributes: set_node_attribute
     });
 
+
     /**
-     * tinyQ.cls() method
+     * .class() method
      */
     function process_class(actions) {
 
@@ -31,74 +34,131 @@ define([
             throw new TypeError(G.SEE_ABOVE);
         }
 
-        actions = prepare_class_actions(actions);
+        var has_check = actions.indexOf('?');
+        var action_func = prepare_class_actions(actions);
+        var result = false;
 
-        var result, test;
-        this.each(function (elem) {
-            test = do_class_actions(elem, actions);
-            result = test !== undefined ? test : true;
-        }, actions);
+        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
+            if (!TinyQ.x.isElement(node)) continue;
+            var r = action_func(node);
+            if (r == true) result = true;
+        }
 
-        return actions.hasTest ? result : this;
+        return has_check ? result : this;
 
     }
+
 
     /**
      * Prepare the action list for className change
      */
-    function prepare_class_actions(list) {
-        list = list.split(' ');
-        var plus = '';
-        var arr = [];
-        var test = [];
-        tiny.each(list, function (item, index, list) {
-            var chr = item.charAt(0);
-            var seg = item.substring(1);
-            if (chr == '-' || chr == '^') {
-                arr.push([chr, ' ' + seg + ' ']);
-            } else if (chr == '?' || chr == '!') {
-                test.push([chr, ' ' + seg + ' ']); // put test actions at end
+    function prepare_class_actions(str) {
+
+        str = str.split(' ');
+        var list = {};
+
+        for (var i = 0, len = str.length; i < len; ++i) {
+            var item = str[i];
+            var sign = item.charAt(0);
+            if (!'-^?'.includes(sign)) {
+                sign = '+';
             } else {
-                if (chr == '+') item = seg;
-                plus += ' ' + item;
+                item = item.substring(1);
             }
+            if (!list[sign]) list[sign] = [];
+            list[sign].push(item);
+        }
+
+        var actions = [];
+
+        // extract check last
+        var check_list = list['?'];
+        delete list['?'];
+
+        for (var sign in list) {
+            var item = list[sign];
+            if (item) actions.push(CLASS_ACTIONS[sign].bind(item));
+        }
+
+        // create the executor
+        actions = do_class_actions.bind({
+            do: actions,
+            check: check_list
         });
-        return {
-            hasTest: test.length > 0,
-            plus: plus,
-            list: arr.concat(test)
-        };
+
+        return actions;
+
     }
 
     /**
-     * Do className change and check
+     * class actions executor
      */
-    function do_class_actions(elem, actions) {
+    function do_class_actions(node) {
 
-        var cls = ' ' + elem.className + actions.plus + ' ';
+        var cl = node.className;
 
-        var result = tiny.each(actions.list, function (item) {
+        // class string to set object
+        var set = {};
 
-            var action = item[0];
-            var val = item[1];
+        var list = cl.split(' ');
+        for (var i = 0, len = list.length; i < len; ++i) {
+            set[list[i]] = true;
+        }
 
-            if (action == '-') {
-                cls = cls.replace(val, ' ');
-            } else if (action == '^') {
-                cls = cls.indexOf(val) > -1 ? cls.replace(val, ' ') : cls + val.substring(1);
-            } else if (action == '?') {
-                if (cls.indexOf(val) < 0) return false;
-            } else if (action == '!') {
-                if (cls.indexOf(val) > -1) return false;
-            }
+        for (var list = this.do, i = 0, len = list.length; i < len; ++i) {
+            set = list[i](set);
+        }
 
-        });
+        // if we need to check class
+        var result, check_list = this.check;
+        if(check_list) result = class_has_func(set, check_list);
 
-        elem.className = cls.trim();
+        // set to class string
+        for (var item in set) {
+            if (set[item]) list = item + ' ';
+        }
 
-        return result === undefined;
+        // update only on change
+        if (cl != list) node.setAttribute('class', list.trim());
+
+        return result;
 
     }
+
+    // class manipulation helper functions
+    var CLASS_ACTIONS = {
+        '+': class_add_func,
+        '-': class_remove_func,
+        '^': class_toggle_func
+    };
+
+    function class_add_func(set) {
+        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
+            set[arr[i]] = true;
+        }
+        return set;
+    }
+    function class_remove_func(set) {
+        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
+            set[arr[i]] = false;
+        }
+        return set;
+    }
+    function class_toggle_func(set) {
+        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
+            var cls = arr[i];
+            set[cls] = !set[cls];
+        }
+        return set;
+    }
+    function class_has_func(set, check_list) {
+        for (var arr = check_list, i = 0, len = arr.length; i < len; ++i) {
+            if (set[arr[i]]) return true;
+        }
+        return false;
+    }
+
 
     //////////////////////////////////////////////////////////
     // ATTRIBUTES
@@ -178,4 +238,10 @@ define([
 
 
     }
+
+
+    function access_position() { }
+
+    function access_offset() { }
+
 });

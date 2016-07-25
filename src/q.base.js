@@ -31,7 +31,8 @@ define([
     // shared function store
     TinyQ.x = {
         TAG: TAG_Q,
-        isArrayLike: is_array_like
+        isArrayLike: is_array_like,
+        isElement: is_element
     };
 
     TinyQ.prototype = {

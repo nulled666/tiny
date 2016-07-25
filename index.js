@@ -8,8 +8,8 @@ function start() {
     tiny.import();
     tiny.verbose('all');
 
-    // build_content_table();
-    // build_content_table2();
+    build_content_table();
+    build_content_table2();
 
     if (test_code() != true)
         setTimeout(run_all_code, 100);
@@ -34,23 +34,25 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_base',
+        //'tinyq_test_base',
     ], function (do_test) {
+
+        _q('.run-code').q('.function');
 
         _warn('---------')
 
-        var html = '<a href="#" class="test"><img alt="null">Test</a><b>test</b>';
+        var nodes = document.querySelectorAll('.run-code');
 
-
-        do_test('add(.selector)', 10,
+        do_test('xxx', 100,
             function () {
-                return 0;
+                return _q(nodes).class('failed');
             },
             function () {
-                return 0;
+                return $(nodes).addClass('failed');
             });
 
         _warn('---------')
+
     });
 
 
@@ -151,7 +153,6 @@ function build_content_table() {
 
 function check_and_append_link(sidebar, elem) {
 
-    elem = _q(elem);
     var name = elem.attr('name');
 
     var parent_elem = elem.parent();
