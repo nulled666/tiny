@@ -44,7 +44,7 @@ function test_code() {
         var nodes = document.querySelectorAll('pre');
 
 
-        do_test('xxx', 99,
+        do_test('mixed action', 99,
             function () {
                 return _q(nodes)
                     .class('passed -run-code ^collapse')
@@ -54,7 +54,6 @@ function test_code() {
                 return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
                     .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
             });
-
         _warn('---------')
 
     });

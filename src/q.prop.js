@@ -49,7 +49,6 @@ define([
 
     }
 
-
     /**
      * Prepare the action list for className change
      */
@@ -109,7 +108,7 @@ define([
 
         // update only on change
         new_cl = new_cl.trim();
-        if (cl != new_cl) node.setAttribute('class', new_cl);
+        if (cl != new_cl) node.className = new_cl;
 
         return result;
 
@@ -121,24 +120,26 @@ define([
         '-': class_remove_func,
         '^': class_toggle_func
     };
-    
+
     function class_add_func(cl) {
-        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            var item = arr[i];
-            if (!cl.includes(' ' + item + ' ')) cl += item + ' ';
+        var arr = this, i = -1, item;
+        while (item = arr[++i]) {
+            if (!cl.includes(' ' + item + ' '))
+                cl += item + ' ';
         }
         return cl;
     }
     function class_remove_func(cl) {
-        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            var item = arr[i];
-            while (cl.includes(' ' + item + ' ')) cl = cl.replace(item + ' ', '');
+        var arr = this, i = -1, item;
+        while (item = arr[++i]) {
+            while (cl.includes(' ' + item + ' '))
+                cl = cl.replace(item + ' ', '');
         }
         return cl;
     }
     function class_toggle_func(cl) {
-        for (var arr = this, i = 0, len = arr.length; i < len; ++i) {
-            var item = arr[i];
+        var arr = this, i = -1, item;
+        while (item = arr[++i]) {
             var tag = ' ' + item + ' ';
             if (!cl.includes(tag)) {
                 cl += item + ' ';
@@ -149,8 +150,9 @@ define([
         }
     }
     function class_has_func(cl, check_list) {
-        for (var arr = check_list, i = 0, len = arr.length; i < len; ++i) {
-            if (cl.includes(' ' + arr[i] + ' ')) return true;
+        var arr = check_list, i = -1, item;
+        while (item = arr[++i]) {
+            if (cl.includes(' ' + item + ' ')) return true;
         }
         return false;
     }
