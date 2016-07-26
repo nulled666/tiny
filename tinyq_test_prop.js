@@ -3,7 +3,7 @@ require([
 ], function (do_test) {
 
     _warn('text & html ------------------')
-    
+
     var nodes = document.querySelectorAll('pre');
 
     do_test('.text()', 99,
@@ -111,6 +111,46 @@ require([
         },
         function () {
             return $(nodes).prop('guid', null);
+        });
+
+    var nodes = document.querySelectorAll('h3');
+
+    _warn('style ------------------');
+
+    do_test('.style({obj})', 100,
+        function () {
+            return _q(nodes).style({
+                'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
+                'user-select': 'none'
+            });
+        },
+        function () {
+            return $(nodes).css({
+                'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
+                'user-select': 'none'
+            });
+        });
+
+    do_test('.style()', 100,
+        function () {
+            return _q(nodes).style('text-shadow');
+        },
+        function () {
+            return $(nodes).css('text-shadow');
+        });
+
+    do_test('.style(null)', 100,
+        function () {
+            return _q(nodes).style({
+                'text-shadow': null,
+                'user-select': null
+            });
+        },
+        function () {
+            return $(nodes).css({
+                'text-shadow': null,
+                'user-select': null
+            });
         });
 
 

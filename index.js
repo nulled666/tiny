@@ -41,16 +41,6 @@ function test_code() {
 
         _warn('---------')
 
-        var nodes = document.querySelectorAll('h3');
-
-        do_test('.css()', 1,
-            function () {
-                return //_q(nodes).prop('innerHTML');
-            },
-            function () {
-                return //$(nodes).prop('innerHTML');
-            });
-
         _warn('---------')
 
     });

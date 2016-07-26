@@ -62,12 +62,21 @@ define([
     /**
      * process {} batch parameter for supported methods
      */
-    function process_batch_parameter(key, value) {
+    function process_batch_parameter(key, value, is_style) {
         if (typeof key == 'object') {
             value = key;
             key = 0;
+            if (is_style) {
+                var obj = {};
+                for (var key in value) {
+                    key = check_style_key(key);
+                    obj[key] = value[key];
+                }
+                value = obj;
+            }
         } else if (value !== undefined) {
             var obj = {};
+            if (is_style) key = check_style_key(key);
             obj[key] = value;
             value = obj;
         }
@@ -186,7 +195,6 @@ define([
         if (node.nodeType != 1) return '';
         var style = node.style;
         if (is_get) {
-            key = check_style_key(key);
             return style[key];
         } else {
             for (var key in value) {
@@ -204,11 +212,13 @@ define([
 
     function check_style_key(key) {
 
+        key = to_camel_case(key);
+
         if (key in BASE_STYLE_LIST) return key;
 
-        key = key.charAt(0).toUpperCase() + key.slice(1);
+        key = capital_first(key);
 
-        if(_style_prefix) return _style_prefix + key;
+        if (_style_prefix) return _style_prefix + key;
 
         for (var i = 0, len = STYLE_VENDOR_PREFIX.length; i < len; ++i) {
             var prefix = STYLE_VENDOR_PREFIX[i];
@@ -220,6 +230,19 @@ define([
         }
 
     }
+
+    function capital_first(key) {
+        return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+
+    function to_camel_case(key) {
+        key = key.split('-');
+        for (var i = 1, len = key.length; i < len; ++i) {
+            key[i] = capital_first(key[i]);
+        }
+        return key.join('');
+    }
+
 
     //////////////////////////////////////////////////////////
     // CSS CLASS
