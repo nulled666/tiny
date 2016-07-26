@@ -9,7 +9,7 @@ define([
     //////////////////////////////////////////////////////////
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
-    var def = {
+    tiny.extend(TinyQ.prototype, {
 
         text: access_text,
         html: access_html,
@@ -20,60 +20,18 @@ define([
         style: access_style,
         class: process_class,
 
-        // css size 
-        width: size_proxy(0, 0),
-        height: size_proxy(0, 1),
-        left: size_proxy(0, 2),
-        top: size_proxy(0, 3),
-        // includes borders
-        offsetWidth: size_proxy(1, 0),
-        offsetHeight: size_proxy(1, 1),
-        offsetLeft: size_proxy(1, 2),
-        offsetTop: size_proxy(1, 3),
-        // visible part only
-        clientWidth: size_proxy(2, 0),
-        clientHeight: size_proxy(2, 1),
-        clientLeft: size_proxy(2, 2),
-        clientTop: size_proxy(2, 3),
-        // content with padding
-        scrollWidth: size_proxy(3, 0),
-        scrollHeight: size_proxy(3, 1),
-        scrollLeft: size_proxy(1, 2),
-        scrollTop: size_proxy(1, 3),
+        // following size methods are extended in extend_size_methods():
+        // computed styles :
+        //	width(), height(), left(), top()
+        // element properties :
+        //	offsetWidth(), offsetHeight(), offsetLeft(), offsetTop()
+        //	clientWidth(), clientHeight(), clientLeft(), clientTop()
+        //	scrollWidth(), scrollHeight(), scrollLeft(), scrollTop()
 
         position: access_position,
         offset: access_offset,
 
-    };
-
-    // generate methods for width, height, left, top
-    var SIZE_PREFIX = [0, 'offset', 'client', 'scroll'];
-    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
-
-    var i = SIZE_PREFIX.length;
-    while (--i) {
-        var prefix = SIZE_PREFIX[i];
-        var j = SIZE_TYPE.length;
-        while (--j) {
-            var type = SIZE_TYPE[j];
-            if (prefix == 0) prefix = '', type = type.toLowerCase();
-            def[prefix + type] = size_proxy(i, j);
-        }
-    }
-
-    // generate size method handlers
-    function size_proxy(prefix, type) {
-        return function (val) {
-            return access_size.call({
-                n: this.nodes,
-                p: SIZE_PREFIX[prefix],
-                t: SIZE_TYPE[type]
-            }, val)
-        }
-    }
-
-    // extend TinyQ
-    tiny.extend(TinyQ.prototype, def);
+    });
 
     tiny.extend(TinyQ.x, {
         setAttributes: set_node_attributes
@@ -439,6 +397,39 @@ define([
     // SIZE
     //////////////////////////////////////////////////////////
 
+    var SIZE_PREFIX = ['', 'offset', 'client', 'scroll'];
+    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
+
+    extend_size_methods(TinyQ.prototype);
+
+    // generate methods for width, height, left, top
+    function extend_size_methods(def) {
+        var i = SIZE_PREFIX.length;
+        while (--i > -1) {
+            var prefix = SIZE_PREFIX[i];
+            var j = SIZE_TYPE.length;
+            while (--j > -1) {
+                var type = SIZE_TYPE[j];
+                if (prefix == '') type = type.toLowerCase();
+                def[prefix + type] = generate_size_method(i, j);
+            }
+        }
+    }
+
+    // generate size method handlers
+    function generate_size_method(prefix, type) {
+        return function (val) {
+            return access_size.call({
+                n: this.nodes,
+                p: SIZE_PREFIX[prefix],
+                t: SIZE_TYPE[type]
+            }, val)
+        }
+    }
+
+    /**
+     * access function for size methods
+     */
     function access_size(value, prefix, type) {
         return get_size(this.n, this.p, this.t);
     }
