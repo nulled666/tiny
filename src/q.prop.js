@@ -20,12 +20,18 @@ define([
         style: access_style,
         class: process_class,
 
-        width: false,
-        height: false,
-        innerWidth: false,
-        innerHeight: false,
-        outerWidth: false,
-        outerHeight: false,
+        // css size 
+        width: size_proxy(0, 0),
+        height: size_proxy(0, 1),
+        // includes borders
+        offsetWidth: function (val) { return access_size(this.nodes, val, 1, 0) },
+        offsetHeight: function (val) { return access_size(this.nodes, val, 1, 1) },
+        // visible part only
+        clientWidth: function (val) { return access_size(this.nodes, val, 2, 0) },
+        clientHeight: function (val) { return access_size(this.nodes, val, 2, 1) },
+        // content with padding
+        scrollWidth: function (val) { return access_size(this.nodes, val, 3, 0) },
+        scrollHeight: function (val) { return access_size(this.nodes, val, 3, 1) },
 
         scrollLeft: false,
         scrollTop: false,
@@ -39,6 +45,15 @@ define([
         setAttributes: set_node_attributes
     });
 
+    function size_proxy(prefix, type) {
+        return function (val) {
+            return access_size.call({
+                n: this.nodes,
+                p: SIZE_PREFIX[prefix],
+                t: SIZE_TYPE[type]
+            }, val)
+        }
+    }
 
     /**
      * get/set method helper function
@@ -394,6 +409,44 @@ define([
         return false;
     }
 
+
+    //////////////////////////////////////////////////////////
+    // SIZE
+    //////////////////////////////////////////////////////////
+    var SIZE_PREFIX = [0, 'offset', 'client', 'scroll'];
+    var SIZE_TYPE = ['Width', 'Height'];
+
+    function access_size(value, prefix, type) {
+        return get_size(this.n, this.p, this.t);
+    }
+
+    function get_size(nodes, prefix, type) {
+
+        if (nodes.length == 0) {
+            // window, always innerWidth/innerHeight
+            return window['inner' + type];
+        }
+
+        var node = nodes[0];
+        var node_type = node.nodeType;
+        var tag = prefix + type;
+
+        if (node_type == 9) {
+            // document
+            return node.documentElement[tag];
+        }
+
+        if (node_type != 1) return 0;
+
+        // node
+        if (prefix == 0) {
+            var style = window.getComputedStyle(node);
+            return parseFloat(style[type.toLowerCase()]);
+        }
+
+        return node[tag];
+
+    }
 
 
     //////////////////////////////////////////////////////////

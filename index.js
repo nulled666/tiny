@@ -31,14 +31,15 @@ function start() {
 
 function test_code() {
 
-    return;
-
     require([
         'tinyq_test',
         //'tinyq_test_prop',
     ], function (do_test) {
 
-        _q('.run-code').q('.function');
+        var x = _q('.run-code');
+        var y = $('.run-code');
+        _log(x.width(), x.height());
+        _log(y.width(), y.height());
 
         _warn('---------')
 
