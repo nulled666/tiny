@@ -50,12 +50,29 @@ function test_code() {
                 return y.width();
             });
 
+        do_test('height', 99,
+            function () {
+                return x.height();
+            },
+            function () {
+                return y.height();
+            });
+
         do_test('offsetWidth/outerWidth', 99,
             function () {
                 return x.outerWidth();
             },
             function () {
                 return y.outerWidth();
+            });
+
+
+        do_test('offsetHeight/outerHeight', 99,
+            function () {
+                return x.outerHeight();
+            },
+            function () {
+                return y.outerHeight();
             });
 
         do_test('scrollWidth/innerWidth', 99,
@@ -66,30 +83,6 @@ function test_code() {
                 return $(document).innerWidth();
             });
 
-        do_test('clientWidth', 99,
-            function () {
-                return _q(document).clientWidth();
-            },
-            function () {
-                return $(document).get(0).body.clientWidth;
-            });
-
-
-        do_test('height', 99,
-            function () {
-                return x.height();
-            },
-            function () {
-                return y.height();
-            });
-
-        do_test('offsetHeight/outerHeight', 99,
-            function () {
-                return x.outerHeight();
-            },
-            function () {
-                return y.outerHeight();
-            });
 
         do_test('scrollHeight/innerHeight', 99,
             function () {
@@ -97,6 +90,15 @@ function test_code() {
             },
             function () {
                 return $(document).innerHeight();
+            });
+
+
+        do_test('clientWidth', 99,
+            function () {
+                return _q(document).clientWidth();
+            },
+            function () {
+                return $(document).get(0).body.clientWidth;
             });
 
         do_test('clientHeight', 99,
@@ -118,22 +120,6 @@ function test_code() {
                 return y.css('left');
             });
 
-        do_test('offsetLeft', 99,
-            function () {
-                return _q(document).offsetLeft();
-            },
-            function () {
-                return $(document.body).offset().left;
-            });
-
-        do_test('scrollLeft', 99,
-            function () {
-                return _q(document).scrollLeft();
-            },
-            function () {
-                return $(document).scrollLeft();
-            });
-
         do_test('top', 99,
             function () {
                 return x.top();
@@ -142,12 +128,29 @@ function test_code() {
                 return y.css('top');
             });
 
-        do_test('offsetTop', 99,
+        do_test('offsetLeft', 99,
             function () {
-                return _q(document).offsetTop();
+                return x.offsetLeft();
             },
             function () {
-                return $(document.body).offset().top;
+                return y.offset().left;
+            });
+
+
+        do_test('offsetTop', 99,
+            function () {
+                return x.offsetTop();
+            },
+            function () {
+                return y.offset().top;
+            });
+
+        do_test('scrollLeft', 99,
+            function () {
+                return _q(document).scrollLeft();
+            },
+            function () {
+                return $(document).scrollLeft();
             });
 
         do_test('scrollTop', 99,
