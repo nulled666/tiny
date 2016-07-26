@@ -20,8 +20,18 @@ define([
         style: access_style,
         class: process_class,
 
+        width: false,
+        height: false,
+        innerWidth: false,
+        innerHeight: false,
+        outerWidth: false,
+        outerHeight: false,
+
+        scrollLeft: false,
+        scrollTop: false,
+
         position: access_position,
-        offset: access_offset
+        offset: access_offset,
 
     });
 
