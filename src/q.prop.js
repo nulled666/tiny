@@ -9,7 +9,7 @@ define([
     //////////////////////////////////////////////////////////
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
-    tiny.extend(TinyQ.prototype, {
+    var def = {
 
         text: access_text,
         html: access_html,
@@ -44,12 +44,24 @@ define([
         position: access_position,
         offset: access_offset,
 
-    });
+    };
 
-    tiny.extend(TinyQ.x, {
-        setAttributes: set_node_attributes
-    });
+    // generate methods for width, height, left, top
+    var SIZE_PREFIX = [0, 'offset', 'client', 'scroll'];
+    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
+    var i = SIZE_PREFIX.length;
+    while (--i) {
+        var prefix = SIZE_PREFIX[i];
+        var j = SIZE_TYPE.length;
+        while (--j) {
+            var type = SIZE_TYPE[j];
+            if (prefix == 0) prefix = '', type = type.toLowerCase();
+            def[prefix + type] = size_proxy(i, j);
+        }
+    }
+
+    // generate size method handlers
     function size_proxy(prefix, type) {
         return function (val) {
             return access_size.call({
@@ -59,6 +71,14 @@ define([
             }, val)
         }
     }
+
+    // extend TinyQ
+    tiny.extend(TinyQ.prototype, def);
+
+    tiny.extend(TinyQ.x, {
+        setAttributes: set_node_attributes
+    });
+
 
     /**
      * get/set method helper function
@@ -418,8 +438,6 @@ define([
     //////////////////////////////////////////////////////////
     // SIZE
     //////////////////////////////////////////////////////////
-    var SIZE_PREFIX = [0, 'offset', 'client', 'scroll'];
-    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     function access_size(value, prefix, type) {
         return get_size(this.n, this.p, this.t);
@@ -444,7 +462,7 @@ define([
         if (node_type != 1) return 0;
 
         // node
-        if (prefix == 0) {
+        if (prefix == '') {
             var style = window.getComputedStyle(node);
             return parseFloat(style[type.toLowerCase()]);
         }
