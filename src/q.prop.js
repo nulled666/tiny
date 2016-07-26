@@ -440,16 +440,20 @@ define([
     function get_size(nodes, prefix, type) {
 
         if (nodes.length == 0) {
-            // window, always innerWidth/innerHeight
-            return window['inner' + type];
+            // window - always return innerWidth/innerHeight
+            var r = window['inner' + type];
+            if (r == undefined) r = 0;
+            return r;
         }
 
         var node = nodes[0];
         var node_type = node.nodeType;
         var tag = prefix + type;
 
-        if (node_type == 9)
-            node_type = 1, node = node.body; // special treatment for document node
+        if (node_type == 9) {
+            // document - use body instead
+            node_type = 1, node = node.body;
+        }
 
         if (node_type != 1) return 0;
 
