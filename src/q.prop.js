@@ -26,7 +26,7 @@ define([
     });
 
     tiny.extend(TinyQ.x, {
-        setAttributes: set_node_attribute
+        setAttributes: set_node_attributes
     });
 
 
@@ -36,34 +36,26 @@ define([
     function access_helper(tinyq, key, value, func, read_one) {
 
         var nodes = tinyq.nodes;
+        var is_read = false;
 
-        if (value == undefined) {
-            // ==> read
+        if (value === undefined) is_read = true;
 
-            var node_len = nodes.length;
-            if (read_one && nodes.length > 1) node_len = 1;
+        var node_len = nodes.length;
+        if (is_read && read_one && nodes.length > 1) node_len = 1;
 
-            var r = '';
-            for (var i = 0, len = node_len; i < len; ++i) {
-                var node = nodes[i];
-                if (!node) continue;
-                r = func(node, key, r, true);
-            }
-
-            return r;
-
-        } else {
-            // ==> write
-
-            for (var i = 0, len = nodes.length; i < len; ++i) {
-                var node = nodes[i];
-                if (!node) continue;
+        var result = '';
+        for (var i = 0, len = node_len; i < len; ++i) {
+            var node = nodes[i];
+            if (!node) continue;
+            if (node.nodeType != 1) continue;
+            if (is_read) {
+                result = func(node, key, result, is_read);
+            } else {
                 func(node, key, value);
             }
-
-            return tinyq;
-
         }
+
+        return is_read ? result : tinyq;
 
     }
 
@@ -74,7 +66,7 @@ define([
         if (typeof key == 'object') {
             value = key;
             key = 0;
-        } else if (value != undefined) {
+        } else if (value !== undefined) {
             var obj = {};
             obj[key] = value;
             value = obj;
@@ -85,7 +77,6 @@ define([
     //////////////////////////////////////////////////////////
     // TEXT CONTENT & HTML
     //////////////////////////////////////////////////////////
-
     /**
      * .text()
      */
@@ -94,7 +85,6 @@ define([
     }
 
     function access_text_func(node, key, val, is_get) {
-        if (node.nodeType != 1) return '';
         if (is_get) {
             val += node.textContent;
             return val;
@@ -104,6 +94,9 @@ define([
     }
 
 
+    //////////////////////////////////////////////////////////
+    // HTML
+    //////////////////////////////////////////////////////////
     /**
      * .html()
      */
@@ -136,11 +129,11 @@ define([
         if (is_get) {
             return node.getAttribute(key);
         } else {
-            set_node_attribute(node, val);
+            set_node_attributes(node, val);
         }
     }
 
-    function set_node_attribute(node, attrs) {
+    function set_node_attributes(node, attrs) {
         for (var key in attrs) {
             var val = attrs[key];
             if (key == '_text') {
@@ -162,19 +155,25 @@ define([
     /**
      * TinyQ.prop()
      */
-    function access_property(prop, value) {
-
-        if (this.nodes.length < 1) return;
-
-        if (value == undefined) {
-            return this.nodes[0][prop];
-        } else {
-
-        }
-
-
+    function access_property(key, value) {
+        value = process_batch_parameter(key, value);
+        return access_helper(this, key, value, access_prop_func, 1);
     }
 
+    function access_prop_func(node, key, val, is_get) {
+        if (node.nodeType != 1) return '';
+        if (is_get) {
+            return node[key];
+        } else {
+            set_node_properties(node, val);
+        }
+    }
+
+    function set_node_properties(node, attrs) {
+        for (var key in attrs) {
+            node[key] = attrs[key];
+        }
+    }
 
 
     //////////////////////////////////////////////////////////

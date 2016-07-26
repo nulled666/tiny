@@ -828,7 +828,7 @@ define([
     function get_by_slice(start, end) {
         var tinyq = this;
         var arr = tinyq.nodes.slice(start, end);
-        return create_tinyq(arr, tinyq.chain + '.slice(' + start + (end != undefined ? ',' + end : '') + ')');
+        return create_tinyq(arr, tinyq.chain + '.slice(' + start + (end !== undefined ? ',' + end : '') + ')');
     }
 
     /**

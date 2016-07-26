@@ -45,28 +45,36 @@ function test_code() {
 
         do_test('.attr(val)', 100,
             function () {
-                return _q(nodes).attr('class', 'header test-my-code');
+                return _q(nodes).attr('class1', 'header test-my-code');
             },
             function () {
-                return $(nodes).attr('class', 'header test-my-code');
+                return $(nodes).attr('class2', 'header test-my-code');
             });
 
         do_test('.attr()', 100,
             function () {
-                return _q(nodes).attr('class');
+                return _q(nodes).attr('class1');
             },
             function () {
-                return $(nodes).attr('class');
+                return $(nodes).attr('class2');
             });
 
         do_test('.attr({obj})', 100,
             function () {
-                return _q(nodes).attr({class: null, mark: 1999});
+                return _q(nodes).attr({ class1: null, mark1: 1999 });
             },
             function () {
-                return $(nodes).attr({class: null, mark: 2000});
+                return $(nodes).attr({ class2: null, mark2: 2000 });
             });
-            
+
+        do_test('.attr(null)', 1,
+            function () {
+                return _q(nodes).attr('mark1', null);
+            },
+            function () {
+                return $(nodes).attr('mark2', null);
+            });
+
         _warn('---------')
 
 

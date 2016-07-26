@@ -889,7 +889,7 @@ define([
 
         // check cache
         var value = parsed_token[token];
-        if (value != undefined)
+        if (value !== undefined)
             return value;
 
         // prepare key & format string

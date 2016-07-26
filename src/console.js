@@ -77,7 +77,7 @@ define([
      * Get performance time
      */
     function perf_time(id, log) {
-        if (_perf_time[id] == undefined || _perf_time[id] == false) {
+        if (!_perf_time[id]) {
             _perf_time[id] = _perf_now();
         } else {
             var time = (_perf_now() - _perf_time[id]);
