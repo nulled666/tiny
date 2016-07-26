@@ -21,12 +21,14 @@ define([
         class: process_class,
 
         // following size methods are extended in extend_size_methods():
-        // computed styles :
-        //	width(), height(), left(), top()
-        // element properties :
-        //	offsetWidth(), offsetHeight(), offsetLeft(), offsetTop()
-        //	clientWidth(), clientHeight(), clientLeft(), clientTop()
-        //	scrollWidth(), scrollHeight(), scrollLeft(), scrollTop()
+        // - computed css sizes & position :
+        //	  width(), height(), left(), top()
+        // - visible sizes with border & position relate to closest positioned parent:
+        //	  offsetWidth(), offsetHeight(), offsetLeft(), offsetTop()
+        // - full content area sizes & scroll position :
+        //	  scrollWidth(), scrollHeight(), scrollLeft(), scrollTop()
+        // - visible content area sizes :
+        //	  clientWidth(), clientHeight()
 
         position: access_position,
         offset: access_offset,
@@ -397,7 +399,7 @@ define([
     // SIZE
     //////////////////////////////////////////////////////////
 
-    var SIZE_PREFIX = ['', 'offset', 'client', 'scroll'];
+    var SIZE_PREFIX = ['', 'offset', 'scroll', 'client'];
     var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     extend_size_methods(TinyQ.prototype);
@@ -409,6 +411,7 @@ define([
             var prefix = SIZE_PREFIX[i];
             var j = SIZE_TYPE.length;
             while (--j > -1) {
+                if (i == 3 && j > 1) continue; // skip clientTop & clientLeft
                 var type = SIZE_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
                 def[prefix + type] = generate_size_method(i, j);
@@ -445,10 +448,8 @@ define([
         var node_type = node.nodeType;
         var tag = prefix + type;
 
-        if (node_type == 9) {
-            // document
-            return node.documentElement[tag];
-        }
+        if (node_type == 9)
+            node_type = 1, node = node.body; // special treatment for document node
 
         if (node_type != 1) return 0;
 

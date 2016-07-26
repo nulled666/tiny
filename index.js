@@ -36,9 +36,9 @@ function test_code() {
         //'tinyq_test_prop',
     ], function (do_test) {
 
-
         _warn('---------')
 
+        _warn('sizes ------------------')
         var x = _q('.run-code');
         var y = $('.run-code');
 
@@ -50,6 +50,30 @@ function test_code() {
                 return y.width();
             });
 
+        do_test('offsetWidth', 99,
+            function () {
+                return x.offsetWidth();
+            },
+            function () {
+                return y.innerWidth();
+            });
+
+        do_test('clientWidth', 99,
+            function () {
+                return _q(document).clientWidth();
+            },
+            function () {
+                return $(document).outerWidth();
+            });
+
+        do_test('scrollWidth', 99,
+            function () {
+                return _q(document).scrollWidth();
+            },
+            function () {
+                return $(document).outerWidth();
+            });
+
         do_test('height', 99,
             function () {
                 return x.height();
@@ -58,11 +82,83 @@ function test_code() {
                 return y.height();
             });
 
+        do_test('offsetHeight', 99,
+            function () {
+                return _q(document).offsetHeight();
+            },
+            function () {
+                return $(document).height();
+            });
+
+        do_test('clientHeight', 99,
+            function () {
+                return _q(document).clientHeight();
+            },
+            function () {
+                return $(document).height();
+            });
+
+        do_test('scrollHeight', 99,
+            function () {
+                return _q(document).scrollHeight();
+            },
+            function () {
+                return $(document).outerHeight();
+            });
+
+        _warn('position ------------------')
+
+        do_test('left', 99,
+            function () {
+                return x.left();
+            },
+            function () {
+                return y.css('left');
+            });
+
+        do_test('offsetLeft', 99,
+            function () {
+                return _q(document).offsetLeft();
+            },
+            function () {
+                return $(document.body).offset().left;
+            });
+
+        do_test('scrollLeft', 99,
+            function () {
+                return _q(document).scrollLeft();
+            },
+            function () {
+                return $(document).scrollLeft();
+            });
+
+        do_test('top', 99,
+            function () {
+                return x.top();
+            },
+            function () {
+                return y.css('top');
+            });
+
+        do_test('offsetTop', 99,
+            function () {
+                return _q(document).offsetTop();
+            },
+            function () {
+                return $(document.body).offset().top;
+            });
+
+        do_test('scrollTop', 99,
+            function () {
+                return _q(document).scrollTop();
+            },
+            function () {
+                return $(document).scrollTop();
+            });
 
         _warn('---------')
 
     });
-
 
     return true;
 
