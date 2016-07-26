@@ -175,6 +175,29 @@ define([
 
 
     //////////////////////////////////////////////////////////
+    // CSS STYLE
+    //////////////////////////////////////////////////////////
+    function access_style(key, value) {
+        value = process_batch_parameter(key, value);
+        return access_helper(this, key, value, access_style_func, 1);
+    }
+
+    function access_style_func(node, key, value, is_get) {
+        if (node.nodeType != 1) return '';
+        var style = node.style;
+        if (is_get) {
+            return style[key];
+        } else {
+            for (var key in value) {
+                var val = value[key];
+                if (val == null) val = '';
+                style[key] = val;
+            }
+        }
+    }
+
+
+    //////////////////////////////////////////////////////////
     // CSS CLASS
     //////////////////////////////////////////////////////////
     /**
@@ -315,11 +338,10 @@ define([
     }
 
 
-    //////////////////////////////////////////////////////////
-    // CSS STYLE
-    //////////////////////////////////////////////////////////
-    function access_style() { }
 
+    //////////////////////////////////////////////////////////
+    // POSITIONS
+    //////////////////////////////////////////////////////////
     function access_position() { }
 
     function access_offset() { }

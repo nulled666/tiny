@@ -71,8 +71,6 @@ function test_code() {
 
         _warn('---------')
 
-        _log(_q(nodes).prop('guid'))
-
     });
 
 
