@@ -23,18 +23,23 @@ define([
         // css size 
         width: size_proxy(0, 0),
         height: size_proxy(0, 1),
+        left: size_proxy(0, 2),
+        top: size_proxy(0, 3),
         // includes borders
         offsetWidth: size_proxy(1, 0),
         offsetHeight: size_proxy(1, 1),
+        offsetLeft: size_proxy(1, 2),
+        offsetTop: size_proxy(1, 3),
         // visible part only
         clientWidth: size_proxy(2, 0),
         clientHeight: size_proxy(2, 1),
+        clientLeft: size_proxy(2, 2),
+        clientTop: size_proxy(2, 3),
         // content with padding
         scrollWidth: size_proxy(3, 0),
         scrollHeight: size_proxy(3, 1),
-
-        scrollLeft: false,
-        scrollTop: false,
+        scrollLeft: size_proxy(1, 2),
+        scrollTop: size_proxy(1, 3),
 
         position: access_position,
         offset: access_offset,
@@ -414,7 +419,7 @@ define([
     // SIZE
     //////////////////////////////////////////////////////////
     var SIZE_PREFIX = [0, 'offset', 'client', 'scroll'];
-    var SIZE_TYPE = ['Width', 'Height'];
+    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     function access_size(value, prefix, type) {
         return get_size(this.n, this.p, this.t);
