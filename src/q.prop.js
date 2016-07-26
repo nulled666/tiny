@@ -403,9 +403,10 @@ define([
     // SIZE
     //////////////////////////////////////////////////////////
 
-    var SIZE_PREFIX_MAP = [0, 0, 'outer', 'inner'];
-    var SIZE_PREFIX = ['', 'client', 'offset', 'scroll'];
+    // method map list, order matters
     var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
+    var SIZE_PREFIX = ['', 'client', 'offset', 'scroll'];
+    var SIZE_PREFIX_MAP = [0, 0, 'outer', 'inner']; // map to jquery
 
     extend_size_methods(TinyQ.prototype);
 
