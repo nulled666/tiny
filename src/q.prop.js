@@ -16,8 +16,9 @@ define([
 
         attr: access_attribute,
         prop: access_property,
-        class: process_class,
+
         style: access_style,
+        class: process_class,
 
         position: access_position,
         offset: access_offset
@@ -29,26 +30,24 @@ define([
     });
 
 
-    //////////////////////////////////////////////////////////
-    // TEXT CONTENT & HTML
-    //////////////////////////////////////////////////////////
-
     /**
      * helper function
      */
-    function do_prop_stuff(nodes, value, func, read_one) {
+    function text_helper(tinyq, key, value, func, read_one) {
+
+        var nodes = tinyq.nodes;
 
         if (value == undefined) {
             // ==> read
 
             var node_len = nodes.length;
-            if(read_one && nodes.length > 1) node_len = 1;
+            if (read_one && nodes.length > 1) node_len = 1;
 
             var r = '';
             for (var i = 0, len = node_len; i < len; ++i) {
                 var node = nodes[i];
                 if (!node) continue;
-                r = func(node, r, true);
+                r = func(node, key, r, true);
             }
 
             return r;
@@ -59,30 +58,33 @@ define([
             for (var i = 0, len = nodes.length; i < len; ++i) {
                 var node = nodes[i];
                 if (!node) continue;
-                func(node, value);
+                func(node, key, value);
             }
+
+            return tinyq;
 
         }
 
     }
 
+
+    //////////////////////////////////////////////////////////
+    // TEXT CONTENT & HTML
+    //////////////////////////////////////////////////////////
+    
     /**
      * .text()
      */
     function access_text(value) {
-        return do_prop_stuff(this.nodes, value, access_text_func) || this;
+        return text_helper(this, 0, value, access_text_func);
     }
-    function access_text_func(node, val, is_get) {
-        var node_type = node.nodeType;
+
+    function access_text_func(node, key, val, is_get) {
+        if (node.nodeType != 1) return '';
         if (is_get) {
-            if (node_type == 1) {
-                val += node.textContent;
-            } else if (node_type == 8) {
-                val += do_prop_stuff(node.children);
-            }
+            val += node.textContent;
             return val;
         } else {
-            if (node_type != 1) return;
             node.textContent = val;
         }
     }
@@ -92,17 +94,15 @@ define([
      * .html()
      */
     function access_html(value) {
-        return do_prop_stuff(this.nodes, value, access_html_func, 1) || this;
+        return text_helper(this, 0, value, access_html_func, 1);
     }
-    function access_html_func(node, val, is_get) {
-        var node_type = node.nodeType;
+
+    function access_html_func(node, key, val, is_get) {
+        if (node.nodeType != 1) return '';
         if (is_get) {
-            if (node_type == 1)
-                return node.innerHTML;
-            return '';
+            return node.innerHTML;
         } else {
-            if (node_type == 1)
-                node.innerHTML = val;
+            node.innerHTML = val;
         }
     }
 
@@ -112,16 +112,23 @@ define([
     /**
      * TinyQ.attr()
      */
-    function access_attribute(attr, value) {
+    function access_attribute(key, value) {
+        if (typeof key == 'object')
+            value = key, key = 0; // batch flag
+        return text_helper(this, key, value, access_attr_func, 1);
+    }
 
-        if (this.nodes.length < 1) return;
-
-        if (value == undefined) {
-            return this.nodes[0].getAttribute(attr);
+    function access_attr_func(node, key, val, is_get) {
+        if (node.nodeType != 1) return '';
+        if (is_get) {
+            return node.getAttribute(key);
         } else {
-
+            if (key == 0) { // batch
+                set_node_attribute(node, val);
+            } else {
+                node.setAttribute(key, val);
+            }
         }
-
     }
 
     function set_node_attribute(node, attrs) {
