@@ -32,28 +32,36 @@ define([
     //////////////////////////////////////////////////////////
     // TEXT CONTENT & HTML
     //////////////////////////////////////////////////////////
-    
+
     /**
      * helper function
      */
-    function do_prop_stuff(nodes, value, func) {
+    function do_prop_stuff(nodes, value, func, read_one) {
 
         if (value == undefined) {
             // ==> read
+
+            var node_len = nodes.length;
+            if(read_one && nodes.length > 1) node_len = 1;
+
             var r = '';
-            for (var i = 0, len = nodes.length; i < len; ++i) {
+            for (var i = 0, len = node_len; i < len; ++i) {
                 var node = nodes[i];
                 if (!node) continue;
                 r = func(node, r, true);
             }
+
             return r;
+
         } else {
             // ==> write
+
             for (var i = 0, len = nodes.length; i < len; ++i) {
                 var node = nodes[i];
                 if (!node) continue;
                 func(node, value);
             }
+
         }
 
     }
@@ -64,7 +72,6 @@ define([
     function access_text(value) {
         return do_prop_stuff(this.nodes, value, access_text_func) || this;
     }
-
     function access_text_func(node, val, is_get) {
         var node_type = node.nodeType;
         if (is_get) {
@@ -85,8 +92,19 @@ define([
      * .html()
      */
     function access_html(value) {
+        return do_prop_stuff(this.nodes, value, access_html_func, 1) || this;
     }
-
+    function access_html_func(node, val, is_get) {
+        var node_type = node.nodeType;
+        if (is_get) {
+            if (node_type == 1)
+                return node.innerHTML;
+            return '';
+        } else {
+            if (node_type == 1)
+                node.innerHTML = val;
+        }
+    }
 
     //////////////////////////////////////////////////////////
     // ATTRIBUTES

@@ -49,10 +49,20 @@ require([
             return $(nodes).text();
         });
 
+    var nodes = document.querySelectorAll('.run-code');
+    do_test('.html()', 99,
+        function () {
+            return _q(nodes).html();
+        },
+        function () {
+            return $(nodes).html();
+        });
+
     _q('h1').prepend('<div id="test-me"></div>');
     var node = _q('#test-me').nodes[0];
     var html21 = '<a href="#" class="test21"><img alt="21">q21</a> <b>q21</b>';
     var count = 0;
+
     do_test('.text(val)', 99,
         function () {
             return _q(node).text(html21 + count++);
@@ -60,6 +70,15 @@ require([
         function () {
             return $(node).text(html21 + count++);
         });
+
+    do_test('.html(val)', 99,
+        function () {
+            return _q(node).html(html21 + count++);
+        },
+        function () {
+            return $(node).html(html21 + count++);
+        });
+
     _q(node).remove();
 
 });

@@ -34,15 +34,21 @@ function test_code() {
 
     require([
         'tinyq_test',
-        'tinyq_test_prop',
+        //'tinyq_test_prop',
     ], function (do_test) {
 
         _q('.run-code').q('.function');
 
         _warn('---------')
 
-        var nodes = document.querySelectorAll('pre');
-
+        var nodes = document.querySelectorAll('.run-code');
+        do_test('.html()', 99,
+            function () {
+                return _q(nodes).html();
+            },
+            function () {
+                return $(nodes).html();
+            });
 
         _warn('---------')
 
