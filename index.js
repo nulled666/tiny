@@ -43,40 +43,35 @@ function test_code() {
 
         var nodes = document.querySelectorAll('h3');
 
-        do_test('.attr(val)', 100,
+        do_test('.prop()', 1000,
             function () {
-                return _q(nodes).attr('class1', 'header test-my-code');
+                return _q(nodes).prop('innerHTML');
             },
             function () {
-                return $(nodes).attr('class2', 'header test-my-code');
+                return $(nodes).prop('innerHTML');
+            });
+        
+        var guid1 = tiny.guid();
+        var guid2 = tiny.guid();
+        do_test('.prop(value)', 1000,
+            function () {
+                return _q(nodes).prop('guid', guid1);
+            },
+            function () {
+                return $(nodes).prop('guid', guid2);
             });
 
-        do_test('.attr()', 100,
+        do_test('.prop(null)', 1000,
             function () {
-                return _q(nodes).attr('class1');
+                return _q(nodes).prop('guid', null);
             },
             function () {
-                return $(nodes).attr('class2');
-            });
-
-        do_test('.attr({obj})', 100,
-            function () {
-                return _q(nodes).attr({ class1: null, mark1: 1999 });
-            },
-            function () {
-                return $(nodes).attr({ class2: null, mark2: 2000 });
-            });
-
-        do_test('.attr(null)', 1,
-            function () {
-                return _q(nodes).attr('mark1', null);
-            },
-            function () {
-                return $(nodes).attr('mark2', null);
+                return $(nodes).prop('guid', null);
             });
 
         _warn('---------')
 
+        _log(_q(nodes).prop('guid'))
 
     });
 

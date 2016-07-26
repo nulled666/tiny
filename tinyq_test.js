@@ -13,8 +13,11 @@ define(function () {
         var t2 = _time('time002', false);
         var color = t1 < t2 ? 'color: #090' : 'color: #900';
 
-        var xl = x == false ? false : x.length || x.count || x;
-        var yl = y != false && y.length != undefined ? y.length : y;
+        var xl = x;
+        var yl = y;
+        if(x && x.length != undefined) xl = x.length;
+        if(x && x.count != undefined) xl = x.count;
+        if(y && y.length != undefined) yl = y.length;
 
         _log('%c' + tag + ' >', color, t1.toFixed(3), ':', t2.toFixed(3), '(' + xl + '/' + yl + ')', xl == yl);
 

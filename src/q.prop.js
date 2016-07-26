@@ -153,25 +153,21 @@ define([
     // PROPERTIES
     //////////////////////////////////////////////////////////
     /**
-     * TinyQ.prop()
+     * .prop()
      */
     function access_property(key, value) {
         value = process_batch_parameter(key, value);
         return access_helper(this, key, value, access_prop_func, 1);
     }
 
-    function access_prop_func(node, key, val, is_get) {
+    function access_prop_func(node, key, value, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
             return node[key];
         } else {
-            set_node_properties(node, val);
-        }
-    }
-
-    function set_node_properties(node, attrs) {
-        for (var key in attrs) {
-            node[key] = attrs[key];
+            for (var key in value) {
+                node[key] = value[key];
+            }
         }
     }
 

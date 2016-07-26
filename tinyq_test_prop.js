@@ -81,4 +81,39 @@ require([
 
     _q(node).remove();
 
+
+    var nodes = document.querySelectorAll('h3');
+
+    do_test('.attr(val)', 100,
+        function () {
+            return _q(nodes).attr('class1', 'header test-my-code');
+        },
+        function () {
+            return $(nodes).attr('class2', 'header test-my-code');
+        });
+
+    do_test('.attr()', 100,
+        function () {
+            return _q(nodes).attr('class1');
+        },
+        function () {
+            return $(nodes).attr('class2');
+        });
+
+    do_test('.attr({obj})', 100,
+        function () {
+            return _q(nodes).attr({ class1: null, mark1: 1999 });
+        },
+        function () {
+            return $(nodes).attr({ class2: null, mark2: 2000 });
+        });
+
+    do_test('.attr(null)', 1,
+        function () {
+            return _q(nodes).attr('mark1', null);
+        },
+        function () {
+            return $(nodes).attr('mark2', null);
+        });
+
 });
