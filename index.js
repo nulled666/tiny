@@ -9,7 +9,6 @@ function start() {
     tiny.verbose('all');
 
     build_content_table();
-    build_content_table2();
 
     if (test_code() != true)
         setTimeout(run_all_code, 100);
@@ -32,9 +31,11 @@ function start() {
 
 function test_code() {
 
+    return;
+
     require([
         'tinyq_test',
-        'tinyq_test_prop',
+        //'tinyq_test_prop',
     ], function (do_test) {
 
         _q('.run-code').q('.function');
@@ -164,95 +165,52 @@ function check_and_append_link(sidebar, elem) {
     sidebar.append('<a>', {
         href: '#' + name,
         class: a_class,
-        _text: 'xx' + title
+        _text: title
     });
 
 }
-
-// ====== content table builder
-function build_content_table2() {
-
-    _time('jq');
-    var sidebar = $('#content-table');
-
-    var a_list = $('.mark');
-    a_list.each(function (i, elem) {
-        check_and_append_link2(sidebar, elem);
-    });
-    _time('jq');
-}
-
-function check_and_append_link2(sidebar, elem) {
-
-    elem = $(elem);
-    var name = elem.attr('name');
-
-    var parent_elem = elem.parent();
-    if (parent_elem.length < 1) return;
-
-    var tag = parent_elem.prop("tagName");
-
-    var title = parent_elem.text();
-
-    var a_class = '';
-    if (tag == 'H2') {
-        a_class = 'header';
-        title = title.toUpperCase();
-    } else {
-        a_class = 'sub';
-    }
-
-    var a = $('<a>', {
-        href: '#' + name,
-        class: a_class
-    }).text(title);
-
-    sidebar.append(a);
-
-}
-
 
 // ====== code runner for unit tests
 var _error_count = 0;
 
 function run_all_code() {
 
-    $('#test-info')
+    _time('run code');
+
+    _q('#test-info')
         .text('RUNNING CODE TEST...')
-        .removeClass('pass fail')
-        .addClass('show');
+        .class('-pass -fail show');
 
-    var codes = $('.run-code');
+    var codes = _q('.run-code');
 
-    codes.each(function (index, elem) {
+    codes.each(function (elem) {
         run_code(elem);
-        if ($(elem).hasClass('stop')) return false;
+        if (elem.class('?stop')) return false;
     });
 
     setTimeout(show_run_code_result, 500);
 
-}
+    _time('run code');
 
+}
 
 function run_code(elem) {
 
-    elem = $(elem);
-
     var code = elem.text();
 
-    if ($(elem).hasClass('html')) {
-        var html_fragment = $(code);
-        $(document.body).after(html_fragment);
+    if (elem.class('?html')) {
+        var html_fragment = _q(code);
+        _q(document.body).after(html_fragment);
         return;
     }
 
     code = '\
         var code_block = arguments[0];\
         var assert_index = 0;\
-        var assert_list = code_block.find(".function:contains(ASSERT)");\
+        var assert_list = code_block.q(".function").filter("@contains(ASSERT)");\
         var test_result = true;\
         var get_assert = function(){\
-            var elem = $(assert_list.get(assert_index));\
+            var elem = assert_list.get(assert_index);\
             assert_index++;\
             return elem;\
         };\
@@ -261,9 +219,9 @@ function run_code(elem) {
             _info(value, " <<<< ASSERT " + txt);\
             var elem = get_assert();\
             if(value){\
-                elem.addClass("passed");\
+                elem.class("passed");\
             }else{\
-                elem.addClass("failed");\
+                elem.class("failed");\
                 _error_count++;\
             }\
         };\
@@ -280,7 +238,7 @@ function run_code(elem) {
         setTimeout(function () {
             _error('=== RUN CODE ERROR ===> ', e);
         }, 500);
-        $(elem).addClass('failed');
+        elem.class('failed');
     }
 
     tiny.verbose('all');
@@ -289,35 +247,34 @@ function run_code(elem) {
 function show_run_code_result() {
 
     var error_counter = 0;
-    var collapsed_elems = $('.content').find(".run-code");
+    var code_block = _q(".run-code");
 
-    _each(collapsed_elems, function (elem, label) {
+    code_block.each(function (elem) {
 
-        elem = $(elem);
-        var count = elem.find('.failed').length;
+        var count = elem.q('.failed').count;
 
         if (count > 0) {
-            elem.addClass("failed");
+            elem.class("failed");
         } else {
-            elem.addClass("passed");
+            elem.class("passed");
         }
 
     });
 
     if (_error_count == 0) {
 
-        $('#test-info')
-            .addClass('pass')
+        _q('#test-info')
+            .class('pass')
             .text('ALL CODE TEST PASSED');
 
         setTimeout(function () {
-            $('#test-info').removeClass('show');
+            _q('#test-info').class('-show');
         }, 2000);
 
     } else {
 
-        $('#test-info')
-            .addClass('fail')
+        _q('#test-info')
+            .class('fail')
             .text(_error_count + ' CODE TEST FAILED');
 
     }
