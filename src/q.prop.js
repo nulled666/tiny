@@ -31,9 +31,9 @@ define([
 
 
     /**
-     * helper function
+     * get/set method helper function
      */
-    function text_helper(tinyq, key, value, func, read_one) {
+    function access_helper(tinyq, key, value, func, read_one) {
 
         var nodes = tinyq.nodes;
 
@@ -67,16 +67,30 @@ define([
 
     }
 
+    /**
+     * process {} batch parameter for supported methods
+     */
+    function process_batch_parameter(key, value) {
+        if (typeof key == 'object') {
+            value = key;
+            key = 0;
+        } else if (value != undefined) {
+            var obj = {};
+            obj[key] = value;
+            value = obj;
+        }
+        return value;
+    }
 
     //////////////////////////////////////////////////////////
     // TEXT CONTENT & HTML
     //////////////////////////////////////////////////////////
-    
+
     /**
      * .text()
      */
     function access_text(value) {
-        return text_helper(this, 0, value, access_text_func);
+        return access_helper(this, 0, value, access_text_func);
     }
 
     function access_text_func(node, key, val, is_get) {
@@ -94,7 +108,7 @@ define([
      * .html()
      */
     function access_html(value) {
-        return text_helper(this, 0, value, access_html_func, 1);
+        return access_helper(this, 0, value, access_html_func, 1);
     }
 
     function access_html_func(node, key, val, is_get) {
@@ -110,12 +124,11 @@ define([
     // ATTRIBUTES
     //////////////////////////////////////////////////////////
     /**
-     * TinyQ.attr()
+     * .attr()
      */
     function access_attribute(key, value) {
-        if (typeof key == 'object')
-            value = key, key = 0; // batch flag
-        return text_helper(this, key, value, access_attr_func, 1);
+        value = process_batch_parameter(key, value);
+        return access_helper(this, key, value, access_attr_func, 1);
     }
 
     function access_attr_func(node, key, val, is_get) {
@@ -123,11 +136,7 @@ define([
         if (is_get) {
             return node.getAttribute(key);
         } else {
-            if (key == 0) { // batch
-                set_node_attribute(node, val);
-            } else {
-                node.setAttribute(key, val);
-            }
+            set_node_attribute(node, val);
         }
     }
 
@@ -135,9 +144,11 @@ define([
         for (var key in attrs) {
             var val = attrs[key];
             if (key == '_text') {
-                node.innerText = val;
+                node.textContent = val;
             } else if (key == '_html') {
                 node.innerHTML = val;
+            } else if (val == null) {
+                node.removeAttribute(key);
             } else {
                 node.setAttribute(key, val);
             }

@@ -41,15 +41,32 @@ function test_code() {
 
         _warn('---------')
 
-        var nodes = document.querySelectorAll('.run-code');
-        do_test('.html()', 99,
+        var nodes = document.querySelectorAll('h3');
+
+        do_test('.attr(val)', 100,
             function () {
-                return _q(nodes).html();
+                return _q(nodes).attr('class', 'header test-my-code');
             },
             function () {
-                return $(nodes).html();
+                return $(nodes).attr('class', 'header test-my-code');
             });
 
+        do_test('.attr()', 100,
+            function () {
+                return _q(nodes).attr('class');
+            },
+            function () {
+                return $(nodes).attr('class');
+            });
+
+        do_test('.attr({obj})', 100,
+            function () {
+                return _q(nodes).attr({class: null, mark: 1999});
+            },
+            function () {
+                return $(nodes).attr({class: null, mark: 2000});
+            });
+            
         _warn('---------')
 
 
