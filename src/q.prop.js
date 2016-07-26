@@ -24,14 +24,14 @@ define([
         width: size_proxy(0, 0),
         height: size_proxy(0, 1),
         // includes borders
-        offsetWidth: function (val) { return access_size(this.nodes, val, 1, 0) },
-        offsetHeight: function (val) { return access_size(this.nodes, val, 1, 1) },
+        offsetWidth: size_proxy(1, 0),
+        offsetHeight: size_proxy(1, 1),
         // visible part only
-        clientWidth: function (val) { return access_size(this.nodes, val, 2, 0) },
-        clientHeight: function (val) { return access_size(this.nodes, val, 2, 1) },
+        clientWidth: size_proxy(2, 0),
+        clientHeight: size_proxy(2, 1),
         // content with padding
-        scrollWidth: function (val) { return access_size(this.nodes, val, 3, 0) },
-        scrollHeight: function (val) { return access_size(this.nodes, val, 3, 1) },
+        scrollWidth: size_proxy(3, 0),
+        scrollHeight: size_proxy(3, 1),
 
         scrollLeft: false,
         scrollTop: false,
