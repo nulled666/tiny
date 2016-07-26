@@ -36,12 +36,27 @@ function test_code() {
         //'tinyq_test_prop',
     ], function (do_test) {
 
-        var x = _q('.run-code');
-        var y = $('.run-code');
-        _log(x.width(), x.height());
-        _log(y.width(), y.height());
 
         _warn('---------')
+
+        var x = _q('.run-code');
+        var y = $('.run-code');
+
+        do_test('width', 99,
+            function () {
+                return x.width();
+            },
+            function () {
+                return y.width();
+            });
+
+        do_test('height', 99,
+            function () {
+                return x.height();
+            },
+            function () {
+                return y.height();
+            });
 
         _warn('---------')
 
