@@ -104,7 +104,7 @@ function test_code() {
                 return _q(document).clientHeight();
             },
             function () {
-                return $(document).get(0).clientHeight;
+                return $(document).get(0).body.clientHeight;
             });
 
 

@@ -403,7 +403,8 @@ define([
     // SIZE
     //////////////////////////////////////////////////////////
 
-    var SIZE_PREFIX = ['', 'offset', 'scroll', 'client'];
+    var SIZE_PREFIX_MAP = [0, 0, 'outer', 'inner'];
+    var SIZE_PREFIX = ['', 'client', 'offset', 'scroll'];
     var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     extend_size_methods(TinyQ.prototype);
@@ -415,17 +416,14 @@ define([
             var prefix = SIZE_PREFIX[i];
             var j = SIZE_TYPE.length;
             while (--j > -1) {
-                if (i == 3 && j > 1) continue; // skip clientTop & clientLeft
+                if (i == 1 && j > 1) continue; // skip clientTop & clientLeft
                 var type = SIZE_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
                 def[prefix + type] = generate_size_method(i, j);
+                // map inner -> scroll, outer -> offset
+                if (j < 2 && i > 1) def[SIZE_PREFIX_MAP[i] + type] = def[prefix + type];
             }
         }
-        // map to jquery methods
-        def.innerWidth = def.scrollWidth;
-        def.innerHeight = def.scrollHeight;
-        def.outerWidth = def.offsetWidth;
-        def.outerHeight = def.offsetHeight;
     }
 
     // generate size method handlers
