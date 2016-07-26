@@ -23,12 +23,16 @@ define([
         // following size methods are extended in extend_size_methods():
         // - computed css sizes & position :
         //	  width(), height(), left(), top()
-        // - visible sizes with border & position relate to closest positioned parent:
-        //	  offsetWidth(), offsetHeight(), offsetLeft(), offsetTop()
-        // - full content area sizes & scroll position :
-        //	  scrollWidth(), scrollHeight(), scrollLeft(), scrollTop()
-        // - visible content area sizes :
-        //	  clientWidth(), clientHeight()
+        // - visible sizes with border:
+        //	  offsetWidth/outerWidth(), offsetHeight/outerHeight()
+        // - full content area sizes:
+        //	  scrollWidth/innerWidth(), scrollHeight/innerHeight()
+        // - visible content area sizes without scroll bars and border:
+        //	  clientWidth, clientHeight
+        // - position relate to closest positioned parent
+        //    offsetLeft(), offsetTop()
+        // - scroll position :
+        //	  scrollLeft(), scrollTop()
 
         position: access_position,
         offset: access_offset,
@@ -417,6 +421,11 @@ define([
                 def[prefix + type] = generate_size_method(i, j);
             }
         }
+        // map to jquery methods
+        def.innerWidth = def.scrollWidth;
+        def.innerHeight = def.scrollHeight;
+        def.outerWidth = def.offsetWidth;
+        def.outerHeight = def.offsetHeight;
     }
 
     // generate size method handlers

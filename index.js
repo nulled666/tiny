@@ -50,12 +50,20 @@ function test_code() {
                 return y.width();
             });
 
-        do_test('offsetWidth', 99,
+        do_test('offsetWidth/outerWidth', 99,
             function () {
-                return x.offsetWidth();
+                return x.outerWidth();
             },
             function () {
-                return y.innerWidth();
+                return y.outerWidth();
+            });
+
+        do_test('scrollWidth/innerWidth', 99,
+            function () {
+                return _q(document).innerWidth();
+            },
+            function () {
+                return $(document).innerWidth();
             });
 
         do_test('clientWidth', 99,
@@ -63,16 +71,9 @@ function test_code() {
                 return _q(document).clientWidth();
             },
             function () {
-                return $(document).outerWidth();
+                return $(document).get(0).body.clientWidth;
             });
 
-        do_test('scrollWidth', 99,
-            function () {
-                return _q(document).scrollWidth();
-            },
-            function () {
-                return $(document).outerWidth();
-            });
 
         do_test('height', 99,
             function () {
@@ -82,12 +83,20 @@ function test_code() {
                 return y.height();
             });
 
-        do_test('offsetHeight', 99,
+        do_test('offsetHeight/outerHeight', 99,
             function () {
-                return _q(document).offsetHeight();
+                return x.outerHeight();
             },
             function () {
-                return $(document).height();
+                return y.outerHeight();
+            });
+
+        do_test('scrollHeight/innerHeight', 99,
+            function () {
+                return _q(document).innerHeight();
+            },
+            function () {
+                return $(document).innerHeight();
             });
 
         do_test('clientHeight', 99,
@@ -95,16 +104,9 @@ function test_code() {
                 return _q(document).clientHeight();
             },
             function () {
-                return $(document).height();
+                return $(document).get(0).clientHeight;
             });
 
-        do_test('scrollHeight', 99,
-            function () {
-                return _q(document).scrollHeight();
-            },
-            function () {
-                return $(document).outerHeight();
-            });
 
         _warn('position ------------------')
 
