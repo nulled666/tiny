@@ -2,44 +2,9 @@ require([
     'tinyq_test'
 ], function (do_test) {
 
+    _warn('text & html ------------------')
+    
     var nodes = document.querySelectorAll('pre');
-
-    do_test('add class', 99,
-        function () {
-            return _q(nodes).class('passed failed test ok collapse');
-        },
-        function () {
-            return $(nodes).addClass('passed failed test ok collapse');
-        });
-
-    do_test('remove class', 99,
-        function () {
-            return _q(nodes).class('-passed -failed -test -ok -collapse');
-        },
-        function () {
-            return $(nodes).removeClass('passed failed test ok collapse');
-        });
-
-    do_test('add & remove', 99,
-        function () {
-            return _q(nodes).class('passed failed test ok collapse')
-                .class('-passed -failed -test -ok -collapse');
-        },
-        function () {
-            return $(nodes).addClass('passed failed test ok collapse')
-                .removeClass('passed failed test ok collapse');
-        });
-
-    do_test('mixed action', 99,
-        function () {
-            return _q(nodes)
-                .class('passed -run-code ^collapse')
-                .class('-passed -collapse ^run-code ?run-code');
-        },
-        function () {
-            return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
-                .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
-        });
 
     do_test('.text()', 99,
         function () {
@@ -82,6 +47,8 @@ require([
     _q(node).remove();
 
 
+    _warn('attribute ------------------')
+
     var nodes = document.querySelectorAll('h3');
 
     do_test('.attr(val)', 100,
@@ -114,6 +81,77 @@ require([
         },
         function () {
             return $(nodes).attr('mark2', null);
+        });
+
+    _warn('property ------------------')
+
+    var nodes = document.querySelectorAll('h3');
+
+    do_test('.prop()', 1000,
+        function () {
+            return _q(nodes).prop('innerHTML');
+        },
+        function () {
+            return $(nodes).prop('innerHTML');
+        });
+
+    var guid1 = tiny.guid();
+    var guid2 = tiny.guid();
+    do_test('.prop(value)', 1000,
+        function () {
+            return _q(nodes).prop('guid', guid1);
+        },
+        function () {
+            return $(nodes).prop('guid', guid2);
+        });
+
+    do_test('.prop(null)', 1000,
+        function () {
+            return _q(nodes).prop('guid', null);
+        },
+        function () {
+            return $(nodes).prop('guid', null);
+        });
+
+
+    _warn('class ------------------')
+    var nodes = document.querySelectorAll('pre');
+
+    do_test('add class', 99,
+        function () {
+            return _q(nodes).class('passed failed test ok collapse');
+        },
+        function () {
+            return $(nodes).addClass('passed failed test ok collapse');
+        });
+
+    do_test('remove class', 99,
+        function () {
+            return _q(nodes).class('-passed -failed -test -ok -collapse');
+        },
+        function () {
+            return $(nodes).removeClass('passed failed test ok collapse');
+        });
+
+    do_test('add & remove', 99,
+        function () {
+            return _q(nodes).class('passed failed test ok collapse')
+                .class('-passed -failed -test -ok -collapse');
+        },
+        function () {
+            return $(nodes).addClass('passed failed test ok collapse')
+                .removeClass('passed failed test ok collapse');
+        });
+
+    do_test('mixed action', 99,
+        function () {
+            return _q(nodes)
+                .class('passed -run-code ^collapse')
+                .class('-passed -collapse ^run-code ?run-code');
+        },
+        function () {
+            return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
+                .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
         });
 
 });

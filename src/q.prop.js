@@ -186,16 +186,40 @@ define([
         if (node.nodeType != 1) return '';
         var style = node.style;
         if (is_get) {
+            key = check_style_key(key);
             return style[key];
         } else {
             for (var key in value) {
                 var val = value[key];
+                key = check_style_key(key);
                 if (val == null) val = '';
                 style[key] = val;
             }
         }
     }
 
+    var BASE_STYLE_LIST = document.createElement('div').style;
+    var STYLE_VENDOR_PREFIX = ['Webkit', 'Moz', 'ms'];
+    var _style_prefix;
+
+    function check_style_key(key) {
+
+        if (key in BASE_STYLE_LIST) return key;
+
+        key = key.charAt(0).toUpperCase() + key.slice(1);
+
+        if(_style_prefix) return _style_prefix + key;
+
+        for (var i = 0, len = STYLE_VENDOR_PREFIX.length; i < len; ++i) {
+            var prefix = STYLE_VENDOR_PREFIX[i];
+            var new_key = prefix + key;
+            if (new_key in BASE_STYLE_LIST) {
+                _style_prefix = prefix;
+                return new_key;
+            }
+        }
+
+    }
 
     //////////////////////////////////////////////////////////
     // CSS CLASS

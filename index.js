@@ -34,7 +34,7 @@ function test_code() {
 
     require([
         'tinyq_test',
-        //'tinyq_test_prop',
+        'tinyq_test_prop',
     ], function (do_test) {
 
         _q('.run-code').q('.function');
@@ -43,30 +43,12 @@ function test_code() {
 
         var nodes = document.querySelectorAll('h3');
 
-        do_test('.prop()', 1000,
+        do_test('.css()', 1,
             function () {
-                return _q(nodes).prop('innerHTML');
+                return //_q(nodes).prop('innerHTML');
             },
             function () {
-                return $(nodes).prop('innerHTML');
-            });
-        
-        var guid1 = tiny.guid();
-        var guid2 = tiny.guid();
-        do_test('.prop(value)', 1000,
-            function () {
-                return _q(nodes).prop('guid', guid1);
-            },
-            function () {
-                return $(nodes).prop('guid', guid2);
-            });
-
-        do_test('.prop(null)', 1000,
-            function () {
-                return _q(nodes).prop('guid', null);
-            },
-            function () {
-                return $(nodes).prop('guid', null);
+                return //$(nodes).prop('innerHTML');
             });
 
         _warn('---------')
