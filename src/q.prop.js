@@ -166,7 +166,9 @@ define([
             return node[key];
         } else {
             for (var key in value) {
-                node[key] = value[key];
+                var val = value[key];
+                node[key] = val;
+                if (val == null) delete node[key];
             }
         }
     }
