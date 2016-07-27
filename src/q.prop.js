@@ -106,10 +106,10 @@ define([
      * .text()
      */
     function access_text(value) {
-        return access_helper(this, 0, value, access_text_func);
+        return access_helper(this, 0, value, func_access_text);
     }
 
-    function access_text_func(node, key, val, is_get) {
+    function func_access_text(node, key, val, is_get) {
         if (is_get) {
             val += node.textContent;
             return val;
@@ -126,15 +126,34 @@ define([
      * .html()
      */
     function access_html(value) {
-        return access_helper(this, 0, value, access_html_func, 1);
+        return access_helper(this, 0, value, func_access_html, 1);
     }
 
-    function access_html_func(node, key, val, is_get) {
+    function func_access_html(node, key, val, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
             return node.innerHTML;
         } else {
             node.innerHTML = val;
+        }
+    }
+
+    //////////////////////////////////////////////////////////
+    // VALUES
+    //////////////////////////////////////////////////////////
+    /**
+     * .val()
+     */
+    function access_value(value) {
+        return access_helper(this, 0, value, func_access_value, 1);
+    }
+
+    function func_access_value(node, key, val, is_get) {
+        if (node.nodeType != 1) return '';
+        if (is_get) {
+            // TODO
+        } else {
+            // TODO
         }
     }
 
@@ -146,10 +165,10 @@ define([
      */
     function access_attribute(key, value) {
         value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, access_attr_func, 1);
+        return access_helper(this, key, value, func_access_attribute, 1);
     }
 
-    function access_attr_func(node, key, val, is_get) {
+    function func_access_attribute(node, key, val, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
             return node.getAttribute(key);
@@ -182,10 +201,10 @@ define([
      */
     function access_property(key, value) {
         value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, access_prop_func, 1);
+        return access_helper(this, key, value, func_access_prop, 1);
     }
 
-    function access_prop_func(node, key, value, is_get) {
+    function func_access_prop(node, key, value, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
             return node[key];
@@ -198,26 +217,16 @@ define([
         }
     }
 
-    //////////////////////////////////////////////////////////
-    // VALUES
-    //////////////////////////////////////////////////////////
-    /**
-     * .val()
-     */
-    function access_value(value){
 
-    }
-
-    
     //////////////////////////////////////////////////////////
     // CSS STYLE
     //////////////////////////////////////////////////////////
     function access_style(key, value) {
         value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, access_style_func, 1);
+        return access_helper(this, key, value, func_access_style, 1);
     }
 
-    function access_style_func(node, key, value, is_get) {
+    function func_access_style(node, key, value, is_get) {
         if (node.nodeType != 1) return '';
         var style = node.style;
         if (is_get) {
@@ -514,7 +523,8 @@ define([
                 // shorthand for pos().top/left
                 return get_position.call(tinyq)[type];
             } else {
-                return get_computed_style(node, type, true);
+                // get real size
+                return get_style_value(node, type, true);
             }
         }
 
@@ -530,9 +540,10 @@ define([
     }
 
     // get computed style value
-    function get_computed_style(node, name, do_parse) {
-        var style = window.getComputedStyle(node);
-        var val = style[name];
+    function get_style_value(node, name, do_parse) {
+        var val = node.style[name];
+        // get computed value if no style value is found
+        if (val == '')val = window.getComputedStyle(node)[name];
         return do_parse ? parseFloat(val) : val;
     }
 
@@ -572,7 +583,7 @@ define([
      * get offset relate to the document
      */
     function get_offset() {
-        var rect = get_rect.call(this);
+        var rect = get_bounding_rect(this.nodes[0]);
         return {
             left: rect.left - window.pageYOffset,
             top: rect.top - window.pageXOffset
@@ -583,14 +594,16 @@ define([
      * .rect()  get bouding rect
      */
     function get_rect() {
+        return get_bounding_rect(this.nodes[0], true);
+    }
 
-        var nodes = this.nodes;
-        var rect = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
+    // get element bounding rect
+    function get_bounding_rect(node, convert) {
 
-        // window
-        if (nodes.length == 0) return rect;
+        var rect_obj = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
 
-        var node = nodes[0];
+        if (!node) return rect_obj;
+
         var node_type = node.nodeType;
 
         // document - use body instead
@@ -598,13 +611,16 @@ define([
             node_type = 1, node = node.body;
 
         // check if node was detached (method from jquery)
-        if (!node.getClientRects().length) return rect;
+        if (!node.getClientRects().length) return rect_obj;
 
-        var crect = node.getBoundingClientRect();
+        var rect = node.getBoundingClientRect();
 
         // convert to normal object
-        for (var key in crect) {
-            rect[key] = crect[key]
+        if (convert) {
+            for (var key in rect) {
+                rect_obj[key] = rect[key]
+            }
+            rect = rect_obj;
         }
 
         return rect;

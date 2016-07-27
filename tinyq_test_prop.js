@@ -158,7 +158,7 @@ require([
     var nodes = document.querySelectorAll('.run-code');
     var q = _q(nodes);
     var jq = $(nodes);
-    do_test('add class', 99,
+    do_test('.class(+)', 99,
         function () {
             return q.class('passed failed test ok collapse');
         },
@@ -166,7 +166,7 @@ require([
             return jq.addClass('passed failed test ok collapse');
         });
 
-    do_test('remove class', 99,
+    do_test('.class(-)', 99,
         function () {
             return q.class('-:passed failed test ok collapse');
         },
@@ -174,7 +174,7 @@ require([
             return jq.removeClass('passed failed test ok collapse');
         });
 
-    do_test('add & remove', 99,
+    do_test('.class(+-)', 99,
         function () {
             return q.class('passed failed test ok collapse')
                 .class('-:passed failed test ok collapse');
@@ -184,7 +184,15 @@ require([
                 .removeClass('passed failed test ok collapse');
         });
 
-    do_test('check class', 99,
+    do_test('.class(^)', 99,
+        function () {
+            return q.class('^test');
+        },
+        function () {
+            return jq.toggleClass('test');
+        });
+
+    do_test('.class(?)', 99,
         function () {
             return q.class('?run-code');
         },
@@ -192,7 +200,7 @@ require([
             return jq.hasClass('run-code');
         });
 
-    do_test('mixed action', 99,
+    do_test('.class(+-^?)', 99,
         function () {
             return q.class('passed -run-code ^collapse')
                 .class('-passed -collapse ^run-code ?run-code');
@@ -207,7 +215,7 @@ require([
     var x = _q('.run-code');
     var y = $('.run-code');
 
-    do_test('set width', 99,
+    do_test('.width(98)', 99,
         function () {
             return x.width(98);
         },
@@ -215,7 +223,7 @@ require([
             return y.width(98);
         });
 
-    do_test('get width', 99,
+    do_test('.width()', 99,
         function () {
             return x.width();
         },
@@ -223,7 +231,7 @@ require([
             return y.width();
         });
 
-    do_test('set width auto', 99,
+    do_test('.width(auto)', 99,
         function () {
             return x.width('');
         },
@@ -231,7 +239,7 @@ require([
             return y.width('');
         });
 
-    do_test('set height', 99,
+    do_test('.height(60)', 99,
         function () {
             return x.height(60);
         },
@@ -239,15 +247,15 @@ require([
             return y.height(60);
         });
 
-    do_test('get height', 99,
+    do_test('.height()', 99,
         function () {
             return x.height();
         },
         function () {
             return y.height();
         });
-
-    do_test('set height auto', 99,
+        
+    do_test('.height(auto)', 99,
         function () {
             return x.height('');
         },
@@ -255,7 +263,7 @@ require([
             return y.height('');
         });
 
-    do_test('offsetWidth/outerWidth', 99,
+    do_test('.offsetWidth/outerWidth()', 99,
         function () {
             return x.outerWidth();
         },
@@ -264,7 +272,7 @@ require([
         });
 
 
-    do_test('offsetHeight/outerHeight', 99,
+    do_test('.offsetHeight/outerHeight()', 99,
         function () {
             return x.outerHeight();
         },
@@ -272,7 +280,7 @@ require([
             return y.outerHeight();
         });
 
-    do_test('scrollWidth/innerWidth', 99,
+    do_test('.scrollWidth/innerWidth()', 99,
         function () {
             return _q(document).innerWidth();
         },
@@ -281,7 +289,7 @@ require([
         });
 
 
-    do_test('scrollHeight/innerHeight', 99,
+    do_test('.scrollHeight/innerHeight()', 99,
         function () {
             return _q(document).innerHeight();
         },
@@ -290,7 +298,7 @@ require([
         });
 
 
-    do_test('clientWidth', 99,
+    do_test('.clientWidth()', 99,
         function () {
             return _q(document).clientWidth();
         },
@@ -298,7 +306,7 @@ require([
             return $(document).get(0).body.clientWidth;
         });
 
-    do_test('clientHeight', 99,
+    do_test('.clientHeight()', 99,
         function () {
             return _q(document).clientHeight();
         },
@@ -408,7 +416,7 @@ require([
         function () {
             return y.position().top;
         });
-        
+
     do_test('.rect()', 100,
         function () {
             return x.rect();
