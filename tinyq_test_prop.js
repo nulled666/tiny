@@ -322,7 +322,7 @@ require([
                 return x.left();
             },
             function () {
-                return y.css('left');
+                return y.position().left;
             });
 
         do_test('set left auto', 99,
@@ -346,7 +346,7 @@ require([
                 return x.top();
             },
             function () {
-                return y.css('top');
+                return y.position().top;
             });
 
         do_test('set top auto', 99,
@@ -362,7 +362,7 @@ require([
                 return x.offsetLeft();
             },
             function () {
-                return y.offset().left;
+                return y.get(0).offsetLeft;
             });
 
 
@@ -371,7 +371,7 @@ require([
                 return x.offsetTop();
             },
             function () {
-                return y.offset().top;
+                return y.get(0).offsetTop;
             });
 
         do_test('scrollLeft', 99,
@@ -388,6 +388,26 @@ require([
             },
             function () {
                 return $(document).scrollTop();
+            });
+
+
+        var x = _q('.function');
+        var y = $('.function');
+
+        do_test('pos().left', 1,
+            function () {
+                return x.pos().left;
+            },
+            function () {
+                return y.position().left;
+            });
+
+        do_test('pos().top', 1,
+            function () {
+                return x.pos().top;
+            },
+            function () {
+                return y.position().top;
             });
 
 });

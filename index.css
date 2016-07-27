@@ -150,7 +150,7 @@ pre{
 pre .function{
 	margin: 12px;
 	display: block;
-	position: absolute;
+	position: static;
 	top: 60;
 	left: 120;
 	border: 4px solid #ccc;

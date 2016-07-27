@@ -459,7 +459,7 @@ define([
         var tinyq = this.q, prefix = this.p, type = this.t;
         if (value == undefined) {
             // => get sizes
-            return get_size(tinyq.nodes, prefix, type);
+            return get_size(tinyq, prefix, type);
         } else {
             // => set sizes - css sizes only
             if (prefix !== '') {
@@ -472,7 +472,9 @@ define([
     }
 
     // get size value
-    function get_size(nodes, prefix, type) {
+    function get_size(tinyq, prefix, type) {
+
+        var nodes = tinyq.nodes;
 
         if (nodes.length == 0) {
             // window - always return innerWidth/innerHeight
@@ -493,9 +495,15 @@ define([
 
         if (node_type != 1) return 0;
 
-        // node
         if (prefix == '') {
-            return get_computed_style(node, type.toLowerCase());
+            // css sizes
+            type = type.toLowerCase();
+            if (type == 'left' || type == 'top') {
+                // shorthand for pos().top/left
+                return get_position.call(tinyq)[type];
+            } else {
+                return get_computed_style(node, type, true);
+            }
         }
 
         return node[tag];
@@ -512,7 +520,8 @@ define([
     // get computed style value
     function get_computed_style(node, name, do_parse) {
         var style = window.getComputedStyle(node);
-        return parseFloat(style[name]);
+        var val = style[name];
+        return do_parse ? parseFloat(val) : val;
     }
 
     //////////////////////////////////////////////////////////
