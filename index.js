@@ -34,9 +34,31 @@ function test_code() {
     require([
         'tinyq_test',
         //'tinyq_test_prop',
+        //'tinyq_test_prop',
     ], function (do_test) {
 
         _warn('---------')
+
+        var x = _q('.run-code');
+        var y = $('.run-code');
+
+
+return;
+        do_test('position.left', 99,
+            function () {
+                return x.outerWidth();
+            },
+            function () {
+                return y.position().left;
+            });
+
+        do_test('position.top', 99,
+            function () {
+                return x.outerHeight();
+            },
+            function () {
+                return y.position().top;
+            });
         _warn('---------')
 
     });

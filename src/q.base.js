@@ -55,6 +55,7 @@ define([
 
         // traverse
         parent: get_parent,
+        offsetParent: get_offset_parent,
         children: get_children,
         closest: get_closest,
         prev: get_prev,
@@ -549,22 +550,25 @@ define([
         selector = selector || false;
 
         var prefix = '.parent(';  // type == 0
-        var get_func = get_parent_func;
+        var get_func = func_get_parent;
         if (type == 1) {
-            get_func = get_children_func;
-            prefix = '.children(' + selector;
+            get_func = func_get_offset_parent;
+            prefix = '.offsetParent(';
         } else if (type == 2) {
+            get_func = func_get_children;
+            prefix = '.children(' + selector;
+        } else if (type == 3) {
             if (!selector) {
                 tiny.error(TAG_Q, 'Expect a selector for closest()');
                 throw new SyntaxError(G.SEE_ABOVE);
             }
-            get_func = get_closest_func;
+            get_func = func_get_closest;
             prefix = '.closest(' + selector;
-        } else if (type == 3) {
-            get_func = get_prev_func;
-            prefix = '.prev(';
         } else if (type == 4) {
-            get_func = get_next_func;
+            get_func = func_get_prev;
+            prefix = '.prev(';
+        } else if (type == 5) {
+            get_func = func_get_next;
             prefix = '.next(';
         }
 
@@ -578,6 +582,8 @@ define([
             var node = get_func(nodes[i], selector);
             if (!node) continue;
             if (type < 3) {
+                // parent, offsetParent, closest requires unique check
+                // children is an array
                 arr = to_array(node, arr, opid, filter);
             } else {
                 if (filter && !filter(node)) continue;
@@ -589,12 +595,17 @@ define([
 
     }
 
-    function get_parent_func(node) {
+    function func_get_parent(node) {
         var r = node.parentElement;
         if (r) r = [r];
         return r;
     }
-    function get_children_func(node) {
+    function func_get_offset_parent(node) {
+        var r = node.offsetParent;
+        if (r) r = [r];
+        return r;
+    }
+    function func_get_children(node) {
         // NOTE: this loop is faster than node.children
         var arr = [];
         var child = node.firstElementChild;
@@ -604,15 +615,15 @@ define([
         }
         return arr;
     }
-    function get_closest_func(node, selector) {
+    function func_get_closest(node, selector) {
         while (node) {
             if (node.matches(selector)) return [node];
             node = node.parentElement;
         }
         return null;
     }
-    function get_prev_func(node) { return node.previousElementSibling; }
-    function get_next_func(node) { return node.nextElementSibling; }
+    function func_get_prev(node) { return node.previousElementSibling; }
+    function func_get_next(node) { return node.nextElementSibling; }
     function traversal_match_filter(node) { return node.matches(this); }
 
     /**
@@ -625,17 +636,26 @@ define([
     }
 
     /**
+     * .offsetParent() - get offsetParent
+     */
+    function get_offset_parent(selector) {
+        var r = do_traversal_helper(this, selector, 1);
+        r.nodes.sort(compare_node_position);
+        return r;
+    }
+
+    /**
      * .get_children() - get children
      */
     function get_children(selector) {
-        return do_traversal_helper(this, selector, 1);
+        return do_traversal_helper(this, selector, 2);
     }
 
     /**
      * .closest() - get closest element matches selector
      */
     function get_closest(selector) {
-        var r = do_traversal_helper(this, selector, 2);
+        var r = do_traversal_helper(this, selector, 3);
         r.nodes.sort(compare_node_position);
         return r;
     }
@@ -644,14 +664,14 @@ define([
      * .prev() - get previousElementSibling
      */
     function get_prev(selector) {
-        return do_traversal_helper(this, selector, 3);
+        return do_traversal_helper(this, selector, 4);
     }
 
     /**
      * .next() - get nextElementSibling
      */
     function get_next(selector) {
-        return do_traversal_helper(this, selector, 4);
+        return do_traversal_helper(this, selector, 5);
     }
 
 

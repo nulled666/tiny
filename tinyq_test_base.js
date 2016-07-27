@@ -176,7 +176,7 @@ define([
         function () {
             return $(nodelist).get(2);
         });
-        
+
     do_test('.q(index)', 1000,
         function () {
             return _q(nodelist).q(10);
@@ -234,13 +234,23 @@ define([
         });
 
     _warn('traverse', '--------------------------------')
+
     var nodelist = document.querySelectorAll('.token');
+    
     do_test('.parent()', 50,
         function () {
             return _q(nodelist).parent('code');
         },
         function () {
             return $(nodelist).parent('code');
+        });
+
+    do_test('.offsetParent()', 100,
+        function () {
+            return x.offsetParent();
+        },
+        function () {
+            return y.offsetParent();
         });
 
     do_test('.closest()', 10,

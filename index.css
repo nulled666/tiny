@@ -112,6 +112,7 @@ body{
 
 /* content */
 .content{
+	position: relative;
 	margin-left: 240px;
 	padding: 20px;
 	width: 720px;

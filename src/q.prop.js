@@ -34,8 +34,8 @@ define([
         // - scroll position :
         //	  scrollLeft(), scrollTop()
 
-        position: access_position,
-        offset: access_offset,
+        position: get_position,
+        offset: get_offset,
 
     });
 
@@ -513,8 +513,33 @@ define([
     //////////////////////////////////////////////////////////
     // POSITIONS
     //////////////////////////////////////////////////////////
-    function access_position() { }
+    /***
+     * .position() get position
+     */
+    function get_position() {
 
-    function access_offset() { }
+        var nodes = this.nodes;
+        var pos = { left: 0, top: 0 };
+
+        // window
+        if (nodes.length == 0) return pos;
+
+        var node = nodes[0];
+        var node_type = node.nodeType;
+
+        // document or not an element
+        if (node_type == 9 || node_type != 1) return pos;
+
+        var top = node.offsetTop, left = node.offsetLeft;
+        while (node = node.offsetParent) {
+            top += node.offsetTop;
+            left += node.offsetLeft;
+        }
+
+    }
+
+    function get_offset() {
+
+    }
 
 });
