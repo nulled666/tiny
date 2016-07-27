@@ -38,27 +38,9 @@ function test_code() {
     ], function (do_test) {
 
         _warn('---------')
-        var x = _q(document);
-        var y = $(document.body);
+        var x = _q('.run-code');
+        var y = $('.run-code');
 
-        _log(y.offset());
-
-return;
-        do_test('.offset().left', 1,
-            function () {
-                return x.offset().left;
-            },
-            function () {
-                return y.offset().left;
-            });
-
-        do_test('.offset().top', 1,
-            function () {
-                return x.offset().top;
-            },
-            function () {
-                return y.offset().top;
-            });
 
         _warn('---------')
 

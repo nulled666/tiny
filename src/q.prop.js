@@ -36,6 +36,7 @@ define([
 
         pos: get_position,
         offset: get_offset,
+        rect: get_rect
 
     });
 
@@ -544,15 +545,8 @@ define([
         // document or not an element
         if (node_type == 9 || node_type != 1) return pos;
 
-        if (node.style.position == 'fixed') {
-            // position: fixed element
-            pos = node.getBoundingClientRect();
-        } else {
-            // normal element
-            // we cannot use computed style on position: static/reletive elements
-            pos.top = node.offsetTop;
-            pos.left = node.offsetLeft;
-        }
+        pos.top = node.offsetTop;
+        pos.left = node.offsetLeft;
 
         // remove margin to match the top & left value in css style
         var style = window.getComputedStyle(node);
@@ -563,23 +557,46 @@ define([
 
     }
 
-
     /**
      * get offset relate to the document
      */
     function get_offset() {
+        var rect = get_rect.call(this);
+        return {
+            left: rect.left - window.pageYOffset,
+            top: rect.top - window.pageXOffset
+        }
+    }
+
+    /**
+     * .rect()  get bouding rect
+     */
+    function get_rect() {
 
         var nodes = this.nodes;
-        var pos = { left: 0, top: 0 };
+        var rect = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
 
         // window
-        if (nodes.length == 0) return pos;
+        if (nodes.length == 0) return rect;
 
         var node = nodes[0];
         var node_type = node.nodeType;
 
-        // document or not an element
-        if (node_type == 9 || node_type != 1) return pos;
+        // document - use body instead
+        if (node_type == 9)
+            node_type = 1, node = node.body;
+
+        // check if node was detached (method from jquery)
+        if (!node.getClientRects().length) return rect;
+
+        var crect = node.getBoundingClientRect();
+
+        // convert to normal object
+        for (var key in crect) {
+            rect[key] = crect[key]
+        }
+
+        return rect;
 
     }
 

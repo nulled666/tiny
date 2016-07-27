@@ -1,4 +1,5 @@
 body{
+	margin: 0;
 	font-family: "Segoe UI", Tahoma, Arial;
 	font-size: 14px;
 	color: #333;
@@ -143,11 +144,12 @@ h4{
 pre{
 	position: relative;
 	font-size: 12px;
-	border: 1px solid #eee;
+	border: 14px solid #eee;
 	border-radius: 4px;
 }
 pre.run-code,
 pre.html-fragment{
+	margin: 100px;
 	background: #f9f9f9;
 }
 pre.failed{
