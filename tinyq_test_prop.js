@@ -310,7 +310,7 @@ require([
         function () {
             return y.get(0).scrollHeight;
         });
-return;
+
     do_test('.width(auto)', 99,
         function () {
             return x.width('');
@@ -326,7 +326,6 @@ return;
         function () {
             return y.height('');
         });
-
 
 
     _warn('position ------------------')
