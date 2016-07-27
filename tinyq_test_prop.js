@@ -207,7 +207,15 @@ require([
         var x = _q('.run-code');
         var y = $('.run-code');
 
-        do_test('width', 99,
+        do_test('set width', 99,
+            function () {
+                return x.width(98);
+            },
+            function () {
+                return y.width(98);
+            });
+
+        do_test('get width', 99,
             function () {
                 return x.width();
             },
@@ -215,12 +223,36 @@ require([
                 return y.width();
             });
 
-        do_test('height', 99,
+        do_test('set width auto', 99,
+            function () {
+                return x.width('');
+            },
+            function () {
+                return y.width('');
+            });
+
+        do_test('set height', 99,
+            function () {
+                return x.height(60);
+            },
+            function () {
+                return y.height(60);
+            });
+
+        do_test('get height', 99,
             function () {
                 return x.height();
             },
             function () {
                 return y.height();
+            });
+
+        do_test('set height auto', 99,
+            function () {
+                return x.height('');
+            },
+            function () {
+                return y.height('');
             });
 
         do_test('offsetWidth/outerWidth', 99,
@@ -277,7 +309,15 @@ require([
 
         _warn('position ------------------')
 
-        do_test('left', 99,
+        do_test('set left', 99,
+            function () {
+                return x.left(60);
+            },
+            function () {
+                return y.css('left', 60);
+            });
+
+        do_test('get left', 99,
             function () {
                 return x.left();
             },
@@ -285,6 +325,14 @@ require([
                 return y.css('left');
             });
 
+        do_test('set left auto', 99,
+            function () {
+                return x.left('');
+            },
+            function () {
+                return y.css('left', '');
+            });
+            
         do_test('top', 99,
             function () {
                 return x.top();

@@ -284,7 +284,7 @@ define([
             var r = do_class_actions(node, actions.do, actions.check);
             if (r == true) {
                 result = true;
-                if(!has_do) break;      // check only - jump out
+                if (!has_do) break;      // check only - jump out
                 actions.check = false;  // suppress further check
             }
         }
@@ -445,7 +445,7 @@ define([
     function generate_size_method(prefix, type) {
         return function (val) {
             return access_size.call({
-                n: this.nodes,
+                q: this,
                 p: SIZE_PREFIX[prefix],
                 t: SIZE_TYPE[type]
             }, val)
@@ -455,18 +455,23 @@ define([
     /**
      * access function for size methods
      */
-    function access_size(value, prefix, type) {
+    function access_size(value) {
+        var tinyq = this.q, prefix = this.p, type = this.t;
         if (value == undefined) {
-            return get_size(this.n, this.p, this.t);
+            // => get sizes
+            return get_size(tinyq.nodes, prefix, type);
         } else {
+            // => set sizes - css sizes only
             if (prefix !== '') {
                 tiny.error(TinyQ.x.TAG, 'This property is read-only: ', prefix + type);
                 throw new TypeError(G.SEE_ABOVE);
             }
-            // TODO: set style size
+            set_sizes(tinyq, type, value);
+            return tinyq;
         }
     }
 
+    // get size value
     function get_size(nodes, prefix, type) {
 
         if (nodes.length == 0) {
@@ -476,6 +481,7 @@ define([
             return r;
         }
 
+        // only return first element sizes
         var node = nodes[0];
         var node_type = node.nodeType;
         var tag = prefix + type;
@@ -497,6 +503,12 @@ define([
 
     }
 
+    // set css sizes
+    function set_sizes(tinyq, type, val) {
+        type = type.toLowerCase();
+        if (typeof val == 'number') val = val + 'px';
+        access_style.call(tinyq, type, val);
+    }
 
     //////////////////////////////////////////////////////////
     // POSITIONS
