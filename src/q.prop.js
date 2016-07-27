@@ -519,13 +519,38 @@ define([
     // POSITIONS
     //////////////////////////////////////////////////////////
     /***
-     * .pos() get position
+     * .position() get position
      */
     function get_position() {
-        return {
-            left: this.left(),
-            top: this.top()
+
+        var nodes = this.nodes;
+        var pos = { left: 0, top: 0 };
+
+        // window
+        if (nodes.length == 0) return pos;
+
+        var node = nodes[0];
+        var node_type = node.nodeType;
+
+        // document or not an element
+        if (node_type == 9 || node_type != 1) return pos;
+
+        if (node.style.position == 'fixed') {
+            // position: fixed element
+            pos = node.getBoundingClientRect();
+        } else {
+            // normal element
+            pos.top = node.offsetTop;
+            pos.left = node.offsetLeft;
         }
+
+        // remove margin to match the top & left value in css style
+        var style = window.getComputedStyle(node);
+        pos.left -= parseFloat(style.marginLeft);
+        pos.top -= parseFloat(style.marginTop);
+
+        return pos;
+
     }
 
 

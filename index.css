@@ -148,7 +148,7 @@ pre{
 	border-radius: 4px;
 }
 pre .function{
-	margin: -12px;
+	margin: 12px;
 	display: block;
 	position: absolute;
 	top: 60;
