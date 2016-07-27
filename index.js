@@ -34,30 +34,30 @@ function test_code() {
     require([
         'tinyq_test',
         //'tinyq_test_base',
-        'tinyq_test_prop',
+        //'tinyq_test_prop',
     ], function (do_test) {
 
         _warn('---------')
+        var x = _q(document);
+        var y = $(document.body);
+
+        _log(y.offset());
+
 return;
-        var x = _q('.function');
-        var y = $('.function');
-
-        _log(x.left(), x.top());
-
-        do_test('position.left', 1,
+        do_test('.offset().left', 1,
             function () {
-                return x.pos().left;
+                return x.offset().left;
             },
             function () {
-                return y.position().left;
+                return y.offset().left;
             });
 
-        do_test('position.top', 1,
+        do_test('.offset().top', 1,
             function () {
-                return x.pos().top;
+                return x.offset().top;
             },
             function () {
-                return y.position().top;
+                return y.offset().top;
             });
 
         _warn('---------')

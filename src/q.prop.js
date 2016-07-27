@@ -528,7 +528,7 @@ define([
     // POSITIONS
     //////////////////////////////////////////////////////////
     /***
-     * .position() get position
+     * .position() get position relate to offsetParent
      */
     function get_position() {
 
@@ -568,6 +568,18 @@ define([
      * get offset relate to the document
      */
     function get_offset() {
+
+        var nodes = this.nodes;
+        var pos = { left: 0, top: 0 };
+
+        // window
+        if (nodes.length == 0) return pos;
+
+        var node = nodes[0];
+        var node_type = node.nodeType;
+
+        // document or not an element
+        if (node_type == 9 || node_type != 1) return pos;
 
     }
 

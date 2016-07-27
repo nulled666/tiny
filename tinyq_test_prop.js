@@ -155,7 +155,7 @@ require([
 
 
     _warn('class ------------------')
-    var nodes = document.querySelectorAll('pre');
+    var nodes = document.querySelectorAll('.run-code');
     var q = _q(nodes);
     var jq = $(nodes);
     do_test('add class', 99,
@@ -309,7 +309,7 @@ require([
 
         _warn('position ------------------')
 
-        do_test('set left', 99,
+        do_test('.left(60)', 99,
             function () {
                 return x.left(60);
             },
@@ -317,7 +317,7 @@ require([
                 return y.css('left', 60);
             });
 
-        do_test('get left', 99,
+        do_test('.left()', 99,
             function () {
                 return x.left();
             },
@@ -325,7 +325,7 @@ require([
                 return y.position().left;
             });
 
-        do_test('set left auto', 99,
+        do_test('.left(auto)', 99,
             function () {
                 return x.left('');
             },
@@ -333,7 +333,7 @@ require([
                 return y.css('left', '');
             });
             
-        do_test('set top', 99,
+        do_test('.top(60)', 99,
             function () {
                 return x.top(60);
             },
@@ -341,7 +341,7 @@ require([
                 return y.css('top', 60);
             });
 
-        do_test('get top', 99,
+        do_test('.top()', 99,
             function () {
                 return x.top();
             },
@@ -349,7 +349,7 @@ require([
                 return y.position().top;
             });
 
-        do_test('set top auto', 99,
+        do_test('.top(auto)', 99,
             function () {
                 return x.top('');
             },
@@ -357,7 +357,7 @@ require([
                 return y.css('top', '');
             });
 
-        do_test('offsetLeft', 99,
+        do_test('.offsetLeft()', 99,
             function () {
                 return x.offsetLeft();
             },
@@ -366,7 +366,7 @@ require([
             });
 
 
-        do_test('offsetTop', 99,
+        do_test('.offsetTop()', 99,
             function () {
                 return x.offsetTop();
             },
@@ -374,7 +374,7 @@ require([
                 return y.get(0).offsetTop;
             });
 
-        do_test('scrollLeft', 99,
+        do_test('.scrollLeft()', 99,
             function () {
                 return _q(document).scrollLeft();
             },
@@ -382,7 +382,7 @@ require([
                 return $(document).scrollLeft();
             });
 
-        do_test('scrollTop', 99,
+        do_test('.scrollTo()p', 99,
             function () {
                 return _q(document).scrollTop();
             },
@@ -390,11 +390,10 @@ require([
                 return $(document).scrollTop();
             });
 
-
         var x = _q('.function');
         var y = $('.function');
 
-        do_test('pos().left', 1,
+        do_test('.pos().left', 1,
             function () {
                 return x.pos().left;
             },
@@ -402,7 +401,7 @@ require([
                 return y.position().left;
             });
 
-        do_test('pos().top', 1,
+        do_test('.pos().top', 1,
             function () {
                 return x.pos().top;
             },
