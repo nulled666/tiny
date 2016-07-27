@@ -156,41 +156,49 @@ require([
 
     _warn('class ------------------')
     var nodes = document.querySelectorAll('pre');
-
+    var q = _q(nodes);
+    var jq = $(nodes);
     do_test('add class', 99,
         function () {
-            return _q(nodes).class('passed failed test ok collapse');
+            return q.class('passed failed test ok collapse');
         },
         function () {
-            return $(nodes).addClass('passed failed test ok collapse');
+            return jq.addClass('passed failed test ok collapse');
         });
 
     do_test('remove class', 99,
         function () {
-            return _q(nodes).class('-passed -failed -test -ok -collapse');
+            return q.class('-:passed failed test ok collapse');
         },
         function () {
-            return $(nodes).removeClass('passed failed test ok collapse');
+            return jq.removeClass('passed failed test ok collapse');
         });
 
     do_test('add & remove', 99,
         function () {
-            return _q(nodes).class('passed failed test ok collapse')
-                .class('-passed -failed -test -ok -collapse');
+            return q.class('passed failed test ok collapse')
+                .class('-:passed failed test ok collapse');
         },
         function () {
-            return $(nodes).addClass('passed failed test ok collapse')
+            return jq.addClass('passed failed test ok collapse')
                 .removeClass('passed failed test ok collapse');
+        });
+
+    do_test('check class', 99,
+        function () {
+            return q.class('?passed');
+        },
+        function () {
+            return jq.hasClass('passed');
         });
 
     do_test('mixed action', 99,
         function () {
-            return _q(nodes)
-                .class('passed -run-code ^collapse')
+            return q.class('passed -run-code ^collapse')
                 .class('-passed -collapse ^run-code ?run-code');
         },
         function () {
-            return $(nodes).addClass('passed').removeClass('run-code').toggleClass('collapse')
+            return jq.addClass('passed').removeClass('run-code').toggleClass('collapse')
                 .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
         });
 

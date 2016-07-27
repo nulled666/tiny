@@ -300,31 +300,27 @@ define([
             def_sign = str.charAt(0);
             str = str.slice(2);
         }
-
-        str = str.split(' ');
+        
+        str = str.replace(/\s+/g, ' ').split(' ');
         var list = {};
 
-        for (var i = 0, len = str.length; i < len; ++i) {
-
-            var item = str[i], sign;
-            if (item == '') continue;
-
-            if (def_sign) {
-                // ==> batch op
-                sign = def_sign;
-            } else {
-                // ==> parse item
+        if (def_sign) {
+            // ==> batch op
+            list[def_sign] = str;
+        } else {
+            // ==> mixed
+            for (var i = 0, len = str.length; i < len; ++i) {
+                var item = str[i], sign;
                 sign = item.charAt(0);
                 if (!'-^?'.includes(sign)) {
                     sign = '+';
                 } else {
                     item = item.substring(1);
                 }
+                // put into action list
+                if (!list[sign]) list[sign] = [];
+                list[sign].push(item);
             }
-            // put into action list
-            if (!list[sign]) list[sign] = [];
-            list[sign].push(item);
-
         }
 
         var actions = [];
@@ -410,12 +406,11 @@ define([
     }
     function class_has_func(cl, check_list) {
         var arr = check_list, i = -1, item;
-        var flag = true;
         while (item = arr[++i]) {
             if (!cl.includes(' ' + item + ' '))
-                flag = false; // must fullfill all classes
+                return false; // must fullfill all classes
         }
-        return flag;
+        return true;
     }
 
 
