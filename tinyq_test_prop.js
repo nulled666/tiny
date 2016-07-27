@@ -417,7 +417,7 @@ require([
             return $.extend({}, y.get(0).getBoundingClientRect());
         });
 
-    do_test('.offset().left', 1,
+    do_test('.offset().left', 100,
         function () {
             return x.offset().left;
         },
@@ -425,7 +425,7 @@ require([
             return y.offset().left;
         });
 
-    do_test('.offset().top', 1,
+    do_test('.offset().top', 100,
         function () {
             return x.offset().top;
         },
