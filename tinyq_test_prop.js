@@ -333,12 +333,28 @@ require([
                 return y.css('left', '');
             });
             
-        do_test('top', 99,
+        do_test('set top', 99,
+            function () {
+                return x.top(60);
+            },
+            function () {
+                return y.css('top', 60);
+            });
+
+        do_test('get top', 99,
             function () {
                 return x.top();
             },
             function () {
                 return y.css('top');
+            });
+
+        do_test('set top auto', 99,
+            function () {
+                return x.top('');
+            },
+            function () {
+                return y.css('top', '');
             });
 
         do_test('offsetLeft', 99,
