@@ -21,23 +21,37 @@ define([
         style: access_style,
         class: process_class,
 
-        // following size methods are extended in extend_size_methods():
-        // - computed css sizes & position :
-        //	  width(), height(), left(), top()
-        // - visible sizes with border:
-        //	  offsetWidth/outerWidth(), offsetHeight/outerHeight()
-        // - full content area sizes:
-        //	  scrollWidth/innerWidth(), scrollHeight/innerHeight()
-        // - visible content area sizes without scroll bars and border:
-        //	  clientWidth, clientHeight
-        // - position relate to closest positioned parent
-        //    offsetLeft(), offsetTop()
-        // - scroll position :
-        //	  scrollLeft(), scrollTop()
-
         pos: get_position,
         offset: get_offset,
         rect: get_rect
+
+        /**
+         * following dimension methods are extended in extend_size_methods():
+         * 
+         * - computed css sizes & position :
+         *      width()
+         *      height()
+         *      left()
+         *      top()
+         * - visible client area without scrollbars:
+         * 	    clientWidth()
+         *      clientHeight()
+         * - visible client area includes scrollbars:
+         *      innerWidth()
+         *      innerHeight()
+         * - visible sizes with border:
+         * 	    offsetWidth() == outerWidth()
+         *      offsetHeight() == outerHeight()
+         * - full content area sizes:
+         * 	    scrollWidth()
+         *      scrollHeight()
+         * - position relate to closest positioned parent:
+         *      offsetLeft()
+         *      offsetTop()
+         * - scroll position :
+         * 	    scrollLeft()
+         *      scrollTop()
+         */
 
     });
 
@@ -434,9 +448,89 @@ define([
         return true;
     }
 
+    //////////////////////////////////////////////////////////
+    // POSITIONS
+    //////////////////////////////////////////////////////////
+    /***
+     * .position() get position relate to offsetParent
+     */
+    function get_position() {
+
+        var nodes = this.nodes;
+        var pos = { top: 0, left: 0 };
+
+        // window
+        if (nodes.length == 0) return pos;
+
+        var node = nodes[0];
+        var node_type = node.nodeType;
+
+        // document or not an element
+        if (node_type == 9 || node_type != 1) return pos;
+
+        pos.top = node.offsetTop;
+        pos.left = node.offsetLeft;
+
+        // remove margin to match the top & left value in css style
+        var style = window.getComputedStyle(node);
+        pos.top -= _parseFloat(style.marginTop);
+        pos.left -= _parseFloat(style.marginLeft);
+
+        return pos;
+
+    }
+
+    /**
+     * get offset relate to the document
+     */
+    function get_offset() {
+        var rect = get_bounding_rect(this.nodes[0]);
+        return {
+            top: rect.top + window.pageYOffset,
+            left: rect.left + window.pageXOffset
+        }
+    }
+
+    /**
+     * .rect()  get bouding rect
+     */
+    function get_rect() {
+        return get_bounding_rect(this.nodes[0], true);
+    }
+
+    // get element bounding rect
+    function get_bounding_rect(node, convert) {
+
+        var rect_obj = { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 };
+
+        if (!node) return rect_obj;
+
+        var node_type = node.nodeType;
+
+        // document - use body instead
+        if (node_type == 9)
+            node_type = 1, node = node.body;
+
+        // check if node was detached (method from jquery)
+        if (!node.getClientRects().length) return rect_obj;
+
+        var rect = node.getBoundingClientRect();
+
+        // convert to normal object
+        if (convert) {
+            for (var key in rect) {
+                rect_obj[key] = rect[key]
+            }
+            rect = rect_obj;
+        }
+
+        return rect;
+
+    }
+
 
     //////////////////////////////////////////////////////////
-    // SIZE
+    // DIMENSIONS
     //////////////////////////////////////////////////////////
 
     // method map list, order matters
@@ -548,86 +642,6 @@ define([
         type = type.toLowerCase();
         if (typeof val == 'number') val = val + 'px';
         access_style.call(tinyq, type, val);
-    }
-
-    //////////////////////////////////////////////////////////
-    // POSITIONS
-    //////////////////////////////////////////////////////////
-    /***
-     * .position() get position relate to offsetParent
-     */
-    function get_position() {
-
-        var nodes = this.nodes;
-        var pos = { top: 0, left: 0 };
-
-        // window
-        if (nodes.length == 0) return pos;
-
-        var node = nodes[0];
-        var node_type = node.nodeType;
-
-        // document or not an element
-        if (node_type == 9 || node_type != 1) return pos;
-
-        pos.top = node.offsetTop;
-        pos.left = node.offsetLeft;
-
-        // remove margin to match the top & left value in css style
-        var style = window.getComputedStyle(node);
-        pos.top -= _parseFloat(style.marginTop);
-        pos.left -= _parseFloat(style.marginLeft);
-
-        return pos;
-
-    }
-
-    /**
-     * get offset relate to the document
-     */
-    function get_offset() {
-        var rect = get_bounding_rect(this.nodes[0]);
-        return {
-            top: rect.top + window.pageYOffset,
-            left: rect.left + window.pageXOffset
-        }
-    }
-
-    /**
-     * .rect()  get bouding rect
-     */
-    function get_rect() {
-        return get_bounding_rect(this.nodes[0], true);
-    }
-
-    // get element bounding rect
-    function get_bounding_rect(node, convert) {
-
-        var rect_obj = { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 };
-
-        if (!node) return rect_obj;
-
-        var node_type = node.nodeType;
-
-        // document - use body instead
-        if (node_type == 9)
-            node_type = 1, node = node.body;
-
-        // check if node was detached (method from jquery)
-        if (!node.getClientRects().length) return rect_obj;
-
-        var rect = node.getBoundingClientRect();
-
-        // convert to normal object
-        if (convert) {
-            for (var key in rect) {
-                rect_obj[key] = rect[key]
-            }
-            rect = rect_obj;
-        }
-
-        return rect;
-
     }
 
 });

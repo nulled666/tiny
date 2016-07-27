@@ -211,125 +211,11 @@ require([
         });
 
 
-    _warn('sizes ------------------')
+    _warn('positions ------------------')
+
     var x = _q('.run-code');
     var y = $('.run-code');
-
-    do_test('.width(98)', 99,
-        function () {
-            return x.width(98);
-        },
-        function () {
-            return y.width(98);
-        });
-
-    do_test('.height(60)', 99,
-        function () {
-            return x.height(60);
-        },
-        function () {
-            return y.height(60);
-        });
-
-    do_test('.width()', 99,
-        function () {
-            return x.width();
-        },
-        function () {
-            return y.width();
-        });
-
-    do_test('.clientWidth()', 99,
-        function () {
-            return x.clientWidth();
-        },
-        function () {
-            return y.get(0).clientWidth;
-        });
-
-    do_test('.innerWidth()', 99,
-        function () {
-            return x.innerWidth();
-        },
-        function () {
-            return y.innerWidth();
-        });
-
-    do_test('.offsetWidth/outerWidth()', 99,
-        function () {
-            return x.outerWidth();
-        },
-        function () {
-            return y.outerWidth();
-        });
-
-    do_test('.scrollWidth()', 99,
-        function () {
-            return x.scrollWidth();
-        },
-        function () {
-            return y.get(0).scrollWidth;
-        });
-
-    do_test('.height()', 99,
-        function () {
-            return x.height();
-        },
-        function () {
-            return y.height();
-        });
-
-    do_test('.clientHeight()', 99,
-        function () {
-            return x.clientHeight();
-        },
-        function () {
-            return y.get(0).clientHeight;
-        });
-
-    do_test('.innerHeight()', 99,
-        function () {
-            return x.innerHeight();
-        },
-        function () {
-            return y.innerHeight();
-        });
-
-    do_test('.offsetHeight/outerHeight()', 99,
-        function () {
-            return x.outerHeight();
-        },
-        function () {
-            return y.outerHeight();
-        });
-
-    do_test('.scrollHeight()', 99,
-        function () {
-            return x.scrollHeight();
-        },
-        function () {
-            return y.get(0).scrollHeight;
-        });
-
-    do_test('.width(auto)', 99,
-        function () {
-            return x.width('');
-        },
-        function () {
-            return y.width('');
-        });
-
-    do_test('.height(auto)', 99,
-        function () {
-            return x.height('');
-        },
-        function () {
-            return y.height('');
-        });
-
-
-    _warn('position ------------------')
-
+    
     do_test('.left(60)', 99,
         function () {
             return x.left(60);
@@ -453,4 +339,122 @@ require([
         function () {
             return y.offset().top;
         });
+
+    _warn('dimensions ------------------')
+
+    var x = _q('.run-code');
+    var y = $('.run-code');
+
+    do_test('.width(98)', 99,
+        function () {
+            return x.width(98);
+        },
+        function () {
+            return y.width(98);
+        });
+
+    do_test('.height(60)', 99,
+        function () {
+            return x.height(60);
+        },
+        function () {
+            return y.height(60);
+        });
+
+    do_test('.width()', 99,
+        function () {
+            return x.width();
+        },
+        function () {
+            return y.width();
+        });
+
+    do_test('.clientWidth()', 99,
+        function () {
+            return x.clientWidth();
+        },
+        function () {
+            return y.get(0).clientWidth;
+        });
+
+    do_test('.innerWidth()', 99,
+        function () {
+            return x.innerWidth();
+        },
+        function () {
+            return y.innerWidth();
+        });
+
+    do_test('.offsetWidth/outerWidth()', 99,
+        function () {
+            return x.outerWidth();
+        },
+        function () {
+            return y.outerWidth();
+        });
+
+    do_test('.scrollWidth()', 99,
+        function () {
+            return x.scrollWidth();
+        },
+        function () {
+            return y.get(0).scrollWidth;
+        });
+
+    do_test('.height()', 99,
+        function () {
+            return x.height();
+        },
+        function () {
+            return y.height();
+        });
+
+    do_test('.clientHeight()', 99,
+        function () {
+            return x.clientHeight();
+        },
+        function () {
+            return y.get(0).clientHeight;
+        });
+
+    do_test('.innerHeight()', 99,
+        function () {
+            return x.innerHeight();
+        },
+        function () {
+            return y.innerHeight();
+        });
+
+    do_test('.offsetHeight/outerHeight()', 99,
+        function () {
+            return x.outerHeight();
+        },
+        function () {
+            return y.outerHeight();
+        });
+
+    do_test('.scrollHeight()', 99,
+        function () {
+            return x.scrollHeight();
+        },
+        function () {
+            return y.get(0).scrollHeight;
+        });
+
+    do_test('.width(auto)', 99,
+        function () {
+            return x.width('');
+        },
+        function () {
+            return y.width('');
+        });
+
+    do_test('.height(auto)', 99,
+        function () {
+            return x.height('');
+        },
+        function () {
+            return y.height('');
+        });
+
 });
