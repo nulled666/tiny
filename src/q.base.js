@@ -71,7 +71,7 @@ define([
         // collection access
         first: get_first,
         last: get_last,
-        get: get_by_index,
+        get: get_elem_by_index,
         slice: get_by_slice,
         each: each_q,
         eachNode: each_node,
@@ -230,6 +230,15 @@ define([
      * .q() - query all
      */
     function sub_query_all(selector, mode) {
+
+        var type = typeof selector;
+
+        // .q(index)
+        if (type == 'number')
+            return get_by_index.call(this, selector);
+
+        if (type != 'string')
+            throw new TypeError('Expect a selector string');
 
         var tinyq = this;
 
@@ -788,24 +797,28 @@ define([
     //////////////////////////////////////////////////////////
 
     /**
-     * Helper function for first(), last()
+     * .get() element
+     */
+    function get_elem_by_index(index) {
+        if (typeof index != 'number') throw new TypeError('Expect an index number');
+        var nodes = this.nodes;
+        index = index < 0 ? nodes.length + index : index;
+        return nodes[index];
+    }
+
+    /**
+     * Helper function for  q(index), first(), last()
      */
     function get_by_index(index) {
 
-        if (typeof index != 'number') {
-            throw new TypeError('Expect a number');
-        }
-
         var tinyq = this;
-        var nodes = tinyq.nodes;
-
-        index = index < 0 ? nodes.length + index : index;
-
-        var node = nodes[index];
+        var nodes = this.nodes;
+        var node = get_elem_by_index.call(tinyq, index);
         node = node ? [node] : [];
 
-        var chain = tinyq.chain + (index == 0 ? '.first()' : index == nodes.length - 1 ? '.last()' : '');
+        var chain = tinyq.chain + (index == 0 ? '.first()' : index == nodes.length - 1 ? '.last()' : '.q(' + index + ')');
         return create_tinyq(node, chain);
+
     }
 
     /**

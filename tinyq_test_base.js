@@ -171,7 +171,15 @@ define([
 
     do_test('.get()', 1000,
         function () {
-            return _q(nodelist).get(10);
+            return _q(nodelist).get(2);
+        },
+        function () {
+            return $(nodelist).get(2);
+        });
+        
+    do_test('.q(index)', 1000,
+        function () {
+            return _q(nodelist).q(10);
         },
         function () {
             return $(nodelist).eq(10);

@@ -33,11 +33,11 @@ function test_code() {
 
     require([
         'tinyq_test',
-        //'tinyq_test_prop',
+        'tinyq_test_base',
     ], function (do_test) {
 
         _warn('---------')
-
+return;
         _warn('sizes ------------------')
         var x = _q('.run-code');
         var y = $('.run-code');
