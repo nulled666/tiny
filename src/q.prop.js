@@ -540,6 +540,7 @@ define([
             pos = node.getBoundingClientRect();
         } else {
             // normal element
+            // we cannot use computed style on position: static/reletive elements
             pos.top = node.offsetTop;
             pos.left = node.offsetLeft;
         }
