@@ -267,7 +267,7 @@ define([
     function process_class(action_str) {
 
         if (typeof action_str != 'string') {
-            tiny.error(TinyQ.x.TAG, 'Expect an action string. > Got "' + typeof action_str + '": ', action_str);
+            tiny.error(TinyQ.x.TAG, 'Expect a class string. > Got "' + typeof action_str + '": ', action_str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -294,19 +294,37 @@ define([
      */
     function prepare_class_actions(str) {
 
+        var def_sign;
+        if (str.charAt(1) == ':') {
+            // batch operation
+            def_sign = str.charAt(0);
+            str = str.slice(2);
+        }
+
         str = str.split(' ');
         var list = {};
 
         for (var i = 0, len = str.length; i < len; ++i) {
-            var item = str[i];
-            var sign = item.charAt(0);
-            if (!'-^?'.includes(sign)) {
-                sign = '+';
+
+            var item = str[i], sign;
+            if (item == '') continue;
+
+            if (def_sign) {
+                // ==> batch op
+                sign = def_sign;
             } else {
-                item = item.substring(1);
+                // ==> parse item
+                sign = item.charAt(0);
+                if (!'-^?'.includes(sign)) {
+                    sign = '+';
+                } else {
+                    item = item.substring(1);
+                }
             }
+            // put into action list
             if (!list[sign]) list[sign] = [];
             list[sign].push(item);
+
         }
 
         var actions = [];
@@ -387,15 +405,17 @@ define([
             } else {
                 while (cl.includes(tag)) cl = cl.replace(item + ' ', '');
             }
-            return cl;
         }
+        return cl;
     }
     function class_has_func(cl, check_list) {
         var arr = check_list, i = -1, item;
+        var flag = true;
         while (item = arr[++i]) {
-            if (cl.includes(' ' + item + ' ')) return true;
+            if (!cl.includes(' ' + item + ' '))
+                flag = false; // must fullfill all classes
         }
-        return false;
+        return flag;
     }
 
 
@@ -442,7 +462,15 @@ define([
      * access function for size methods
      */
     function access_size(value, prefix, type) {
-        return get_size(this.n, this.p, this.t);
+        if (value == undefined) {
+            return get_size(this.n, this.p, this.t);
+        } else {
+            if (prefix !== '') {
+                tiny.error(TinyQ.x.TAG, 'This property is read-only: ', prefix + type);
+                throw new TypeError(G.SEE_ABOVE);
+            }
+            // TODO: set style size
+        }
     }
 
     function get_size(nodes, prefix, type) {

@@ -237,8 +237,10 @@ define([
         if (type == 'number')
             return get_by_index.call(this, selector);
 
-        if (type != 'string')
-            throw new TypeError('Expect a selector string');
+        if (type != 'string') {
+            tiny.error(TinyQ.x.TAG, 'Expect a selector string. > Got "' + type + '": ', selector);
+            throw new TypeError(G.SEE_ABOVE);
+        }
 
         var tinyq = this;
 
@@ -264,7 +266,11 @@ define([
      */
     function do_query(nodes, selector, query_mode, opid, base) {
 
-        if (!nodes) throw new TypeError('Expect an Array-like node list');
+        if (!nodes) {
+            tiny.error(TinyQ.x.TAG, 'Expect an Array-like node list. > Got: ', nodes);
+            throw new TypeError(G.SEE_ABOVE);
+        }
+
         if (!opid && nodes.length > 1) opid = tiny.guid();
 
         var result = base || [];
@@ -800,7 +806,10 @@ define([
      * .get() element
      */
     function get_elem_by_index(index) {
-        if (typeof index != 'number') throw new TypeError('Expect an index number');
+        if (typeof index != 'number') {
+            tiny.error(TinyQ.x.TAG, 'Expect an index number. > Got "' + typeof index + '": ', index);
+            throw new TypeError(G.SEE_ABOVE);
+        }
         var nodes = this.nodes;
         index = index < 0 ? nodes.length + index : index;
         return nodes[index];
