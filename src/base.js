@@ -19,11 +19,17 @@ define([
     // a quick reference to console object
     var _con = console;
 
+    // lazy check for IE8 and below
+    var _supported = (!window.createPopup && !!window.addEventListener);
+
+    if(!_supported) console.error(G.TAG_TINY, 'This browser might not be supported.');
+
     // extend the tiny object
     add_to_tiny({
 
         import: import_globals,
         me: show_tiny_definition,
+        isSupported: _supported,
 
         type: _type,
         each: _each,
