@@ -20,7 +20,7 @@ define([
     var _con = console;
 
     // lazy check for IE8 and below
-    var _supported = (!window.createPopup && !!window.addEventListener);
+    var _supported = (!window.attachEvent && !!window.addEventListener);
 
     if(!_supported) console.error(G.TAG_TINY, 'This browser might not be supported.');
 
