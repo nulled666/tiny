@@ -34,7 +34,7 @@ define([
         // - scroll position :
         //	  scrollLeft(), scrollTop()
 
-        position: get_position,
+        pos: get_position,
         offset: get_offset,
 
     });
@@ -495,8 +495,7 @@ define([
 
         // node
         if (prefix == '') {
-            var style = window.getComputedStyle(node);
-            return parseFloat(style[type.toLowerCase()]);
+            return get_computed_style(node, type.toLowerCase());
         }
 
         return node[tag];
@@ -510,34 +509,29 @@ define([
         access_style.call(tinyq, type, val);
     }
 
+    // get computed style value
+    function get_computed_style(node, name, do_parse) {
+        var style = window.getComputedStyle(node);
+        return parseFloat(style[name]);
+    }
+
     //////////////////////////////////////////////////////////
     // POSITIONS
     //////////////////////////////////////////////////////////
     /***
-     * .position() get position
+     * .pos() get position
      */
     function get_position() {
-
-        var nodes = this.nodes;
-        var pos = { left: 0, top: 0 };
-
-        // window
-        if (nodes.length == 0) return pos;
-
-        var node = nodes[0];
-        var node_type = node.nodeType;
-
-        // document or not an element
-        if (node_type == 9 || node_type != 1) return pos;
-
-        var top = node.offsetTop, left = node.offsetLeft;
-        while (node = node.offsetParent) {
-            top += node.offsetTop;
-            left += node.offsetLeft;
+        return {
+            left: this.left(),
+            top: this.top()
         }
-
     }
 
+
+    /**
+     * get offset relate to the document
+     */
     function get_offset() {
 
     }

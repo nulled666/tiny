@@ -141,10 +141,20 @@ h4{
 	color: #03c;
 }
 pre{
+	margin: 10px;
 	position: relative;
 	font-size: 12px;
-	border: 1px solid #eee;
+	border: 14px solid #eee;
 	border-radius: 4px;
+}
+pre .function{
+	margin: -12px;
+	display: block;
+	position: absolute;
+	top: 60;
+	left: 120;
+	border: 4px solid #ccc;
+	background: #000;
 }
 pre.run-code,
 pre.html-fragment{

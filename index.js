@@ -39,22 +39,22 @@ function test_code() {
 
         _warn('---------')
 
-        var x = _q('.run-code');
-        var y = $('.run-code');
+        var x = _q('.function');
+        var y = $('.function');
 
+        _log(x.left(), x.top());
 
-return;
-        do_test('position.left', 99,
+        do_test('position.left', 1,
             function () {
-                return x.outerWidth();
+                return x.pos().left;
             },
             function () {
                 return y.position().left;
             });
 
-        do_test('position.top', 99,
+        do_test('position.top', 1,
             function () {
-                return x.outerHeight();
+                return x.pos().top;
             },
             function () {
                 return y.position().top;
