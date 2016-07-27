@@ -45,6 +45,7 @@ define([
         setAttributes: set_node_attributes
     });
 
+    var _parseFloat = parseFloat;
 
     /**
      * get/set method helper function
@@ -439,61 +440,59 @@ define([
     //////////////////////////////////////////////////////////
 
     // method map list, order matters
-    var SIZE_TYPE = ['Width', 'Height', 'Left', 'Top'];
-    var SIZE_PREFIX = ['', 'client', 'offset', 'scroll'];
-    var SIZE_PREFIX_MAP = [0, 0, 'outer', 'inner']; // map to jquery
+    var DEM_PREFIX = ['', 'offset', 'scroll', 'client', 'inner', 'outer'];
+    var DEM_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
-    extend_size_methods(TinyQ.prototype);
+    extend_dimension_methods(TinyQ.prototype);
 
     // generate methods for width, height, left, top
-    function extend_size_methods(def) {
-        var i = SIZE_PREFIX.length;
+    function extend_dimension_methods(def) {
+        var i = DEM_PREFIX.length;
         while (--i > -1) {
-            var prefix = SIZE_PREFIX[i];
-            var j = SIZE_TYPE.length;
+            var prefix = DEM_PREFIX[i];
+            var j = DEM_TYPE.length;
             while (--j > -1) {
-                if (i == 1 && j > 1) continue; // skip clientTop & clientLeft
-                var type = SIZE_TYPE[j];
+                if (i > 2 && j > 1) continue; // skip clientTop & clientLeft etc.
+                var type = DEM_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
-                def[prefix + type] = generate_size_method(i, j);
-                // map inner -> scroll, outer -> offset
-                if (j < 2 && i > 1) def[SIZE_PREFIX_MAP[i] + type] = def[prefix + type];
+                def[prefix + type] = generate_dimension_method(i, j);
             }
         }
     }
 
-    // generate size method handlers
-    function generate_size_method(prefix, type) {
+    // generate dimension method handlers
+    function generate_dimension_method(prefix, type) {
+        if (prefix == 5) prefix = 1; // outer == offset
         return function (val) {
-            return access_size.call({
+            return access_dimension.call({
                 q: this,
-                p: SIZE_PREFIX[prefix],
-                t: SIZE_TYPE[type]
+                p: DEM_PREFIX[prefix],
+                t: DEM_TYPE[type]
             }, val)
         }
     }
 
     /**
-     * access function for size methods
+     * access function for dimension methods
      */
-    function access_size(value) {
+    function access_dimension(value) {
         var tinyq = this.q, prefix = this.p, type = this.t;
         if (value == undefined) {
             // => get sizes
-            return get_size(tinyq, prefix, type);
+            return get_dimension(tinyq, prefix, type);
         } else {
             // => set sizes - css sizes only
             if (prefix !== '') {
                 tiny.error(TinyQ.x.TAG, 'This property is read-only: ', prefix + type);
                 throw new TypeError(G.SEE_ABOVE);
             }
-            set_sizes(tinyq, type, value);
+            set_dimension(tinyq, type, value);
             return tinyq;
         }
     }
 
     // get size value
-    function get_size(tinyq, prefix, type) {
+    function get_dimension(tinyq, prefix, type) {
 
         var nodes = tinyq.nodes;
 
@@ -517,15 +516,27 @@ define([
         if (node_type != 1) return 0;
 
         if (prefix == '') {
-            // css sizes
+            // css dimensions
             type = type.toLowerCase();
             if (type == 'left' || type == 'top') {
                 // shorthand for pos().top/left
                 return get_position.call(tinyq)[type];
             } else {
-                // get real size
-                return get_style_value(node, type, true);
+                // get style dimensions
+                var val = node.style[type];
+                if (val == '') val = window.getComputedStyle(node)[type];
+                return _parseFloat(val);
             }
+        } else if (prefix == 'inner') {
+            // bounding client box dimensions
+            var val = node['offset' + type];
+            var style = window.getComputedStyle(node);
+            if (type == 'Width') {
+                val = val - _parseFloat(style.borderLeft) - _parseFloat(style.borderRight);
+            } else {
+                val = val - _parseFloat(style.borderTop) - _parseFloat(style.borderBottom);
+            }
+            return val;
         }
 
         return node[tag];
@@ -533,18 +544,10 @@ define([
     }
 
     // set css sizes
-    function set_sizes(tinyq, type, val) {
+    function set_dimension(tinyq, type, val) {
         type = type.toLowerCase();
         if (typeof val == 'number') val = val + 'px';
         access_style.call(tinyq, type, val);
-    }
-
-    // get computed style value
-    function get_style_value(node, name, do_parse) {
-        var val = node.style[name];
-        // get computed value if no style value is found
-        if (val == '')val = window.getComputedStyle(node)[name];
-        return do_parse ? parseFloat(val) : val;
     }
 
     //////////////////////////////////////////////////////////
@@ -556,7 +559,7 @@ define([
     function get_position() {
 
         var nodes = this.nodes;
-        var pos = { left: 0, top: 0 };
+        var pos = { top: 0, left: 0 };
 
         // window
         if (nodes.length == 0) return pos;
@@ -572,8 +575,8 @@ define([
 
         // remove margin to match the top & left value in css style
         var style = window.getComputedStyle(node);
-        pos.left -= parseFloat(style.marginLeft);
-        pos.top -= parseFloat(style.marginTop);
+        pos.top -= _parseFloat(style.marginTop);
+        pos.left -= _parseFloat(style.marginLeft);
 
         return pos;
 
@@ -585,8 +588,8 @@ define([
     function get_offset() {
         var rect = get_bounding_rect(this.nodes[0]);
         return {
-            left: rect.left - window.pageYOffset,
-            top: rect.top - window.pageXOffset
+            top: rect.top + window.pageYOffset,
+            left: rect.left + window.pageXOffset
         }
     }
 
@@ -600,7 +603,7 @@ define([
     // get element bounding rect
     function get_bounding_rect(node, convert) {
 
-        var rect_obj = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 };
+        var rect_obj = { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 };
 
         if (!node) return rect_obj;
 

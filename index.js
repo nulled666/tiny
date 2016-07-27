@@ -38,9 +38,11 @@ function test_code() {
     ], function (do_test) {
 
         _warn('---------')
-        var x = _q('.run-code');
-        var y = $('.run-code');
+        // var x = _q('.function');
+        // var y = $('.function');
 
+        // _log(x.rect(), y.get(0).getBoundingClientRect())
+        // _log(x.offset(), y.offset())
 
         _warn('---------')
 
