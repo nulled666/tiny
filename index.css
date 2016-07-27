@@ -144,12 +144,11 @@ h4{
 pre{
 	position: relative;
 	font-size: 12px;
-	border: 14px solid #eee;
+	border: 6px solid #f3f3f3;
 	border-radius: 4px;
 }
 pre.run-code,
 pre.html-fragment{
-	margin: 100px;
 	background: #f9f9f9;
 }
 pre.failed{
