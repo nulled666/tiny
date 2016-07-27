@@ -360,7 +360,7 @@ define([
         if (check_list)
             result = func_has_class(new_cl, check_list);
 
-        // update only on change
+        // update only on changed
         new_cl = new_cl.trim();
         if (cl != new_cl) node.className = new_cl;
 
