@@ -186,10 +186,10 @@ require([
 
     do_test('check class', 99,
         function () {
-            return q.class('?passed');
+            return q.class('?run-code');
         },
         function () {
-            return jq.hasClass('passed');
+            return jq.hasClass('run-code');
         });
 
     do_test('mixed action', 99,

@@ -272,17 +272,21 @@ define([
         }
 
         // a little startup overhead (for the flexible syntax)
-        var action_func = prepare_class_actions(action_str);
-
-        var has_check = action_str.indexOf('?') > -1;
+        var actions = prepare_class_actions(action_str);
+        var has_do = actions.do.length > 0;
+        var has_check = !!(actions.check);
         var result = false;
 
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!node) continue;
             if (node.nodeType != 1) continue;
-            var r = action_func(node);
-            if (r == true) result = true;
+            var r = do_class_actions(node, actions.do, actions.check);
+            if (r == true) {
+                result = true;
+                if(!has_do) break;      // check only - jump out
+                actions.check = false;  // suppress further check
+            }
         }
 
         return has_check ? result : this;
@@ -300,7 +304,7 @@ define([
             def_sign = str.charAt(0);
             str = str.slice(2);
         }
-        
+
         str = str.replace(/\s+/g, ' ').split(' ');
         var list = {};
 
@@ -334,32 +338,27 @@ define([
             if (item) actions.push(CLASS_ACTIONS[sign].bind(item));
         }
 
-        // create the executor
-        actions = do_class_actions.bind({
-            do: actions,
-            check: check_list
-        });
-
-        return actions;
+        return { do: actions, check: check_list };
 
     }
 
     /**
      * class actions executor
      */
-    function do_class_actions(node) {
+    function do_class_actions(node, actions, check_list) {
 
         var cl = ' ' + node.className + ' ';
         var new_cl = cl;
 
         // do the actions
-        var list = this.do, i = -1, item;
-        while (item = list[++i])
+        var i = -1, item;
+        while (item = actions[++i])
             new_cl = item(new_cl);
 
         // if we need to check class
-        var result, check_list = this.check;
-        if (check_list) result = class_has_func(new_cl, check_list);
+        var result;
+        if (check_list)
+            result = func_has_class(new_cl, check_list);
 
         // update only on change
         new_cl = new_cl.trim();
@@ -371,12 +370,12 @@ define([
 
     // class manipulation helper functions
     var CLASS_ACTIONS = {
-        '+': class_add_func,
-        '-': class_remove_func,
-        '^': class_toggle_func
+        '+': func_add_class,
+        '-': func_remove_class,
+        '^': func_toggle_class
     };
 
-    function class_add_func(cl) {
+    function func_add_class(cl) {
         var arr = this, i = -1, item;
         while (item = arr[++i]) {
             if (!cl.includes(' ' + item + ' '))
@@ -384,7 +383,7 @@ define([
         }
         return cl;
     }
-    function class_remove_func(cl) {
+    function func_remove_class(cl) {
         var arr = this, i = -1, item;
         while (item = arr[++i]) {
             while (cl.includes(' ' + item + ' '))
@@ -392,7 +391,7 @@ define([
         }
         return cl;
     }
-    function class_toggle_func(cl) {
+    function func_toggle_class(cl) {
         var arr = this, i = -1, item;
         while (item = arr[++i]) {
             var tag = ' ' + item + ' ';
@@ -404,7 +403,7 @@ define([
         }
         return cl;
     }
-    function class_has_func(cl, check_list) {
+    function func_has_class(cl, check_list) {
         var arr = check_list, i = -1, item;
         while (item = arr[++i]) {
             if (!cl.includes(' ' + item + ' '))
