@@ -31,6 +31,13 @@ require([
         function () {
             return $(nodes).html();
         });
+    do_test('.outerHTML()', 99,
+        function () {
+            return _q(nodes).outerHTML();
+        },
+        function () {
+            return $(nodes).get(0).outerHTML;
+        });
 
     _q('h1').prepend('<div id="test-me"></div>');
     var node = _q('#test-me').nodes[0];
@@ -59,6 +66,17 @@ require([
         },
         function () {
             return $(node).html(html21 + count++);
+        });
+
+    do_test('.outerHTML(val)', 99,
+        function () {
+            return _q(node).outerHTML(html21 + count++);
+        },
+        function () {
+            var y = $(node)
+            var n = y.get(0);
+            if (n.parentNode) y.outerHTML = html21 + count++;
+            return y;
         });
 
     _q(node).remove();

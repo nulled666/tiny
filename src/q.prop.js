@@ -14,6 +14,7 @@ define([
         text: access_text,
         innerText: access_inner_text,
         html: access_html,
+        outerHTML: access_outer_html,
         val: access_value,
 
         attr: access_attribute,
@@ -134,7 +135,6 @@ define([
     }
 
     function func_access_text(node, key, val, is_get) {
-        key = key == 1; // innerText or textContent
         if (is_get) {
             val += key ? node.innerText : node.textContent;
             return val;
@@ -158,12 +158,24 @@ define([
         return access_helper(this, 0, value, func_access_html, 1);
     }
 
+    /**
+     * .outerHTML()
+     */
+    function access_outer_html(value) {
+        return access_helper(this, 1, value, func_access_html, 1);
+    }
+
     function func_access_html(node, key, val, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
-            return node.innerHTML;
+            return key ? node.outerHTML : node.innerHTML;
         } else {
-            node.innerHTML = val;
+            if (key && node.parentNode) {
+                // set outerHTML only for nodes with a parent
+                node.outerHTML = val;
+            } else {
+                node.innerHTML = val;
+            }
         }
     }
 
