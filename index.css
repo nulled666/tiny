@@ -142,6 +142,7 @@ h4{
 	color: #03c;
 }
 pre{
+	margin: 6px;
 	position: relative;
 	font-size: 12px;
 	border: 6px solid #f3f3f3;

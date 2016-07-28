@@ -60,6 +60,7 @@ define([
     });
 
     var _parseFloat = parseFloat;
+    var _getComputedStyle = window.getComputedStyle;
 
     /**
      * get/set method helper function
@@ -472,7 +473,7 @@ define([
         pos.left = node.offsetLeft;
 
         // remove margin to match the top & left value in css style
-        var style = window.getComputedStyle(node);
+        var style = _getComputedStyle(node);
         pos.top -= _parseFloat(style.marginTop);
         pos.left -= _parseFloat(style.marginLeft);
 
@@ -534,7 +535,7 @@ define([
     //////////////////////////////////////////////////////////
 
     // method map list, order matters
-    var DEM_PREFIX = ['', 'offset', 'scroll', 'client', 'inner', 'outer'];
+    var DEM_PREFIX = ['client', 'margin', 'outer', 'offset', 'inner', 'scroll', ''];
     var DEM_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     extend_dimension_methods(TinyQ.prototype);
@@ -546,7 +547,7 @@ define([
             var prefix = DEM_PREFIX[i];
             var j = DEM_TYPE.length;
             while (--j > -1) {
-                if (i > 2 && j > 1) continue; // skip clientTop & clientLeft etc.
+                if (i == 0 && j > 1) continue; // no clientTop/clientLeft
                 var type = DEM_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
                 def[prefix + type] = generate_dimension_method(i, j);
@@ -556,12 +557,12 @@ define([
 
     // generate dimension method handlers
     function generate_dimension_method(prefix, type) {
-        if (prefix == 5) prefix = 1; // outer == offset
+        if (prefix == 2) prefix = 3; // outer == offset
         return function (val) {
             return access_dimension.call({
                 q: this,
-                p: DEM_PREFIX[prefix],
-                t: DEM_TYPE[type]
+                p: prefix,
+                t: type
             }, val)
         }
     }
@@ -570,7 +571,7 @@ define([
      * access function for dimension methods
      */
     function access_dimension(value) {
-        var tinyq = this.q, prefix = this.p, type = this.t;
+        var tinyq = this.q, prefix = DEM_PREFIX[this.p], type = DEM_TYPE[this.t];
         if (value == undefined) {
             // => get sizes
             return get_dimension(tinyq, prefix, type);
@@ -618,24 +619,33 @@ define([
             } else {
                 // get style dimensions
                 var val = node.style[type];
-                if (val == '') val = window.getComputedStyle(node)[type];
+                if (val == '') val = _getComputedStyle(node)[type];
                 return _parseFloat(val);
             }
-        } else if (prefix == 'inner') {
+        } else if (prefix == 'inner' || prefix == 'margin') {
             // bounding client box dimensions
             var val = node['offset' + type];
-            var style = window.getComputedStyle(node);
-            if (type == 'Width') {
-                val = val - _parseFloat(style.borderLeft) - _parseFloat(style.borderRight);
-            } else {
-                val = val - _parseFloat(style.borderTop) - _parseFloat(style.borderBottom);
-            }
-            return val;
+            var style = _getComputedStyle(node);
+            return calc_border_delta(style, val, prefix == 'inner', type);
         }
 
         return node[tag];
 
     }
+
+    // helpers for border add/remove calculation
+    var DEM_POS_NAMES = ['Top', 'Right', 'Bottom', 'Left'];
+    var DEM_POS_DELTA_LIST = { Top: [0], Left: [3], Width: [1, 3], Height: [0, 2] };
+
+    function calc_border_delta(computed_style, val, inner_or_margin, type) {
+        var list = DEM_POS_DELTA_LIST[type];
+        var prefix = inner_or_margin ? 'border' : 'margin';
+        var delta = 0, i = 0, side;
+        while (side = DEM_POS_NAMES[list[i++]])
+            delta += _parseFloat(computed_style[prefix + side]);
+        return inner_or_margin ? val - delta : val + delta;
+    }
+
 
     // set css sizes
     function set_dimension(tinyq, type, val) {

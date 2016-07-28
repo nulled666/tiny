@@ -34,15 +34,36 @@ function test_code() {
     require([
         'tinyq_test',
         //'tinyq_test_base',
-        'tinyq_test_prop',
+        //'tinyq_test_prop',
     ], function (do_test) {
 
         _warn('---------')
-        // var x = _q('.function');
-        // var y = $('.function');
+        var x = _q('.run-code');
+        var y = $('.run-code');
 
-        // _log(x.rect(), y.get(0).getBoundingClientRect())
-        // _log(x.offset(), y.offset())
+        do_test('.innerWidth()', 1,
+            function () {
+                return x.innerWidth();
+            },
+            function () {
+                return y.innerWidth();
+            });
+
+        do_test('.outerWidth()', 1,
+            function () {
+                return x.outerWidth();
+            },
+            function () {
+                return y.outerWidth();
+            });
+
+        do_test('.marginHeight()', 1,
+            function () {
+                return x.marginHeight();
+            },
+            function () {
+                return y.outerHeight(true);
+            });
 
         _warn('---------')
 
