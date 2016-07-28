@@ -615,20 +615,19 @@ define([
         // element node only
         if (node_type != 1) return 0;
 
+        // top()/left() equals marginTop()/marginLeft()
+        if (is_top_left && prefix == '') prefix = 'margin';
+
         if (prefix == '') {
-            // css dimensions
+            // ==> css dimensions
             type = type.toLowerCase();
-            if (is_top_left) {
-                // shorthand for pos().top/left - equals marginTop, marginLeft
-                return get_position.call(tinyq)[type];
-            } else {
-                // get style dimensions
-                var val = node.style[type];
-                if (val == '') val = _getComputedStyle(node)[type];
-                return _parseFloat(val);
-            }
+            // get style dimensions
+            var val = node.style[type];
+            // get computed if not set
+            if (val == '') val = _getComputedStyle(node)[type];
+            return _parseFloat(val);
         } else if (IS_INNER_MARGIN[prefix]) {
-            // bounding client box dimensions
+            // ==> border box dimensions
             var val = node['offset' + type];
             var style = _getComputedStyle(node);
             return calc_border_delta(style, val, type, prefix == 'inner');
@@ -643,13 +642,23 @@ define([
     var DEM_POS_DELTA_LIST = { Top: [0], Left: [3], Width: [1, 3], Height: [0, 2] };
 
     function calc_border_delta(computed_style, val, type, is_inner_or_margin) {
+
         var list = DEM_POS_DELTA_LIST[type];
+        var is_top_left = IS_TOP_LEFT[type];
         var prefix = is_inner_or_margin ? 'border' : 'margin';
-        var minus_or_plus = is_inner_or_margin ^ IS_TOP_LEFT[type]; // invert if calculate Top/Left
+        var suffix = is_inner_or_margin && is_top_left ? 'Width' : '';
+
         var delta = 0, i = 0, side;
-        while (side = DEM_POS_NAMES[list[i++]])
-            delta += _parseFloat(computed_style[prefix + side]);
+        while (side = DEM_POS_NAMES[list[i++]]) {
+            var tag = prefix + side + suffix;
+            delta += _parseFloat(computed_style[tag]);
+        }
+
+        // invert if calculate Top/Left
+        var minus_or_plus = is_inner_or_margin ^ is_top_left;
+
         return minus_or_plus ? val - delta : val + delta;
+
     }
 
     // set css sizes
