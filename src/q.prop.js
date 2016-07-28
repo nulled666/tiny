@@ -30,7 +30,7 @@ define([
          * rect(type, to_absolute_position)
          *      rect() == rect('border')
          *      rect('margin') - get margin box rect
-         *      rect('border') - get border box rect
+         *      rect('border') - get border box rect == offset box
          *      rect('inner')  - get inner box rect
          *      rect('client') - get inner box rect (without scrollbar area)
          *      rect('scroll') - get full scroll content box rect (without scrollbar area)
@@ -493,18 +493,27 @@ define([
         var node = get_valid_element(this.nodes[0]);
         if (!node) return rect_obj;
 
+        // fixed element should get absolute position
+        if (_getComputedStyle(node, 'position') == 'fixed')
+            is_absolute = true;
+
         if (!is_absolute) {
             var delta = get_box_delta(node, 'margin');
-            rect.top = node.offsetTop - delta.top;
-            rect.left = node.offsetLeft - delta.left;
+            rect.top = check_offset_pos(node.offsetTop) - delta.top;
+            rect.left = check_offset_pos(node.offsetLeft) - delta.left;
         } else {
-            var node_rect = get_bounding_rect(this.nodes[0]);
+            var node_rect = get_bounding_rect(node);
             rect.top = node_rect.top + window.pageYOffset;
             rect.left = node_rect.left + window.pageXOffset;
         }
 
         return rect;
 
+    }
+
+    // return valid number for offset values of hidden element
+    function check_offset_pos(val) {
+        return val == null ? 0 : val;
     }
 
     // generate a default rect
@@ -516,9 +525,13 @@ define([
      * get client rect of element
      */
     function get_bounding_rect(node, convert) {
+
         // check if node was detached (method from jquery)
-        if (!node.getClientRects().length) return DEFAULT_RECT();
+        if (!node.getClientRects().length)
+            return DEFAULT_RECT();
+
         var rect = node.getBoundingClientRect();
+
         // convert to normal object
         if (convert) {
             var rect_obj = {};
@@ -527,13 +540,16 @@ define([
             }
             rect = rect_obj;
         }
+
         return rect;
+
     }
 
     /**
      * .rect()  get bounding rect
      */
     function get_rect(type, is_absolute) {
+        // .rect(true) ==> .rect('border', true)
         if (typeof type == 'boolean')
             is_absolute = type, type = 0;
         return func_get_rect(this.nodes[0], type, is_absolute);
@@ -552,6 +568,10 @@ define([
         type = RECT_TYPE[type] ? type : 'border';
         var op_type = RECT_TYPE[type];
 
+        // fixed element should get absolute position
+        if (_getComputedStyle(node, 'position') == 'fixed')
+            is_absolute = true;
+
         // require getBoundingClientBox()
         if (op_type == 1 || is_absolute_pos) {
             rect_obj = get_bounding_rect(node, true);
@@ -560,8 +580,8 @@ define([
         // calculate postion
         if (!is_absolute_pos) {
             // ==> relative position to offset parent
-            rect_obj.top = node.offsetTop;
-            rect_obj.left = node.offsetLeft;
+            rect_obj.top = check_offset_pos(node.offsetTop);
+            rect_obj.left = check_offset_pos(node.offsetLeft);
         } else {
             // ==> absolute postion - adjust against window scroll offset
             rect_obj.top += window.pageYOffset;
