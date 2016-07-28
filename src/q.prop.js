@@ -23,9 +23,11 @@ define([
         style: access_style,
         class: process_class,
 
+        boundSize: get_bound_size, // get style border/padding/margin size
+
         pos: get_position,  // pos(to_absolute_position)
 
-        rect: get_rect
+        rect: get_rect,
         /**
          * rect(type, to_absolute_position)
          *      rect() == rect('border')
@@ -480,8 +482,66 @@ define([
         return true;
     }
 
+
     //////////////////////////////////////////////////////////
-    // RECTS
+    //  BOUND BOX SIZES
+    //////////////////////////////////////////////////////////
+
+    var BOUND_TYPE = { border: 1, margin: 1, padding: 1, all: 2 };
+
+    function DEFAULT_BOUND() {
+        return { top: 0, left: 0, right: 0, bottom: 0 }
+    }
+
+    /**
+     * .size()
+     */
+    function get_bound_size(type) {
+
+        type = BOUND_TYPE[type] ? type : 'all';
+
+        var node = get_valid_element(this.nodes[0]);
+        if (!node) return DEFAULT_BOUND();
+
+        return get_bound_area_size(node, type);
+
+    }
+
+    /**
+     * get bound box of given style prefix
+     */
+    function get_bound_area_size(node, type) {
+
+        var delta = DEFAULT_BOUND();
+        var side_list = ['Top', 'Right', 'Bottom', 'Left'];
+
+        var suffix = type == 'border' ? 'Width' : '';
+        var style = _getComputedStyle(node);
+        var action = type == 'all' ? func_get_bound_all : func_get_bound;
+
+        var i = 0, side;
+        while (side = side_list[i++]) {
+            var tag = type + side + suffix;
+            delta[side.toLowerCase()] = action(style, side, tag);
+        }
+
+        return delta;
+
+    }
+
+    function func_get_bound(style, side, tag) {
+        return _parseFloat(style[tag]);
+    }
+
+    function func_get_bound_all(style, side) {
+        return _parseFloat(style['margin' + side]) +
+            _parseFloat(style['padding' + side]) +
+            _parseFloat(style['border' + side + 'Width']);
+    }
+
+
+    //////////////////////////////////////////////////////////
+    // POSITIONS
     //////////////////////////////////////////////////////////
     /***
      * .pos() get position
@@ -498,7 +558,7 @@ define([
             is_absolute = true;
 
         if (!is_absolute) {
-            var delta = get_box_delta(node, 'margin');
+            var delta = get_bound_area_size(node, 'margin');
             rect.top = check_offset_pos(node.offsetTop) - delta.top;
             rect.left = check_offset_pos(node.offsetLeft) - delta.left;
         } else {
@@ -545,6 +605,10 @@ define([
 
     }
 
+
+    //////////////////////////////////////////////////////////
+    // RECT BOX
+    //////////////////////////////////////////////////////////
     /**
      * .rect()  get bounding rect
      */
@@ -590,9 +654,11 @@ define([
 
         // process width & height
         if (type != 'border') {
-            // ==> calculate border delta for inner/margin, border box == bounding box
-            var delta = get_box_delta(node, type);
+            // ==> calculate bound size
+            var delta = get_bound_area_size(node, type == 'margin' ? 'margin' : 'border');
+            // calculate
             if (type == 'margin') {
+                // ==> margin
                 rect_obj.top -= delta.top;
                 rect_obj.left -= delta.left;
                 rect_obj.bottom += delta.bottom;
@@ -600,6 +666,7 @@ define([
                 rect_obj.width += delta.left + delta.right;
                 rect_obj.height += delta.top + delta.bottom;
             } else if (type == 'inner') {
+                // ==> inner
                 rect_obj.top += delta.top;
                 rect_obj.left += delta.left;
                 rect_obj.bottom -= delta.bottom;
@@ -618,25 +685,6 @@ define([
         }
 
         return rect_obj;
-
-    }
-
-    function get_box_delta(node, type) {
-
-        var list = ['Top', 'Right', 'Bottom', 'Left'];
-
-        var is_inner = type != 'margin';
-        var prefix = is_inner ? 'border' : 'margin';
-        var suffix = is_inner ? 'Width' : '';
-        var style = _getComputedStyle(node);
-
-        var delta = {}, i = 0, side;
-        while (side = list[i++]) {
-            var tag = prefix + side + suffix;
-            delta[side.toLowerCase()] = _parseFloat(style[tag]);
-        }
-
-        return delta;
 
     }
 

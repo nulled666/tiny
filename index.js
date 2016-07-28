@@ -42,11 +42,6 @@ function test_code() {
         var x = _q('.run-code');
         var y = $('.run-code');
 
-        _log('pos().top', x.pos().top);
-        _log('rect(margin).top', x.rect('margin').top);
-        _log('scrollTop', x.scrollTop());
-        _log('scrollLeft', x.scrollLeft());
-
 
         _warn('---------')
 

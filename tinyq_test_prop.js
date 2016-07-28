@@ -283,6 +283,72 @@ require([
     var x = _q('.run-code');
     var y = $('.run-code');
 
+    _warn('bound sizes ------------------')
+
+    do_test('.boundSize(margin).top', 100,
+        function () {
+            return x.boundSize('margin').top;
+        },
+        function () {
+            return parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.boundSize(margin).left', 100,
+        function () {
+            return x.boundSize('margin').left;
+        },
+        function () {
+            return parseFloat(y.css('margin-left'));
+        });
+
+    do_test('.boundSize(border).bottom', 100,
+        function () {
+            return x.boundSize('border').bottom;
+        },
+        function () {
+            return parseFloat(y.css('border-bottom-width'));
+        });
+
+    do_test('.boundSize(border).right', 100,
+        function () {
+            return x.boundSize('border').right;
+        },
+        function () {
+            return parseFloat(y.css('border-right-width'));
+        });
+
+    do_test('.boundSize(padding).bottom', 100,
+        function () {
+            return x.boundSize('padding').bottom;
+        },
+        function () {
+            return parseFloat(y.css('padding-bottom'));
+        });
+
+    do_test('.boundSize(padding).right', 100,
+        function () {
+            return x.boundSize('padding').right;
+        },
+        function () {
+            return parseFloat(y.css('padding-right'));
+        });
+
+    do_test('.boundSize().top', 100,
+        function () {
+            return x.boundSize().top;
+        },
+        function () {
+            return parseFloat(y.css('border-top-width')) + parseFloat(y.css('padding-top')) + parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.boundSize().right', 100,
+        function () {
+            return x.boundSize().right;
+        },
+        function () {
+            return parseFloat(y.css('border-right-width')) + parseFloat(y.css('padding-right')) + parseFloat(y.css('margin-right'));
+        });
+
     _warn('positions ------------------')
 
     do_test('.pos().top', 100,
