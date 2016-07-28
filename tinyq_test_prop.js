@@ -272,6 +272,14 @@ require([
             return y.position().left;
         });
 
+    do_test('.offset().left', 100,
+        function () {
+            return x.offset().left;
+        },
+        function () {
+            return y.offset().left;
+        });
+
     do_test('.scrollLeft()', 99,
         function () {
             return _q(document).scrollLeft();
@@ -346,6 +354,14 @@ require([
             return y.position().top;
         });
 
+    do_test('.offset().top', 100,
+        function () {
+            return x.offset().top;
+        },
+        function () {
+            return y.offset().top;
+        });
+
     do_test('.scrollTop()', 99,
         function () {
             return _q(document).scrollTop();
@@ -353,7 +369,6 @@ require([
         function () {
             return $(document).scrollTop();
         });
-
 
     do_test('.top(auto)', 99,
         function () {
@@ -363,10 +378,7 @@ require([
             return y.css('top', '');
         });
 
-    var x = _q('.function');
-    var y = $('.function');
-
-
+    _warn('rect ------------------')
 
     do_test('.rect()', 100,
         function () {
@@ -374,22 +386,6 @@ require([
         },
         function () {
             return $.extend({}, y.get(0).getBoundingClientRect());
-        });
-
-    do_test('.offset().left', 100,
-        function () {
-            return x.offset().left;
-        },
-        function () {
-            return y.offset().left;
-        });
-
-    do_test('.offset().top', 100,
-        function () {
-            return x.offset().top;
-        },
-        function () {
-            return y.offset().top;
         });
 
     _warn('dimensions ------------------')

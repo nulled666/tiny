@@ -243,20 +243,25 @@ define([
     }
 
     function func_access_style(node, key, value, is_get) {
+
         if (node.nodeType != 1) return '';
-        var style = node.style;
+
         if (is_get) {
-            return style[key];
+            // always return computed style
+            key = check_style_key(key);
+            return _getComputedStyle(node)[key];
         } else {
             for (var key in value) {
-                var val = value[key];
                 key = check_style_key(key);
+                var val = value[key];
                 if (val == null) val = '';
-                style[key] = val;
+                node.style[key] = val;
             }
         }
+
     }
 
+    // helper for convert vendor-prefixed style name
     var BASE_STYLE_LIST = document.createElement('div').style;
     var STYLE_VENDOR_PREFIX = ['Webkit', 'Moz', 'ms'];
     var _style_prefix;
@@ -615,19 +620,16 @@ define([
         // element node only
         if (node_type != 1) return 0;
 
-        // top()/left() equals marginTop()/marginLeft()
+        // top()/left() => marginTop()/marginLeft()
         if (is_top_left && prefix == '') prefix = 'margin';
 
         if (prefix == '') {
-            // ==> css dimensions
+            // ==> css dimensions width()/height() - always computed style
             type = type.toLowerCase();
-            // get style dimensions
-            var val = node.style[type];
-            // get computed if not set
-            if (val == '') val = _getComputedStyle(node)[type];
+            var val = _getComputedStyle(node)[type];
             return _parseFloat(val);
         } else if (IS_INNER_MARGIN[prefix]) {
-            // ==> border box dimensions
+            // ==> border box dimensions inner***()/margin***()
             var val = node['offset' + type];
             var style = _getComputedStyle(node);
             return calc_border_delta(style, val, type, prefix == 'inner');
