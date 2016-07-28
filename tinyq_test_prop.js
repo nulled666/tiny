@@ -280,142 +280,12 @@ require([
         });
 
 
-    _warn('left ------------------')
-
     var x = _q('.run-code');
     var y = $('.run-code');
 
-    do_test('.left(60)', 99,
-        function () {
-            return x.left(60);
-        },
-        function () {
-            return y.css('left', 60);
-        });
+    _warn('positions ------------------')
 
-    do_test('.left()', 99,
-        function () {
-            return x.left();
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.innerLeft()', 99,
-        function () {
-            return x.outerLeft();
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.offsetLeft()', 99,
-        function () {
-            return x.offsetLeft();
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.outerLeft()', 99,
-        function () {
-            return x.outerLeft();
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.marginLeft()', 99,
-        function () {
-            return x.outerLeft();
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.pos().left', 99,
-        function () {
-            return x.pos().left;
-        },
-        function () {
-            return y.position().left;
-        });
-
-    do_test('.offset().left', 100,
-        function () {
-            return x.offset().left;
-        },
-        function () {
-            return y.offset().left;
-        });
-
-    do_test('.scrollLeft()', 99,
-        function () {
-            return _q(document).scrollLeft();
-        },
-        function () {
-            return $(document).scrollLeft();
-        });
-
-    do_test('.left(auto)', 99,
-        function () {
-            return x.left('');
-        },
-        function () {
-            return y.css('left', '');
-        });
-
-    _warn('top ------------------')
-
-    do_test('.top(60)', 99,
-        function () {
-            return x.top(60);
-        },
-        function () {
-            return y.css('top', 60);
-        });
-
-    do_test('.top()', 99,
-        function () {
-            return x.top();
-        },
-        function () {
-            return y.position().top;
-        });
-
-    do_test('.innerTop()', 99,
-        function () {
-            return x.innerTop();
-        },
-        function () {
-            return y.position().top;
-        });
-
-    do_test('.offsetTop()', 99,
-        function () {
-            return x.offsetTop();
-        },
-        function () {
-            return y.get(0).offsetTop;
-        });
-
-    do_test('.outerTop()', 99,
-        function () {
-            return x.outerTop();
-        },
-        function () {
-            return y.get(0).offsetTop;
-        });
-
-    do_test('.marginTop()', 99,
-        function () {
-            return x.marginTop();
-        },
-        function () {
-            return y.position().top;
-        });
-
-    do_test('.pos().top', 1,
+    do_test('.pos().top', 100,
         function () {
             return x.pos().top;
         },
@@ -423,44 +293,31 @@ require([
             return y.position().top;
         });
 
-    do_test('.offset().top', 100,
+    do_test('.pos().left', 100,
         function () {
-            return x.offset().top;
+            return x.pos().left;
+        },
+        function () {
+            return y.position().left;
+        });
+
+    do_test('.pos(true).top', 100,
+        function () {
+            return x.pos(true).top;
         },
         function () {
             return y.offset().top;
         });
 
-    do_test('.scrollTop()', 99,
+    do_test('.pos(true).left', 100,
         function () {
-            return _q(document).scrollTop();
+            return x.pos(true).left;
         },
         function () {
-            return $(document).scrollTop();
-        });
-
-    do_test('.top(auto)', 99,
-        function () {
-            return x.top('');
-        },
-        function () {
-            return y.css('top', '');
-        });
-
-    _warn('rect ------------------')
-
-    do_test('.rect()', 100,
-        function () {
-            return x.rect();
-        },
-        function () {
-            return $.extend({}, y.get(0).getBoundingClientRect());
+            return y.offset().left;
         });
 
     _warn('dimensions ------------------')
-
-    var x = _q('.run-code');
-    var y = $('.run-code');
 
     do_test('.width(98)', 99,
         function () {
@@ -478,13 +335,22 @@ require([
             return y.height(60);
         });
 
-    do_test('.style(width)', 99,
+    do_test('.top()', 99,
         function () {
-            return x.style('width');
+            return x.top();
         },
         function () {
-            return y.css('width');
+            return y.css('top');
         });
+
+    do_test('.left()', 99,
+        function () {
+            return x.left();
+        },
+        function () {
+            return y.css('left');
+        });
+
 
     do_test('.width()', 99,
         function () {
@@ -492,54 +358,6 @@ require([
         },
         function () {
             return y.width();
-        });
-
-    do_test('.clientWidth()', 99,
-        function () {
-            return x.clientWidth();
-        },
-        function () {
-            return y.get(0).clientWidth;
-        });
-
-    do_test('.innerWidth()', 99,
-        function () {
-            return x.innerWidth();
-        },
-        function () {
-            return y.innerWidth();
-        });
-
-    do_test('.offsetWidth()', 99,
-        function () {
-            return x.offsetWidth();
-        },
-        function () {
-            return y.outerWidth();
-        });
-
-    do_test('.outerWidth()', 99,
-        function () {
-            return x.outerWidth();
-        },
-        function () {
-            return y.outerWidth();
-        });
-
-    do_test('.marginWidth()', 99,
-        function () {
-            return x.marginWidth();
-        },
-        function () {
-            return y.outerWidth(true);
-        });
-
-    do_test('.scrollWidth()', 99,
-        function () {
-            return x.scrollWidth();
-        },
-        function () {
-            return y.get(0).scrollWidth;
         });
 
     do_test('.height()', 99,
@@ -550,49 +368,163 @@ require([
             return y.height();
         });
 
-    do_test('.clientHeight()', 99,
+    do_test('.scrollTop(88)', 99,
         function () {
-            return x.clientHeight();
+            return x.scrollTop(88);
         },
         function () {
-            return y.get(0).clientHeight;
+            return y.scrollTop(88);
         });
 
-    do_test('.innerHeight()', 99,
+    do_test('.scrollLeft(66)', 99,
         function () {
-            return x.innerHeight();
+            return x.scrollLeft(66);
         },
         function () {
-            return y.innerHeight();
+            return y.scrollLeft(66);
         });
 
-    do_test('.offsetHeight()', 99,
+    do_test('.scrollTop()', 99,
         function () {
-            return x.offsetHeight();
+            return x.scrollTop();
         },
         function () {
-            return y.outerHeight();
+            return y.scrollTop();
         });
 
-    do_test('.outerHeight()', 99,
+    do_test('.scrollLeft()', 99,
         function () {
-            return x.outerHeight();
+            return x.scrollLeft();
         },
         function () {
-            return y.outerHeight();
+            return y.scrollLeft();
         });
 
-    do_test('.marginHeight()', 99,
+    _warn('rects ------------------')
+
+    do_test('.rect(margin).top', 100,
         function () {
-            return x.marginHeight();
+            return x.rect('margin').top;
+        },
+        function () {
+            return y.position().top;
+        });
+
+    do_test('.rect(margin).left', 100,
+        function () {
+            return x.rect('margin').left;
+        },
+        function () {
+            return y.position().left;
+        });
+
+    do_test('.rect(margin).width', 100,
+        function () {
+            return x.rect('margin').width;
+        },
+        function () {
+            return y.outerWidth(true);
+        });
+
+    do_test('.rect(margin).height', 100,
+        function () {
+            return x.rect('margin').height;
         },
         function () {
             return y.outerHeight(true);
         });
 
-    do_test('.scrollHeight()', 99,
+    do_test('.rect(border).width', 100,
         function () {
-            return x.scrollHeight();
+            return x.rect().width;
+        },
+        function () {
+            return y.outerWidth();
+        });
+
+    do_test('.rect(border).height', 100,
+        function () {
+            return x.rect().height;
+        },
+        function () {
+            return y.outerHeight();
+        });
+
+    do_test('.rect(inner).width', 100,
+        function () {
+            return x.rect('inner').width;
+        },
+        function () {
+            return y.innerWidth();
+        });
+
+    do_test('.rect(inner).height', 100,
+        function () {
+            return x.rect('inner').height;
+        },
+        function () {
+            return y.innerHeight();
+        });
+
+    do_test('.rect(client).top', 100,
+        function () {
+            return x.rect('client').top;
+        },
+        function () {
+            return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
+        });
+
+    do_test('.rect(client).left', 100,
+        function () {
+            return x.rect('client').left;
+        },
+        function () {
+            return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
+        });
+
+    do_test('.rect(client).width', 100,
+        function () {
+            return x.rect('client').width;
+        },
+        function () {
+            return y.get(0).clientWidth;
+        });
+
+    do_test('.rect(client).height', 100,
+        function () {
+            return x.rect('client').height;
+        },
+        function () {
+            return y.get(0).clientHeight;
+        });
+
+    do_test('.rect(scroll).top', 100,
+        function () {
+            return x.rect('scroll').top;
+        },
+        function () {
+            return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
+        });
+
+    do_test('.rect(scroll).left', 100,
+        function () {
+            return x.rect('scroll').left;
+        },
+        function () {
+            return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
+        });
+
+    do_test('.rect(scroll).width', 100,
+        function () {
+            return x.rect('scroll').width;
+        },
+        function () {
+            return y.get(0).scrollWidth;
+        });
+
+    do_test('.rect(scroll).height', 100,
+        function () {
+            return x.rect('scroll').height;
         },
         function () {
             return y.get(0).scrollHeight;
@@ -613,5 +545,4 @@ require([
         function () {
             return y.height('');
         });
-
 });

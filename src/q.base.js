@@ -31,7 +31,8 @@ define([
     TinyQ.x = {
         TAG: TAG_Q,
         isArrayLike: is_array_like,
-        isElement: is_element
+        isElement: is_element,
+        isWindow: is_window
     };
 
     TinyQ.prototype = {
