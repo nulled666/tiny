@@ -25,7 +25,7 @@ define([
 
         pos: get_position,  // pos(to_absolute_position)
 
-        rect: get_rect      // 
+        rect: get_rect
         /**
          * rect(type, to_absolute_position)
          *      rect() == rect('border')
