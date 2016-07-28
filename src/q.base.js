@@ -408,6 +408,7 @@ define([
      * .includes() - selector check
      */
     function includes_node(selector, invert) {
+        invert = invert || false;
         var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
         var result = invert ? false : true;
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
