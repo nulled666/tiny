@@ -51,7 +51,8 @@ define([
         add: add_nodes,
 
         // filter
-        is: is_node_of_type,
+        is: all_node_is,
+        includes: includes_node,
         filter: filter_nodes,
 
         // traverse
@@ -79,9 +80,9 @@ define([
         eachNode: each_node,
         toArray: function () { return to_array(this.nodes) },
 
-        // properties -> q.prop.js
+        // -> q.dom.js : dom property access
 
-        // event -> q.event.js
+        // -> q.event.js
 
     };
 
@@ -90,13 +91,16 @@ define([
     //////////////////////////////////////////////////////////
     function init_q(obj, param, extra, query_mode, base_nodes) {
 
-        if (!obj) obj = document;
+        if (!obj) obj = document; // default node
 
         var result = [];
         var tag_start = 'q(', tag_obj = '', tag_end = ')';
         var opid = false;
         var is_add = false;
 
+        if (is_window(obj)) tag_obj = '[window]';
+        if (is_document(obj)) tag_obj = '[document]';
+        if (is_tinyq(obj)) tag_obj = '[TinyQ]';
         if (query_mode == 1) tag_start = 'q1(';
 
         if (base_nodes && Array.isArray(base_nodes)) {
@@ -111,6 +115,7 @@ define([
             }
         }
 
+        // convert node, TinyQ parameter to array
         obj = nomalize_nodes(obj);
 
         if (typeof obj == 'string') {
@@ -140,13 +145,8 @@ define([
 
             // ==> (nodes [,filter...])
             result = to_array(obj, result, opid);
-            tag_obj = '[nodes]';
+            if (tag_obj == '') tag_obj = '[nodes]';
             tag_start = tag_end = '';
-
-        } else if (is_window(obj)) {
-
-            // ==> (window) for events - use empty nodes
-            return create_tinyq([], '[window]');
 
         } else {
 
@@ -156,7 +156,7 @@ define([
         }
 
         // ready to create the object
-        var chain = !is_add ? '.add(' + tag_obj + ')' : tag_start + tag_obj + tag_end;
+        var chain = is_add ? '.add(' + tag_obj + ')' : tag_start + tag_obj + tag_end;
 
         return create_tinyq(result, chain);
 
@@ -173,7 +173,7 @@ define([
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
-        if (is_element(obj)) {
+        if (is_valid_node(obj)) {
             obj = [obj];
         } else if (obj.tinyQ) {
             obj = obj.nodes;
@@ -190,19 +190,29 @@ define([
     }
 
     /**
-     * check if an object is a html element or document node
+     * check if an object is a html element, document or window object
      */
+    function is_valid_node(obj) {
+        return is_window(obj) || is_element(obj);
+    }
+
     function is_element(obj) {
         if (!obj) return false;
+        var node_type = obj.nodeType;
         var type = obj.nodeType;
         return (type == 1 || type == 9);
     }
 
-    /**
-     * check if an object is window
-     */
     function is_window(obj) {
-        return !!obj && obj == obj.window
+        return obj && obj == obj.window
+    }
+
+    function is_document(obj) {
+        return obj && obj.nodeType == 9
+    }
+
+    function is_tinyq(obj) {
+        return obj && obj.tinyQ
     }
 
     /**
@@ -220,7 +230,6 @@ define([
      */
     function create_html_fragment(html, attrs) {
 
-        if (is_element(attrs)) parent = attrs, attrs = false;
         if (typeof attrs != 'object') attrs = false;
 
         var div = document.createElement('div');
@@ -282,11 +291,7 @@ define([
      */
     function do_query(nodes, selector, query_mode, opid, base) {
 
-        if (!nodes) {
-            tiny.error(TinyQ.x.TAG, 'Expect an Array-like node list. > Got: ', nodes);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
+        // check unique for multi-parent query
         if (!opid && nodes.length > 1) opid = tiny.guid();
 
         var result = base || [];
@@ -308,12 +313,15 @@ define([
 
         // do the query
         for (var list = nodes, i = 0, len = list.length; i < len; ++i) {
-            var node = list[i];
-            if (!is_element(node)) continue;
+            var node = get_valid_element(list[i]);
+            if (!node) continue;
+            // query for elements
             var r = action(node, selector);
             if (!r || r.length == 0) continue;
+            // return fast for q1()
             if (query_mode == 1) return [r[0]];
-            result = to_array(r, result, opid);
+            // merge result
+            result = to_array(r, result, opid, false);
         }
 
         return result;
@@ -337,11 +345,12 @@ define([
     function to_array(nodes, base, opid, filter) {
 
         base = base || [];
+
         if (!nodes) return base;
 
         for (var list = nodes, i = 0, len = list.length; i < len; ++i) {
             var node = list[i];
-            if (!is_element(node)) continue;
+            if (typeof node != 'object') continue; // fast check, nodeType is too slow
             if (opid) {
                 if (node[OPID_MARK] == opid) continue;
                 node[OPID_MARK] = opid;
@@ -391,11 +400,28 @@ define([
     /**
      * .is() - selector check
      */
-    function is_node_of_type(selector) {
+    function all_node_is(selector) {
+        return includes_node.call(this, selector, true);
+    }
+
+    /**
+     * .includes() - selector check
+     */
+    function includes_node(selector, invert) {
+        var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
+        var result = invert ? false : true;
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            if (!nodes[i].matches(selector)) return false;
+            var r = invert ^ check_func(nodes[i], selector);
+            if (r) return result;
         }
-        return true;
+        return !result;
+    }
+
+    function func_match_selector(node, selector) {
+        return node.matches(selector);
+    }
+    function func_match_node(node1, node2) {
+        return node1 === node2;
     }
 
 
@@ -596,7 +622,7 @@ define([
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = get_func(nodes[i], selector);
             if (!node) continue;
-            if (type < 3) {
+            if (type < 4) {
                 // parent, offsetParent, closest requires unique check
                 // children is an array
                 arr = to_array(node, arr, opid, filter);

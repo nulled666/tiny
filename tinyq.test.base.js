@@ -4,7 +4,23 @@ define([
 
     _warn('query', '--------------------------------')
 
-    do_test('q(#id)', 1000,
+    do_test('q(window)', 1000,
+        function () {
+            return _q(window);
+        },
+        function () {
+            return $(window);
+        });
+
+    do_test('q(document)', 1000,
+        function () {
+            return _q(document);
+        },
+        function () {
+            return $(document);
+        });
+
+    do_test('q("#id")', 1000,
         function () {
             return _q('#content-table');
         },
@@ -12,7 +28,7 @@ define([
             return $('#content-table');
         });
 
-    do_test('q(tag)', 100,
+    do_test('q("tag")', 100,
         function () {
             return _q('span');
         },
@@ -20,7 +36,7 @@ define([
             return $('span');
         });
 
-    do_test('q(.class)', 100,
+    do_test('q(".class")', 100,
         function () {
             return _q('.token');
         },
@@ -28,7 +44,7 @@ define([
             return $('.token');
         });
 
-    do_test('q(.class.class)', 100,
+    do_test('q(".class1.class2")', 100,
         function () {
             return _q('.function.token');
         },
@@ -36,7 +52,7 @@ define([
             return $('.function.token');
         });
 
-    do_test('q(.class .class)', 100,
+    do_test('q(".class1 .class2")', 100,
         function () {
             return _q('.run-code .function');
         },
@@ -45,7 +61,7 @@ define([
         });
 
     var html = '<a href="#" class="test"><img alt="null">Test</a><b>test</b>';
-    do_test('q(html, attr)', 300,
+    do_test('q("html", attr)', 300,
         function () {
             return _q(html, { x: 'test.htm', title: 'test' });
         },
@@ -62,23 +78,27 @@ define([
             return $(node);
         });
 
-    do_test('node.q()', 1000,
+    var x = _q1('.run-code');
+    var y = $('.run-code').eq(0);
+
+    do_test('node.q(".class")', 1000,
         function () {
-            return _q(node).q('.function');
+            return x.q('.function');
         },
         function () {
-            return $(node).find('.function');
+            return y.find('.function');
         });
 
-    do_test('node.q1()', 1000,
+    do_test('node.q1(".class")', 1000,
         function () {
-            return _q(node).q1('.function');
+            return x.q1('.function');
         },
         function () {
-            return $(node).find('.function').first();
+            return y.find('.function:first');
         });
 
     var nodelist = document.querySelectorAll('.token');
+
     do_test('q(nodelist)', 100,
         function () {
             return _q(nodelist);
@@ -87,134 +107,168 @@ define([
             return $(nodelist);
         });
 
-    var nodelist = document.querySelectorAll('.run-code');
-    do_test('nodelist.q()', 100,
+    var x = _q('.run-code');
+    var y = $('.run-code');
+
+    do_test('nodelist.q(".class")', 100,
         function () {
-            return _q(nodelist).q('.function');
+            return x.q('.function');
         },
         function () {
-            return $(nodelist).find('.function');
+            return y.find('.function');
         });
-    do_test('nodelist.q1()', 100,
+    do_test('nodelist.q1(".class")', 100,
         function () {
-            return _q(nodelist).q1('.function');
+            return x.q1('.function');
         },
         function () {
-            return $(nodelist).find('.function').first();
+            return y.find('.function').first();
         });
 
-    var nodes = _q('.function').toArray();
+    var x = _q('.function');
+    var y = $('.function');
+
     do_test('.add(.selector)', 10,
         function () {
-            return _q(nodes).add('.token');
+            return x.add('.token');
         },
         function () {
-            return $(nodes).add('.token');
+            return y.add('.token');
         });
 
     var add_nodes = _q('.token').toArray();
     do_test('.add(nodes)', 10,
         function () {
-            return _q(nodes).add(add_nodes);
+            return x.add(add_nodes);
         },
         function () {
-            return $(nodes).add(add_nodes);
+            return y.add(add_nodes);
         });
 
     _warn('filter', '--------------------------------')
 
-    var nodelist = document.querySelectorAll('.token');
 
-    do_test('.is()', 50,
+    var x = _q('.token');
+    var y = $('.token');
+
+    do_test('.is(".class")', 50,
         function () {
-            return _q(nodelist).is('.function');
+            return x.is('.function');
         },
         function () {
-            return !$(nodelist).is('.function');
+            return y.length == y.filter('.function');
         });
 
-    do_test('.filter()', 50,
+    do_test('.includes(".class")', 50,
         function () {
-            return _q(nodelist).filter('.function');
+            return x.includes('.function');
         },
         function () {
-            return $(nodelist).filter('.function');
+            return y.is('.function');
         });
 
-    var nodelist = document.querySelectorAll('code');
+    var node = document.querySelector('.token.function');
+
+    do_test('.is(node)', 50,
+        function () {
+            return x.is(node);
+        },
+        function () {
+            return y.length == y.filter(node).length;
+        });
+
+    do_test('.includes(node)', 50,
+        function () {
+            return x.includes(node);
+        },
+        function () {
+            return y.is(node);
+        });
+
+    do_test('.filter(".class")', 50,
+        function () {
+            return x.filter('.function');
+        },
+        function () {
+            return y.filter('.function');
+        });
+
+    var x = _q('code');
+    var y = $('code');
+
     do_test('.filter(@has)', 50,
         function () {
-            return _q(nodelist).filter('@has(.comment)');
+            return x.filter('@has(.comment)');
         },
         function () {
-            return $(nodelist).has('.comment');
+            return y.has('.comment');
         });
 
     do_test('.filter(@contains)', 50,
         function () {
-            return _q(nodelist).filter('@contains(ASSERT)');
+            return x.filter('@contains(ASSERT)');
         },
         function () {
-            return $(nodelist).filter(':contains(ASSERT)');
+            return y.filter(':contains(ASSERT)');
         });
 
     do_test('.filter(@visible)', 500,
         function () {
-            return _q(nodelist).filter('@visible');
+            return x.filter('@visible');
         },
         function () {
-            return $(nodelist).filter(':visible');
+            return y.filter(':visible');
         });
 
 
     _warn('collection', '--------------------------------')
 
-    do_test('.get()', 1000,
+    do_test('.get(2)', 1000,
         function () {
-            return _q(nodelist).get(2);
+            return x.get(2);
         },
         function () {
-            return $(nodelist).get(2);
+            return y.get(2);
         });
 
     do_test('.q(index)', 1000,
         function () {
-            return _q(nodelist).q(10);
+            return x.q(10);
         },
         function () {
-            return $(nodelist).eq(10);
+            return y.eq(10);
         });
 
     do_test('.first()', 1000,
         function () {
-            return _q(nodelist).first();
+            return x.first();
         },
         function () {
-            return $(nodelist).first();
+            return y.first();
         });
 
     do_test('.last()', 1000,
         function () {
-            return _q(nodelist).last();
+            return x.last();
         },
         function () {
-            return $(nodelist).last();
+            return y.last();
         });
 
-    do_test('.slice()', 1000,
+    do_test('.slice(0, -5)', 1000,
         function () {
-            return _q(nodelist).slice(10, -5);
+            return x.slice(10, -5);
         },
         function () {
-            return $(nodelist).slice(10, -5);
+            return y.slice(10, -5);
         });
 
     do_test('.toArray()', 100,
         function () {
-            return _q('.run-code').toArray();
+            return x.toArray();
         },
         function () {
-            return $('.run-code').toArray();
+            return y.toArray();
         });
 
     do_test('.eachNode()', 100,
@@ -235,14 +289,15 @@ define([
 
     _warn('traverse', '--------------------------------')
 
-    var nodelist = document.querySelectorAll('.token');
-    
+    var x = _q('.token');
+    var y = $('.token');
+
     do_test('.parent()', 50,
         function () {
-            return _q(nodelist).parent('code');
+            return x.parent('code');
         },
         function () {
-            return $(nodelist).parent('code');
+            return y.parent('code');
         });
 
     do_test('.offsetParent()', 100,
@@ -255,19 +310,21 @@ define([
 
     do_test('.closest()', 10,
         function () {
-            return _q(nodelist).closest('.run-code');
+            return x.closest('.run-code');
         },
         function () {
-            return $(nodelist).closest('.run-code');
+            return y.closest('.run-code');
         });
 
-    var node = _q('code').toArray();
+    var x = _q('code');
+    var y = $('code');
+    
     do_test('.children()', 100,
         function () {
-            return _q(node).children('.function');
+            return x.children('.function');
         },
         function () {
-            return $(node).children('.function');
+            return y.children('.function');
         });
 
     do_test('.prev()', 100,
