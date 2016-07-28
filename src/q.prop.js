@@ -12,6 +12,7 @@ define([
     tiny.extend(TinyQ.prototype, {
 
         text: access_text,
+        innerText: access_inner_text,
         html: access_html,
         val: access_value,
 
@@ -125,12 +126,24 @@ define([
         return access_helper(this, 0, value, func_access_text);
     }
 
+    /**
+     * .innerText()
+     */
+    function access_inner_text(value) {
+        return access_helper(this, 1, value, func_access_text);
+    }
+
     function func_access_text(node, key, val, is_get) {
+        key = key == 1; // innerText or textContent
         if (is_get) {
-            val += node.textContent;
+            val += key ? node.innerText : node.textContent;
             return val;
         } else {
-            node.textContent = val;
+            if (key) {
+                node.innerText = val;
+            } else {
+                node.textContent = val;
+            }
         }
     }
 

@@ -13,6 +13,15 @@ require([
         function () {
             return $(nodes).text();
         });
+    do_test('.innerText()', 99,
+        function () {
+            return _q(nodes).innerText();
+        },
+        function () {
+            var t = '';
+            $(nodes).each(function (i, elem) { t += elem.innerText });
+            return t;
+        });
 
     var nodes = document.querySelectorAll('.run-code');
     do_test('.html()', 99,
@@ -34,6 +43,14 @@ require([
         },
         function () {
             return $(node).text(html21 + count++);
+        });
+
+    do_test('.innerText(val)', 99,
+        function () {
+            return _q(node).innerText(html21 + count++);
+        },
+        function () {
+            return $(node).each(function (i, elem) { elem.innerText = html21 + count++ });
         });
 
     do_test('.html(val)', 99,
@@ -215,7 +232,7 @@ require([
 
     var x = _q('.run-code');
     var y = $('.run-code');
-    
+
     do_test('.left(60)', 99,
         function () {
             return x.left(60);
