@@ -32,9 +32,9 @@ function start() {
 function test_code() {
 
     require([
-        'tinyq_test',
-        //'tinyq_test_base',
-       'tinyq_test_prop',
+        'tinyq.test',
+        //'tinyq.test.base',
+       'tinyq.test.dom',
     ], function (do_test) {
 
         _warn('---------')

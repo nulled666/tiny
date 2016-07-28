@@ -1,129 +1,131 @@
 require([
-    'tinyq_test'
+    'tinyq.test'
 ], function (do_test) {
 
     _warn('text & html ------------------')
 
-    var nodes = document.querySelectorAll('pre');
+    var x = _q('pre');
+    var y = $('pre');
 
     do_test('.text()', 99,
         function () {
-            return _q(nodes).text();
+            return x.text();
         },
         function () {
-            return $(nodes).text();
+            return y.text();
         });
     do_test('.innerText()', 99,
         function () {
-            return _q(nodes).innerText();
+            return x.innerText();
         },
         function () {
             var t = '';
-            $(nodes).each(function (i, elem) { t += elem.innerText });
+            y.each(function (i, elem) { t += elem.innerText });
             return t;
         });
 
     var nodes = document.querySelectorAll('.run-code');
     do_test('.html()', 99,
         function () {
-            return _q(nodes).html();
+            return x.html();
         },
         function () {
-            return $(nodes).html();
+            return y.html();
         });
     do_test('.outerHTML()', 99,
         function () {
-            return _q(nodes).outerHTML();
+            return x.outerHTML();
         },
         function () {
-            return $(nodes).get(0).outerHTML;
+            return y.get(0).outerHTML;
         });
 
-    _q('h1').prepend('<div id="test-me"></div>');
-    var node = _q('#test-me').nodes[0];
+    _q('h1').prepend('<div id="test-me1"></div><div id="test-me2"></div>');
+    var x = _q('#test-me1');
+    var y = $('#test-me2');
     var html21 = '<a href="#" class="test21"><img alt="21">q21</a> <b>q21</b>';
     var count = 0;
 
     do_test('.text(val)', 99,
         function () {
-            return _q(node).text(html21 + count++);
+            return x.text(html21 + count++);
         },
         function () {
-            return $(node).text(html21 + count++);
+            return y.text(html21 + count++);
         });
 
     do_test('.innerText(val)', 99,
         function () {
-            return _q(node).innerText(html21 + count++);
+            return x.innerText(html21 + count++);
         },
         function () {
-            return $(node).each(function (i, elem) { elem.innerText = html21 + count++ });
+            return y.each(function (i, elem) { elem.innerText = html21 + count++ });
         });
 
     do_test('.html(val)', 99,
         function () {
-            return _q(node).html(html21 + count++);
+            return x.html(html21 + count++);
         },
         function () {
-            return $(node).html(html21 + count++);
+            return y.html(html21 + count++);
         });
 
     do_test('.outerHTML(val)', 99,
         function () {
-            return _q(node).outerHTML(html21 + count++);
+            return x.q('a').outerHTML(html21 + count++);
         },
         function () {
-            var y = $(node)
-            var n = y.get(0);
-            if (n.parentNode) y.outerHTML = html21 + count++;
+            var n = y.find('a').get(0);
+            if (n.parentNode) n.outerHTML = html21 + count++;
             return y;
         });
 
-    _q(node).remove();
+    x.remove(), y.remove();
 
 
     _warn('attribute ------------------')
 
-    var nodes = document.querySelectorAll('h3');
+    var x = _q('h3');
+    var y = $('h3');
 
     do_test('.attr()', 100,
         function () {
-            return _q(nodes).attr();
+            return x.attr();
         },
         function () {
-            return $(nodes).get(0).attributes;
+            return y.get(0).attributes;
         });
 
     do_test('.attr(key, val)', 100,
         function () {
-            return _q(nodes).attr('class1', 'header test-my-code');
+            return x.attr('class1', 'header test-my-code');
         },
         function () {
-            return $(nodes).attr('class2', 'header test-my-code');
+            return y.attr('class2', 'header test-my-code');
         });
 
     do_test('.attr(key)', 100,
         function () {
-            return _q(nodes).attr('class1');
+            return x.attr('class1');
         },
         function () {
-            return $(nodes).attr('class2');
+            return y.attr('class2');
         });
 
     do_test('.attr({key: value})', 100,
         function () {
-            return _q(nodes).attr({ class1: null, mark1: 1999 });
+            return x.attr({ class1: null, mark1: 1999 });
         },
         function () {
-            return $(nodes).attr({ class2: null, mark2: 2000 });
+            return y.attr({ class2: null, mark2: 2000 });
         });
 
     do_test('.attr(key, null)', 1,
         function () {
-            return _q(nodes).attr('mark1', null);
+            return x.attr('mark1', null);
         },
         function () {
-            return $(nodes).attr('mark2', null);
+            return y.attr('mark2', null);
         });
 
     _warn('property ------------------')
@@ -132,28 +134,36 @@ require([
 
     do_test('.prop()', 1000,
         function () {
-            return _q(nodes).prop('innerHTML');
+            return x.prop('innerHTML');
         },
         function () {
-            return $(nodes).prop('innerHTML');
+            return y.prop('innerHTML');
         });
 
     var guid1 = tiny.guid();
     var guid2 = tiny.guid();
-    do_test('.prop(value)', 1000,
+    do_test('.prop(key, value)', 1000,
         function () {
-            return _q(nodes).prop('guid', guid1);
+            return x.prop('guid', guid1);
         },
         function () {
-            return $(nodes).prop('guid', guid2);
+            return y.prop('guid', guid2);
         });
 
-    do_test('.prop(null)', 1000,
+    do_test('.prop(key)', 1000,
         function () {
-            return _q(nodes).prop('guid', null);
+            return x.prop('guid', guid1);
         },
         function () {
-            return $(nodes).prop('guid', null);
+            return y.prop('guid', guid2);
+        });
+
+    do_test('.prop(key, null)', 1000,
+        function () {
+            return x.prop('guid', null);
+        },
+        function () {
+            return y.prop('guid', null);
         });
 
     var nodes = document.querySelectorAll('h3');
@@ -162,29 +172,29 @@ require([
 
     do_test('.style()', 100,
         function () {
-            return _q(nodes).style();
+            return x.style();
         },
         function () {
-            return $(nodes).get(0).style;
+            return y.get(0).style;
         });
 
     do_test('.style(true)', 100,
         function () {
-            return _q(nodes).style(true);
+            return x.style(true);
         },
         function () {
-            return window.getComputedStyle($(nodes).get(0));
+            return window.getComputedStyle(y.get(0));
         });
 
     do_test('.style({key: value})', 100,
         function () {
-            return _q(nodes).style({
+            return x.style({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
                 'user-select': 'none'
             });
         },
         function () {
-            return $(nodes).css({
+            return y.css({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
                 'user-select': 'none'
             });
@@ -192,21 +202,21 @@ require([
 
     do_test('.style(key)', 100,
         function () {
-            return _q(nodes).style('text-shadow');
+            return x.style('text-shadow');
         },
         function () {
-            return $(nodes).css('text-shadow');
+            return y.css('text-shadow');
         });
 
     do_test('.style({key: null})', 100,
         function () {
-            return _q(nodes).style({
+            return x.style({
                 'text-shadow': null,
                 'user-select': null
             });
         },
         function () {
-            return $(nodes).css({
+            return y.css({
                 'text-shadow': null,
                 'user-select': null
             });
@@ -215,73 +225,68 @@ require([
 
     _warn('class ------------------')
 
-    var nodes = document.querySelectorAll('.run-code');
-    var q = _q(nodes);
-    var jq = $(nodes);
+    var x = _q('.run-code');
+    var y = $('.run-code');
 
     do_test('.class()', 99,
         function () {
-            return q.class();
+            return x.class();
         },
         function () {
-            return jq.attr('class');
+            return y.attr('class');
         });
 
     do_test('.class(+)', 99,
         function () {
-            return q.class('passed failed test ok collapse');
+            return x.class('passed failed test ok collapse');
         },
         function () {
-            return jq.addClass('passed failed test ok collapse');
+            return y.addClass('passed failed test ok collapse');
         });
 
     do_test('.class(-)', 99,
         function () {
-            return q.class('-:passed failed test ok collapse');
+            return x.class('-:passed failed test ok collapse');
         },
         function () {
-            return jq.removeClass('passed failed test ok collapse');
+            return y.removeClass('passed failed test ok collapse');
         });
 
     do_test('.class(+-)', 99,
         function () {
-            return q.class('passed failed test ok collapse')
+            return x.class('passed failed test ok collapse')
                 .class('-:passed failed test ok collapse');
         },
         function () {
-            return jq.addClass('passed failed test ok collapse')
+            return y.addClass('passed failed test ok collapse')
                 .removeClass('passed failed test ok collapse');
         });
 
     do_test('.class(^)', 99,
         function () {
-            return q.class('^test');
+            return x.class('^test');
         },
         function () {
-            return jq.toggleClass('test');
+            return y.toggleClass('test');
         });
 
     do_test('.class(?)', 99,
         function () {
-            return q.class('?run-code');
+            return x.class('?run-code');
         },
         function () {
-            return jq.hasClass('run-code');
+            return y.hasClass('run-code');
         });
 
     do_test('.class(+-^?)', 99,
         function () {
-            return q.class('passed -run-code ^collapse')
+            return x.class('passed -run-code ^collapse')
                 .class('-passed -collapse ^run-code ?run-code');
         },
         function () {
-            return jq.addClass('passed').removeClass('run-code').toggleClass('collapse')
+            return y.addClass('passed').removeClass('run-code').toggleClass('collapse')
                 .removeClass('passed collapse').toggleClass('run-code').hasClass('run-code');
         });
-
-
-    var x = _q('.run-code');
-    var y = $('.run-code');
 
     _warn('bound sizes ------------------')
 
@@ -466,131 +471,131 @@ require([
             return y.scrollLeft();
         });
 
-    _warn('rects ------------------')
+    _warn('box ------------------')
 
-    do_test('.rect(margin).top', 100,
+    do_test('.box(margin).top', 100,
         function () {
-            return x.rect('margin').top;
+            return x.box('margin').top;
         },
         function () {
             return y.position().top;
         });
 
-    do_test('.rect(margin).left', 100,
+    do_test('.box(margin).left', 100,
         function () {
-            return x.rect('margin').left;
+            return x.box('margin').left;
         },
         function () {
             return y.position().left;
         });
 
-    do_test('.rect(margin).width', 100,
+    do_test('.box(margin).width', 100,
         function () {
-            return x.rect('margin').width;
+            return x.box('margin').width;
         },
         function () {
             return y.outerWidth(true);
         });
 
-    do_test('.rect(margin).height', 100,
+    do_test('.box(margin).height', 100,
         function () {
-            return x.rect('margin').height;
+            return x.box('margin').height;
         },
         function () {
             return y.outerHeight(true);
         });
 
-    do_test('.rect(border).width', 100,
+    do_test('.box(border).width', 100,
         function () {
-            return x.rect().width;
+            return x.box().width;
         },
         function () {
             return y.outerWidth();
         });
 
-    do_test('.rect(border).height', 100,
+    do_test('.box(border).height', 100,
         function () {
-            return x.rect().height;
+            return x.box().height;
         },
         function () {
             return y.outerHeight();
         });
 
-    do_test('.rect(inner).width', 100,
+    do_test('.box(inner).width', 100,
         function () {
-            return x.rect('inner').width;
+            return x.box('inner').width;
         },
         function () {
             return y.innerWidth();
         });
 
-    do_test('.rect(inner).height', 100,
+    do_test('.box(inner).height', 100,
         function () {
-            return x.rect('inner').height;
+            return x.box('inner').height;
         },
         function () {
             return y.innerHeight();
         });
 
-    do_test('.rect(client).top', 100,
+    do_test('.box(client).top', 100,
         function () {
-            return x.rect('client').top;
+            return x.box('client').top;
         },
         function () {
             return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
         });
 
-    do_test('.rect(client).left', 100,
+    do_test('.box(client).left', 100,
         function () {
-            return x.rect('client').left;
+            return x.box('client').left;
         },
         function () {
             return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
         });
 
-    do_test('.rect(client).width', 100,
+    do_test('.box(client).width', 100,
         function () {
-            return x.rect('client').width;
+            return x.box('client').width;
         },
         function () {
             return y.get(0).clientWidth;
         });
 
-    do_test('.rect(client).height', 100,
+    do_test('.box(client).height', 100,
         function () {
-            return x.rect('client').height;
+            return x.box('client').height;
         },
         function () {
             return y.get(0).clientHeight;
         });
 
-    do_test('.rect(scroll).top', 100,
+    do_test('.box(scroll).top', 100,
         function () {
-            return x.rect('scroll').top;
+            return x.box('scroll').top;
         },
         function () {
             return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
         });
 
-    do_test('.rect(scroll).left', 100,
+    do_test('.box(scroll).left', 100,
         function () {
-            return x.rect('scroll').left;
+            return x.box('scroll').left;
         },
         function () {
             return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
         });
 
-    do_test('.rect(scroll).width', 100,
+    do_test('.box(scroll).width', 100,
         function () {
-            return x.rect('scroll').width;
+            return x.box('scroll').width;
         },
         function () {
             return y.get(0).scrollWidth;
         });
 
-    do_test('.rect(scroll).height', 100,
+    do_test('.box(scroll).height', 100,
         function () {
-            return x.rect('scroll').height;
+            return x.box('scroll').height;
         },
         function () {
             return y.get(0).scrollHeight;

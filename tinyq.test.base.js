@@ -1,5 +1,5 @@
 define([
-    'tinyq_test'
+    'tinyq.test'
 ], function (do_test) {
 
     _warn('query', '--------------------------------')

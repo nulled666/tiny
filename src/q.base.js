@@ -31,7 +31,8 @@ define([
     TinyQ.x = {
         TAG: TAG_Q,
         isArrayLike: is_array_like,
-        isWindow: is_window
+        isWindow: is_window,
+        getElement: get_valid_element
     };
 
     TinyQ.prototype = {
@@ -162,6 +163,13 @@ define([
     }
 
     /**
+     * create a new tinyq instance
+     */
+    function create_tinyq(nodes, chain) {
+        return new TinyQ(nodes, chain);
+    }
+
+    /**
      * nomalize single node & tinyq parameter
      */
     function nomalize_nodes(obj) {
@@ -190,15 +198,21 @@ define([
         return (type == 1 || type == 9);
     }
 
+    /**
+     * check if an object is window
+     */
     function is_window(obj) {
         return !!obj && obj == obj.window
     }
 
     /**
-     * create a new tinyq instance
+     * get a valid element for methods
      */
-    function create_tinyq(nodes, chain) {
-        return new TinyQ(nodes, chain);
+    function get_valid_element(node) {
+        if (!node) return false;
+        if (node.nodeType == 9) return node.body;
+        if (node.nodeType != 1) return false;
+        return node;
     }
 
     /**

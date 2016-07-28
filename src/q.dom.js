@@ -27,15 +27,16 @@ define([
 
         pos: get_position,  // pos(to_absolute_position)
 
-        rect: get_rect,
+        box: get_box_rect,
         /**
-         * rect(type, to_absolute_position)
-         *      rect() == rect('border')
-         *      rect('margin') - get margin box rect
-         *      rect('border') - get border box rect == offset box
-         *      rect('inner')  - get inner box rect
-         *      rect('client') - get inner box rect (without scrollbar area)
-         *      rect('scroll') - get full scroll content box rect (without scrollbar area)
+         * box(type, to_absolute_position)
+         * 
+         *      box() == box('border')
+         *      box('margin') - get margin box rect
+         *      box('border') - get border box rect == offset box
+         *      box('inner')  - get inner box rect
+         *      box('client') - get inner box rect (without scrollbar area)
+         *      box('scroll') - get full scroll content box rect (without scrollbar area)
          */
 
         /**
@@ -59,6 +60,7 @@ define([
 
     var _parseFloat = parseFloat;
     var _getComputedStyle = window.getComputedStyle;
+    var _get_valid_element = TinyQ.x.getElement;
 
     /**
      * get/set method helper function
@@ -75,7 +77,7 @@ define([
 
         var result = '';
         for (var i = 0, len = node_len; i < len; ++i) {
-            var node = get_valid_element(nodes[i]);
+            var node = _get_valid_element(nodes[i]);
             if (!node) continue;
             if (is_read) {
                 result = func(node, key, result, is_read);
@@ -110,16 +112,6 @@ define([
             value = obj;
         }
         return value;
-    }
-
-    /**
-     * get a valid element for methods
-     */
-    function get_valid_element(node) {
-        if (!node) return false;
-        if (node.nodeType == 9) return node.body;
-        if (node.nodeType != 1) return false;
-        return node;
     }
 
     //////////////////////////////////////////////////////////
@@ -349,7 +341,7 @@ define([
         var result = false;
 
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = get_valid_element(nodes[i]);
+            var node = _get_valid_element(nodes[i]);
             if (!node) continue;
             var r = do_class_actions(node, actions.do, actions.check);
             if (r == true) {
@@ -500,7 +492,7 @@ define([
 
         type = BOUND_TYPE[type] ? type : 'all';
 
-        var node = get_valid_element(this.nodes[0]);
+        var node = _get_valid_element(this.nodes[0]);
         if (!node) return DEFAULT_BOUND();
 
         return get_bound_area_size(node, type);
@@ -550,7 +542,7 @@ define([
 
         var rect = { top: 0, left: 0 };
 
-        var node = get_valid_element(this.nodes[0]);
+        var node = _get_valid_element(this.nodes[0]);
         if (!node) return rect_obj;
 
         // fixed element should get absolute position
@@ -612,23 +604,25 @@ define([
     /**
      * .rect()  get bounding rect
      */
-    function get_rect(type, is_absolute) {
+    function get_box_rect(type, is_absolute) {
         // .rect(true) ==> .rect('border', true)
         if (typeof type == 'boolean')
             is_absolute = type, type = 0;
         return func_get_rect(this.nodes[0], type, is_absolute);
     }
 
-    var RECT_TYPE = { margin: 1, border: 1, inner: 1, client: 2, scroll: 2 };
+    var RECT_TYPE_TRANSLATE = { outer: 'border', inner: 'padding' };
+    var RECT_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2 };
 
     // get element bounding rect
     function func_get_rect(node, type, is_absolute_pos) {
 
         var rect_obj = DEFAULT_RECT();
 
-        node = get_valid_element(node);
+        node = _get_valid_element(node);
         if (!node) return rect_obj;
 
+        type = RECT_TYPE_TRANSLATE[type] || type;
         type = RECT_TYPE[type] ? type : 'border';
         var op_type = RECT_TYPE[type];
 
@@ -636,9 +630,15 @@ define([
         if (_getComputedStyle(node, 'position') == 'fixed')
             is_absolute = true;
 
-        // require getBoundingClientBox()
+        // get size for inner/border
         if (op_type == 1 || is_absolute_pos) {
             rect_obj = get_bounding_rect(node, true);
+        }
+
+        // get width for client/scroll box
+        if (op_type == 2) {
+            rect_obj.width = node[type + 'Width'];
+            rect_obj.height = node[type + 'Height'];
         }
 
         // calculate postion
@@ -654,31 +654,17 @@ define([
 
         // process width & height
         if (type != 'border') {
-            // ==> calculate bound size
+            // ==> calculate bound size - other type all use border width
             var delta = get_bound_area_size(node, type == 'margin' ? 'margin' : 'border');
             // calculate
-            if (type == 'margin') {
-                // ==> margin
-                rect_obj.top -= delta.top;
-                rect_obj.left -= delta.left;
-                rect_obj.bottom += delta.bottom;
-                rect_obj.right += delta.right;
-                rect_obj.width += delta.left + delta.right;
-                rect_obj.height += delta.top + delta.bottom;
-            } else if (type == 'inner') {
-                // ==> inner
-                rect_obj.top += delta.top;
-                rect_obj.left += delta.left;
-                rect_obj.bottom -= delta.bottom;
-                rect_obj.right -= delta.right;
-                rect_obj.width -= delta.left + delta.right;
-                rect_obj.height -= delta.top + delta.bottom;
+            if (op_type == 1) {
+                // ==> margin / inner
+                var sign = type == 'margin' ? 1 : -1;
+                rect_obj = merge_pos_delta(rect_obj, delta, sign);
+                rect_obj = merge_size_delta(rect_obj, delta, sign);
             } else {
                 // ==> client & scroll
-                rect_obj.top += delta.top;
-                rect_obj.left += delta.left;
-                rect_obj.width = node[type + 'Width'];
-                rect_obj.height = node[type + 'Height'];
+                rect_obj = merge_pos_delta(rect_obj, delta, -1);
                 rect_obj.bottom = rect_obj.top + rect_obj.height;
                 rect_obj.right = rect_obj.left + rect_obj.width;
             }
@@ -688,6 +674,18 @@ define([
 
     }
 
+    function merge_pos_delta(rect, delta, sign) {
+        rect.top -= sign * delta.top;
+        rect.left -= sign * delta.left;
+        rect.bottom += sign * delta.bottom;
+        rect.right += sign * delta.right;
+        return rect;
+    }
+    function merge_size_delta(rect, delta, sign) {
+        rect.width += sign * (delta.left + delta.right);
+        rect.height += sign * (delta.top + delta.bottom);
+        return rect;
+    }
 
     //////////////////////////////////////////////////////////
     // OTHER DIMENSIONS
@@ -756,7 +754,7 @@ define([
         }
 
         // only return first element sizes
-        node = get_valid_element(node);
+        node = _get_valid_element(node);
         if (!node) return 0;
 
         if (prefix == '') {
