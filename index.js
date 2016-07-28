@@ -41,20 +41,26 @@ function test_code() {
         var x = _q('.run-code');
         var y = $('.run-code');
 
-        do_test('.innerWidth()', 1,
+        _log('pos().top', x.pos().top);
+        _log('innerTop', x.innerTop());
+        _log('offsetTop', x.offsetTop());
+        _log('outerTop', x.outerTop());
+        _log('marginTop', x.marginTop());
+
+        do_test('.innerHeight()', 1,
             function () {
-                return x.innerWidth();
+                return x.innerHeight();
             },
             function () {
-                return y.innerWidth();
+                return y.innerHeight();
             });
 
-        do_test('.outerWidth()', 1,
+        do_test('.outerHeight()', 1,
             function () {
-                return x.outerWidth();
+                return x.outerHeight();
             },
             function () {
-                return y.outerWidth();
+                return y.outerHeight();
             });
 
         do_test('.marginHeight()', 1,

@@ -453,7 +453,7 @@ define([
     // POSITIONS
     //////////////////////////////////////////////////////////
     /***
-     * .position() get position relate to offsetParent
+     * .position() get position relate to offsetParent (excludes margin)
      */
     function get_position() {
 
@@ -469,13 +469,12 @@ define([
         // document or not an element
         if (node_type == 9 || node_type != 1) return pos;
 
-        pos.top = node.offsetTop;
-        pos.left = node.offsetLeft;
-
         // remove margin to match the top & left value in css style
         var style = _getComputedStyle(node);
-        pos.top -= _parseFloat(style.marginTop);
-        pos.left -= _parseFloat(style.marginLeft);
+        pos = {
+            top: calc_border_delta(style, node.offsetTop, 'Top'),
+            left: calc_border_delta(style, node.offsetLeft, 'Left')
+        };
 
         return pos;
 
@@ -586,6 +585,10 @@ define([
         }
     }
 
+    // fast check list
+    var IS_TOP_LEFT = { Top: 1, Left: 1 };
+    var IS_INNER_MARGIN = { inner: 1, margin: 1 };
+
     // get size value
     function get_dimension(tinyq, prefix, type) {
 
@@ -602,19 +605,21 @@ define([
         var node = nodes[0];
         var node_type = node.nodeType;
         var tag = prefix + type;
+        var is_top_left = IS_TOP_LEFT[type];
 
+        // document - use body instead
         if (node_type == 9) {
-            // document - use body instead
             node_type = 1, node = node.body;
         }
 
+        // element node only
         if (node_type != 1) return 0;
 
         if (prefix == '') {
             // css dimensions
             type = type.toLowerCase();
-            if (type == 'left' || type == 'top') {
-                // shorthand for pos().top/left
+            if (is_top_left) {
+                // shorthand for pos().top/left - equals marginTop, marginLeft
                 return get_position.call(tinyq)[type];
             } else {
                 // get style dimensions
@@ -622,11 +627,11 @@ define([
                 if (val == '') val = _getComputedStyle(node)[type];
                 return _parseFloat(val);
             }
-        } else if (prefix == 'inner' || prefix == 'margin') {
+        } else if (IS_INNER_MARGIN[prefix]) {
             // bounding client box dimensions
             var val = node['offset' + type];
             var style = _getComputedStyle(node);
-            return calc_border_delta(style, val, prefix == 'inner', type);
+            return calc_border_delta(style, val, type, prefix == 'inner');
         }
 
         return node[tag];
@@ -637,15 +642,15 @@ define([
     var DEM_POS_NAMES = ['Top', 'Right', 'Bottom', 'Left'];
     var DEM_POS_DELTA_LIST = { Top: [0], Left: [3], Width: [1, 3], Height: [0, 2] };
 
-    function calc_border_delta(computed_style, val, inner_or_margin, type) {
+    function calc_border_delta(computed_style, val, type, is_inner_or_margin) {
         var list = DEM_POS_DELTA_LIST[type];
-        var prefix = inner_or_margin ? 'border' : 'margin';
+        var prefix = is_inner_or_margin ? 'border' : 'margin';
+        var minus_or_plus = is_inner_or_margin ^ IS_TOP_LEFT[type]; // invert if calculate Top/Left
         var delta = 0, i = 0, side;
         while (side = DEM_POS_NAMES[list[i++]])
             delta += _parseFloat(computed_style[prefix + side]);
-        return inner_or_margin ? val - delta : val + delta;
+        return minus_or_plus ? val - delta : val + delta;
     }
-
 
     // set css sizes
     function set_dimension(tinyq, type, val) {
