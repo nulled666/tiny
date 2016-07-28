@@ -478,6 +478,14 @@ require([
             return y.height(60);
         });
 
+    do_test('.style(width)', 99,
+        function () {
+            return x.style('width');
+        },
+        function () {
+            return y.css('width');
+        });
+
     do_test('.width()', 99,
         function () {
             return x.width();

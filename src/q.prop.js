@@ -30,11 +30,23 @@ define([
         /**
          * following dimension methods are extended in extend_size_methods():
          * 
-         * - computed css sizes & position :
-         *      width()
-         *      height()
-         *      left()
-         *      top()
+         *   width()    - get: box().width	    set: style('width', val)
+         *   height()   - get: box().height	    set: style('height', val)
+         *   top()      - get: box().top	    set: style('top', val)
+         *   left()     - get: box().left	    set: style('left', val)
+         * 
+         *   innerBox() - get: padding box rectangle of element
+         *                     position relative to offset parent
+         * 
+         *   marginBox() - get: margin box rectangle of element
+         *                     position relative to offset parent
+         * 
+         *   clientBox() - get: padding box rectangle of element excluding scrollbars
+         *                      position relative to offset parent
+         * 
+         *   scrollBox() - get: padding box rectangle of element excluding scrollbars
+         *                      position relative to offset parent
+         * 
          * - visible client area without scrollbars:
          * 	    clientWidth()
          *      clientHeight()
@@ -529,12 +541,17 @@ define([
     /**
      * .rect()  get bouding rect
      */
-    function get_rect() {
-        return get_bounding_rect(this.nodes[0], true);
+    function get_rect(type) {
+        return get_bounding_rect(this.nodes[0], type);
     }
 
+    var RECT_TYPE = { margin: 1, border: 1, inner: 1, client: 2, scroll: 2 };
+
     // get element bounding rect
-    function get_bounding_rect(node, convert) {
+    function get_bounding_rect(node, type, is_absolute_pos) {
+
+        type = RECT_TYPE[type] ? type : 'border';
+        var op_type = RECT_TYPE[type];
 
         var rect_obj = { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 };
 
@@ -546,23 +563,80 @@ define([
         if (node_type == 9)
             node_type = 1, node = node.body;
 
-        // check if node was detached (method from jquery)
-        if (!node.getClientRects().length) return rect_obj;
+        // require getBoundingClientBox()
+        if (op_type == 1 || is_absolute_pos) {
+            // check if node was detached (method from jquery)
+            if (!node.getClientRects().length) return rect_obj;
+            var rect = node.getBoundingClientRect();
 
-        var rect = node.getBoundingClientRect();
-
-        // convert to normal object
-        if (convert) {
+            // convert to normal object
             for (var key in rect) {
                 rect_obj[key] = rect[key]
             }
-            rect = rect_obj;
         }
 
-        return rect;
+        // calculate postion
+        if (is_absolute_pos) {
+            // ==> absolute postion - adjust against window scroll offset
+            rect_obj.top += window.pageYOffset;
+            rect_obj.left += window.pageXOffset;
+        } else {
+            // ==> position relate to offset parent
+            rect_obj.top = node.offsetTop;
+            rect_obj.left = node.offsetLeft;
+        }
+
+        // process width & height
+        if (type != 'border') {
+            // ==> calculate border delta for inner/margin, border box == bounding box
+            var delta = get_box_delta(node, type);
+            if (type == 'margin') {
+                rect_obj.top -= delta.top;
+                rect_obj.left -= delta.left;
+                rect_obj.bottom += delta.bottom;
+                rect_obj.right += delta.right;
+                rect_obj.width += delta.left + delta.right;
+                rect_obj.height += delta.top + delta.bottom;
+            } else if (type == 'inner') {
+                rect_obj.top += delta.top;
+                rect_obj.left += delta.left;
+                rect_obj.bottom -= delta.bottom;
+                rect_obj.right -= delta.right;
+                rect_obj.width -= delta.left + delta.right;
+                rect_obj.height -= delta.top + delta.bottom;
+            } else {
+                // ==> client & scroll
+                rect_obj.top += delta.top;
+                rect_obj.left += delta.left;
+                rect_obj.width = node[type + 'Width'];
+                rect_obj.height = node[type + 'Height'];
+                rect_obj.bottom = rect_obj.top + rect_obj.height;
+                rect_obj.right = rect_obj.left + rect_obj.width;
+            }
+        }
+
+        return rect_obj;
 
     }
 
+    function get_box_delta(node, type) {
+
+        var list = ['Top', 'Right', 'Bottom', 'Left'];
+
+        var is_inner = type != 'margin';
+        var prefix = is_inner ? 'border' : 'margin';
+        var suffix = is_inner ? 'Width' : '';
+        var style = _getComputedStyle(node);
+
+        var delta = {}, i = 0, side;
+        while (side = list[i++]) {
+            var tag = prefix + side + suffix;
+            delta[side.toLowerCase()] = _parseFloat(style[tag]);
+        }
+
+        return delta;
+
+    }
 
     //////////////////////////////////////////////////////////
     // DIMENSIONS
@@ -654,7 +728,7 @@ define([
         if (is_top_left && prefix == '') prefix = 'margin';
 
         if (prefix == '') {
-            // ==> css dimensions width()/height() - always computed style
+            // ==> css dimensions width()/height()
             type = type.toLowerCase();
             var val = _getComputedStyle(node)[type];
             return _parseFloat(val);
