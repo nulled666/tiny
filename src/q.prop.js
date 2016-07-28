@@ -23,7 +23,7 @@ define([
         style: access_style,
         class: process_class,
 
-        boundSize: get_bound_size, // get style border/padding/margin size
+        boundWidth: get_bound_width, // get style border/padding/margin width
 
         pos: get_position,  // pos(to_absolute_position)
 
@@ -494,9 +494,9 @@ define([
     }
 
     /**
-     * .size()
+     * .boundWidth()
      */
-    function get_bound_size(type) {
+    function get_bound_width(type) {
 
         type = BOUND_TYPE[type] ? type : 'all';
 

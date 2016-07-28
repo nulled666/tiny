@@ -285,65 +285,65 @@ require([
 
     _warn('bound sizes ------------------')
 
-    do_test('.boundSize(margin).top', 100,
+    do_test('.boundWidth(margin).top', 100,
         function () {
-            return x.boundSize('margin').top;
+            return x.boundWidth('margin').top;
         },
         function () {
             return parseFloat(y.css('margin-top'));
         });
 
-    do_test('.boundSize(margin).left', 100,
+    do_test('.boundWidth(margin).left', 100,
         function () {
-            return x.boundSize('margin').left;
+            return x.boundWidth('margin').left;
         },
         function () {
             return parseFloat(y.css('margin-left'));
         });
 
-    do_test('.boundSize(border).bottom', 100,
+    do_test('.boundWidth(border).bottom', 100,
         function () {
-            return x.boundSize('border').bottom;
+            return x.boundWidth('border').bottom;
         },
         function () {
             return parseFloat(y.css('border-bottom-width'));
         });
 
-    do_test('.boundSize(border).right', 100,
+    do_test('.boundWidth(border).right', 100,
         function () {
-            return x.boundSize('border').right;
+            return x.boundWidth('border').right;
         },
         function () {
             return parseFloat(y.css('border-right-width'));
         });
 
-    do_test('.boundSize(padding).bottom', 100,
+    do_test('.boundWidth(padding).bottom', 100,
         function () {
-            return x.boundSize('padding').bottom;
+            return x.boundWidth('padding').bottom;
         },
         function () {
             return parseFloat(y.css('padding-bottom'));
         });
 
-    do_test('.boundSize(padding).right', 100,
+    do_test('.boundWidth(padding).right', 100,
         function () {
-            return x.boundSize('padding').right;
+            return x.boundWidth('padding').right;
         },
         function () {
             return parseFloat(y.css('padding-right'));
         });
 
-    do_test('.boundSize().top', 100,
+    do_test('.boundWidth().top', 100,
         function () {
-            return x.boundSize().top;
+            return x.boundWidth().top;
         },
         function () {
             return parseFloat(y.css('border-top-width')) + parseFloat(y.css('padding-top')) + parseFloat(y.css('margin-top'));
         });
 
-    do_test('.boundSize().right', 100,
+    do_test('.boundWidth().right', 100,
         function () {
-            return x.boundSize().right;
+            return x.boundWidth().right;
         },
         function () {
             return parseFloat(y.css('border-right-width')) + parseFloat(y.css('padding-right')) + parseFloat(y.css('margin-right'));
