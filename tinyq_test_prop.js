@@ -86,7 +86,15 @@ require([
 
     var nodes = document.querySelectorAll('h3');
 
-    do_test('.attr(val)', 100,
+    do_test('.attr()', 100,
+        function () {
+            return _q(nodes).attr();
+        },
+        function () {
+            return $(nodes).get(0).attributes;
+        });
+
+    do_test('.attr(key, val)', 100,
         function () {
             return _q(nodes).attr('class1', 'header test-my-code');
         },
@@ -94,7 +102,7 @@ require([
             return $(nodes).attr('class2', 'header test-my-code');
         });
 
-    do_test('.attr()', 100,
+    do_test('.attr(key)', 100,
         function () {
             return _q(nodes).attr('class1');
         },
@@ -102,7 +110,7 @@ require([
             return $(nodes).attr('class2');
         });
 
-    do_test('.attr({obj})', 100,
+    do_test('.attr({key: value})', 100,
         function () {
             return _q(nodes).attr({ class1: null, mark1: 1999 });
         },
@@ -110,7 +118,7 @@ require([
             return $(nodes).attr({ class2: null, mark2: 2000 });
         });
 
-    do_test('.attr(null)', 1,
+    do_test('.attr(key, null)', 1,
         function () {
             return _q(nodes).attr('mark1', null);
         },
@@ -152,7 +160,23 @@ require([
 
     _warn('style ------------------');
 
-    do_test('.style({obj})', 100,
+    do_test('.style()', 100,
+        function () {
+            return _q(nodes).style();
+        },
+        function () {
+            return $(nodes).get(0).style;
+        });
+
+    do_test('.style(true)', 100,
+        function () {
+            return _q(nodes).style(true);
+        },
+        function () {
+            return window.getComputedStyle($(nodes).get(0));
+        });
+
+    do_test('.style({key: value})', 100,
         function () {
             return _q(nodes).style({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
@@ -166,7 +190,7 @@ require([
             });
         });
 
-    do_test('.style()', 100,
+    do_test('.style(key)', 100,
         function () {
             return _q(nodes).style('text-shadow');
         },
@@ -174,7 +198,7 @@ require([
             return $(nodes).css('text-shadow');
         });
 
-    do_test('.style(null)', 100,
+    do_test('.style({key: null})', 100,
         function () {
             return _q(nodes).style({
                 'text-shadow': null,
