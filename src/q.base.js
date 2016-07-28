@@ -110,7 +110,8 @@ define([
             opid = tiny.guid();
             for (var nodes = base_nodes, i = 0, len = nodes.length; i < len; ++i) {
                 var node = nodes[i];
-                node[OPID_MARK] = opid;
+                if (!is_valid_node(node)) continue;
+                if (typeof node == 'object') node[OPID_MARK] = opid;
                 result.push(node);
             }
         }
@@ -349,8 +350,13 @@ define([
         if (!nodes) return base;
 
         for (var list = nodes, i = 0, len = list.length; i < len; ++i) {
+            
             var node = list[i];
-            if (typeof node != 'object') continue; // fast check, nodeType is too slow
+
+            // fast check, nodeType is too slow
+            if (typeof node != 'object') continue;
+
+            // checks
             if (opid) {
                 if (node[OPID_MARK] == opid) continue;
                 node[OPID_MARK] = opid;
@@ -359,7 +365,10 @@ define([
                 var r = filter(node, i, list);
                 if (r == false) continue;
             }
+
+            // accept
             base.push(node);
+
         }
 
         return base;
@@ -412,7 +421,9 @@ define([
         var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
         var result = invert ? false : true;
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var r = invert ^ check_func(nodes[i], selector);
+            var node = nodes[i];
+            if (!is_element(node)) continue;
+            var r = invert ^ check_func(node, selector);
             if (r) return result;
         }
         return !result;
@@ -621,7 +632,9 @@ define([
         // do the work
         var arr = [];
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = get_func(nodes[i], selector);
+            var node = get_valid_element(nodes[i]);
+            if (!node) continue;
+            node = get_func(node, selector);
             if (!node) continue;
             if (type < 4) {
                 // parent, offsetParent, closest requires unique check
@@ -786,28 +799,29 @@ define([
 
         // append child
         for (var this_nodes = tinyq.nodes, i = 0, len = this_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
-            var this_node = this_nodes[i];
-            if (!is_element(this_node)) continue;
-            loop(obj, i, end, require_clone && i != end, this_node, action);
+            var this_node = get_valid_element(this_nodes[i]);
+            if (!this_node) continue;
+            loop(obj, end, require_clone && i != end, this_node, action);
         }
 
         return tinyq;
 
     }
 
-    function forward_loop_func(obj, i, end, need_clone, this_node, action) {
-        for (var j = 0, j_len = obj.length; j < j_len; ++j) {
-            var node = obj[j];
-            if (need_clone) node = node.cloneNode(true);
-            action(this_node, node);
+    function forward_loop_func(list, end, need_clone, parent, action) {
+        for (var j = 0, j_len = list.length; j < j_len; ++j) {
+            func_loop_do(list[j], need_clone, parent, action);
         }
     }
-    function backward_loop_func(obj, i, end, need_clone, parent, action) {
-        for (var j = obj.length - 1; j > -1; --j) {
-            var node = obj[j];
-            if (need_clone) node = node.cloneNode(true);
-            action(parent, node);
+    function backward_loop_func(list, end, need_clone, parent, action) {
+        for (var j = list.length - 1; j > -1; --j) {
+            func_loop_do(list[j], need_clone, parent, action);
         }
+    }
+    function func_loop_do(node, need_clone, parent, action) {
+        if (!is_element(node)) return;
+        if (need_clone) node = node.cloneNode(true);
+        action(parent, node);
     }
 
     function node_append_func(parent, node) { parent.appendChild(node); }
@@ -832,7 +846,8 @@ define([
         var tinyq = this;
         var nodes = tinyq.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
+            var node = get_valid_element(nodes[i]);
+            if (!node) continue;
             var parent = node.parentNode;
             if (!parent || selector && !node.matches(selector)) continue;
             nodes[i] = parent.removeChild(node);
@@ -852,7 +867,8 @@ define([
     function empty_node() {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
+            var node = get_valid_element(nodes[i]);
+            if (!node) continue;
             node.textContent = ''; // the short way
         }
         tinyq.chain += '.empty()';
@@ -921,7 +937,8 @@ define([
     function each_node(func, this_arg, wrap_object) {
         var tinyq = this;
         for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
+            var node = get_valid_element(nodes[i]);
+            if (!node) continue;
             if (wrap_object) node = create_tinyq([node], tinyq.chain + '.get(' + i + ')');
             func.call(this_arg, node, i, nodes);
         }
