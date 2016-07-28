@@ -214,9 +214,19 @@ require([
 
 
     _warn('class ------------------')
+
     var nodes = document.querySelectorAll('.run-code');
     var q = _q(nodes);
     var jq = $(nodes);
+
+    do_test('.class()', 99,
+        function () {
+            return q.class();
+        },
+        function () {
+            return jq.attr('class');
+        });
+
     do_test('.class(+)', 99,
         function () {
             return q.class('passed failed test ok collapse');

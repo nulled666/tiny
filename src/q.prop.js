@@ -212,7 +212,7 @@ define([
     function func_access_attribute(node, key, val, is_get) {
         if (node.nodeType != 1) return '';
         if (is_get) {
-            return key == undefined ? node.attributes : node.getAttribute(key);
+            return key === undefined ? node.attributes : node.getAttribute(key);
         } else {
             set_node_attributes(node, val);
         }
@@ -272,8 +272,8 @@ define([
         if (node.nodeType != 1) return '';
 
         if (is_get) {
-            if(key === undefined) return node.style;
-            if(key === true) return _getComputedStyle(node); 
+            if (key === undefined) return node.style;
+            if (key === true) return _getComputedStyle(node);
             // always return computed style
             key = check_style_key(key);
             return _getComputedStyle(node)[key];
@@ -334,6 +334,9 @@ define([
      * .class() method
      */
     function process_class(action_str) {
+
+        // simple return the class attribute
+        if (action_str === undefined) return this.attr('class');
 
         if (typeof action_str != 'string') {
             tiny.error(TinyQ.x.TAG, 'Expect a class string. > Got "' + typeof action_str + '": ', action_str);
