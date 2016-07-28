@@ -19,8 +19,8 @@ define([
     // a quick reference to console object
     var _con = console;
 
-    // lazy check for IE8 and below
-    var _supported = (!window.attachEvent && !!window.addEventListener);
+    // lossy check for IE8 and below
+    var _supported = (!window.createPopup && _type.name == '_type');
 
     if(!_supported) console.error(G.TAG_TINY, 'This browser might not be supported.');
 
@@ -41,6 +41,7 @@ define([
         x: {
             add: add_to_tiny,
             toArray: to_array,
+            isArrayLike : is_array_like
         }
 
     });
@@ -287,7 +288,7 @@ define([
      */
     function is_array_like(obj) {
         return Array.isArray(obj) ||
-            typeof obj == 'object' && obj.length > 0 && obj[0] != undefined && obj[obj.length - 1] != undefined
+            typeof obj == 'object' && "length" in obj && typeof obj.length == 'number'
     }
 
     var TAG_EXTEND = '_extend()' + G.TAG_SUFFIX;

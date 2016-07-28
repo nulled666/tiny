@@ -31,7 +31,6 @@ define([
     TinyQ.x = {
         TAG: TAG_Q,
         isArrayLike: is_array_like,
-        isElement: is_element,
         isWindow: is_window
     };
 
@@ -175,10 +174,11 @@ define([
     }
 
     /**
-     * check if an object is array-like
+     * lossy check whether an object is array-like
      */
     function is_array_like(obj) {
-        return Array.isArray(obj) || typeof obj == 'object' && "length" in obj
+        return Array.isArray(obj) ||
+            typeof obj == 'object' && "length" in obj && typeof obj.length == 'number'
     }
 
     /**
