@@ -232,6 +232,18 @@ define([
             return z.index('.token');
         });
 
+    do_test('.lastIndexOf(".class")', 50,
+        function () {
+            return x.lastIndexOf('.keyword');
+        },
+        function () {
+            var r = -1;
+            y.each(function (index, elem) {
+                if (elem.matches('.keyword')) r = index;
+            })
+            return r;
+        });
+
     do_test('.includes(".class")', 50,
         function () {
             return x.includes('.function');
@@ -256,6 +268,18 @@ define([
         },
         function () {
             return y.index(node);
+        });
+
+    do_test('.lastIndexOf(node)', 50,
+        function () {
+            return x.lastIndexOf(node);
+        },
+        function () {
+            var r = -1;
+            y.each(function (index, elem) {
+                if (elem == node) r = index;
+            })
+            return r;
         });
 
     do_test('.includes(node)', 50,

@@ -57,6 +57,7 @@ define([
         last: get_last,
 
         indexOf: index_of_node,
+        lastIndexOf: last_index_of_node,
         includes: includes_node,
         is: all_node_is,
         slice: get_by_slice,
@@ -926,11 +927,11 @@ define([
     /**
      * .indexOf()
      */
-
-    function index_of_node(selector, invert) {
+    function index_of_node(selector, start, invert) {
         invert = invert || false;
-        var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
-        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+        start = typeof start == 'number' ? start : 0;
+        var check_func = get_match_func(selector);
+        for (var nodes = this.nodes, i = start, len = nodes.length; i < len; ++i) {
             var node = nodes[i];
             if (!is_element(node)) continue;
             var r = invert ^ check_func(node, selector);
@@ -939,11 +940,29 @@ define([
         return -1;
     }
 
+    function get_match_func(selector) {
+        return typeof selector == 'string' ? func_match_selector : func_match_node;
+    }
     function func_match_selector(node, selector) {
         return node.matches(selector);
     }
     function func_match_node(node1, node2) {
         return node1 === node2;
+    }
+
+    /**
+     * .lastIndexOf()
+     */
+    function last_index_of_node(selector, start) {
+        var nodes = this.nodes;
+        start = typeof start == 'number' ? start : nodes.length - 1;
+        var check_func = get_match_func(selector);
+        for (var i = start; i > -1; --i) {
+            var node = nodes[i];
+            if (!is_element(node)) continue;
+            if (check_func(node, selector)) return i;
+        }
+        return -1;
     }
 
     /**
@@ -957,7 +976,7 @@ define([
      * .is() - selector check
      */
     function all_node_is(selector) {
-        return index_of_node.call(this, selector, true) == -1;
+        return index_of_node.call(this, selector, 0, true) == -1;
     }
 
 
