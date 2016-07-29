@@ -318,7 +318,7 @@ define([
 
     var x = _q('code');
     var y = $('code');
-    
+
     do_test('.children()', 100,
         function () {
             return x.children('.comment');
@@ -364,6 +364,8 @@ define([
         function () {
             return y.append(child2);
         });
+
+    _q1('h3').q('.test').remove();
 
     var x = _q('h3');
     var y = $('h3');
