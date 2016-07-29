@@ -39,8 +39,8 @@ function test_code() {
 
         _warn('---------')
 
-        var x = _q(document);
-        var y = $('.run-code');
+        var x = _q('.token');
+        var y = $('.token');
 
 
         _warn('---------')
