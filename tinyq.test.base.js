@@ -151,40 +151,6 @@ define([
     var x = _q('.token');
     var y = $('.token');
 
-    do_test('.is(".class")', 50,
-        function () {
-            return x.is('.function');
-        },
-        function () {
-            return y.length == y.filter('.function');
-        });
-
-    do_test('.includes(".class")', 50,
-        function () {
-            return x.includes('.function');
-        },
-        function () {
-            return y.is('.function');
-        });
-
-    var node = document.querySelector('.token.function');
-
-    do_test('.is(node)', 50,
-        function () {
-            return x.is(node);
-        },
-        function () {
-            return y.length == y.filter(node).length;
-        });
-
-    do_test('.includes(node)', 50,
-        function () {
-            return x.includes(node);
-        },
-        function () {
-            return y.is(node);
-        });
-
     do_test('.filter(".class")', 50,
         function () {
             return x.filter('.function');
@@ -254,6 +220,59 @@ define([
         function () {
             return y.last();
         });
+    var x = _q('.token');
+    var y = $('.token');
+    var z = $('.token.keyword:first');
+
+    do_test('.indexOf(".class")', 50,
+        function () {
+            return x.indexOf('.keyword');
+        },
+        function () {
+            return z.index('.token');
+        });
+
+    do_test('.includes(".class")', 50,
+        function () {
+            return x.includes('.function');
+        },
+        function () {
+            return y.is('.function');
+        });
+
+    do_test('.is(".class")', 50,
+        function () {
+            return x.is('.function');
+        },
+        function () {
+            return y.length == y.filter('.function');
+        });
+
+    var node = document.querySelector('.token.function');
+
+    do_test('.indexOf(node)', 50,
+        function () {
+            return x.indexOf(node);
+        },
+        function () {
+            return y.index(node);
+        });
+
+    do_test('.includes(node)', 50,
+        function () {
+            return x.includes(node);
+        },
+        function () {
+            return y.is(node);
+        });
+
+    do_test('.is(node)', 50,
+        function () {
+            return x.is(node);
+        },
+        function () {
+            return y.length == y.filter(node).length;
+        });
 
     do_test('.slice(0, -5)', 1000,
         function () {
@@ -300,7 +319,7 @@ define([
             return y.parent('code');
         });
 
-    do_test('.offsetParent()', 50,
+    do_test('.offsetParent()', 20,
         function () {
             return x.offsetParent();
         },

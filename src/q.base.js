@@ -49,11 +49,20 @@ define([
         q: sub_query_all,
         q1: sub_query_one,
         add: add_nodes,
-
-        // filter
-        is: all_node_is,
-        includes: includes_node,
         filter: filter_nodes,
+
+        // collection access
+        get: get_elem_by_index,
+        first: get_first,
+        last: get_last,
+
+        indexOf: index_of_node,
+        includes: includes_node,
+        is: all_node_is,
+        slice: get_by_slice,
+        each: each_q,
+        eachNode: each_node,
+        toArray: function () { return to_array(this.nodes) },
 
         // traverse
         parent: get_parent,
@@ -70,15 +79,6 @@ define([
         before: insert_before_this,
         remove: remove_node,
         empty: empty_node,
-
-        // collection access
-        first: get_first,
-        last: get_last,
-        get: get_elem_by_index,
-        slice: get_by_slice,
-        each: each_q,
-        eachNode: each_node,
-        toArray: function () { return to_array(this.nodes) },
 
         // -> q.dom.js : dom property access
 
@@ -417,36 +417,6 @@ define([
     //////////////////////////////////////////////////////////
     // FILTER FUNCTIONS
     //////////////////////////////////////////////////////////
-
-    /**
-     * .is() - selector check
-     */
-    function all_node_is(selector) {
-        return includes_node.call(this, selector, true);
-    }
-
-    /**
-     * .includes() - selector check
-     */
-    function includes_node(selector, invert) {
-        invert = invert || false;
-        var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
-        var result = invert ? false : true;
-        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
-            var node = nodes[i];
-            if (!is_element(node)) continue;
-            var r = invert ^ check_func(node, selector);
-            if (r) return result;
-        }
-        return !result;
-    }
-
-    function func_match_selector(node, selector) {
-        return node.matches(selector);
-    }
-    function func_match_node(node1, node2) {
-        return node1 === node2;
-    }
 
 
     /**
@@ -952,6 +922,44 @@ define([
     function get_last() {
         return get_by_index.call(this, -1);
     }
+
+    /**
+     * .indexOf()
+     */
+
+    function index_of_node(selector, invert) {
+        invert = invert || false;
+        var check_func = typeof selector == 'string' ? func_match_selector : func_match_node;
+        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+            var node = nodes[i];
+            if (!is_element(node)) continue;
+            var r = invert ^ check_func(node, selector);
+            if (r) return i;
+        }
+        return -1;
+    }
+
+    function func_match_selector(node, selector) {
+        return node.matches(selector);
+    }
+    function func_match_node(node1, node2) {
+        return node1 === node2;
+    }
+
+    /**
+     * .includes()
+     */
+    function includes_node(selector) {
+        return index_of_node.call(this, selector) > -1;
+    }
+
+    /**
+     * .is() - selector check
+     */
+    function all_node_is(selector) {
+        return index_of_node.call(this, selector, true) == -1;
+    }
+
 
     /**
      * .slice() - get a range of nodes
