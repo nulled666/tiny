@@ -667,20 +667,18 @@ define([
 
             var value = pos[key];
             var value_type = typeof value;
-
             if (value_type == 'number') {
                 // only minus margin for absolute positioned elements
-                if (is_absolute_pos_mode)
-                    value -= _parseFloat(style['margin' + type]);
+                if (is_absolute_pos_mode) value -= _parseFloat(style['margin' + type]);
                 // and minus diff for document based absolute position
-                if (is_absolute)
-                    value -= base[key];
+                if (is_absolute) value -= base[key];
                 value += 'px';
             } else if (value_type != 'string') {
                 continue;
             }
 
             set_style(node, type.toLowerCase(), value);
+
         }
 
     }
@@ -866,7 +864,7 @@ define([
         } else {
             // ==> scrollTop, scrollLeft
 
-            if (!IS_POS[type]) return;  // scrollWidth/scrollHeight is readonly
+            if (!NAME_TO_POS[type]) return;  // scrollWidth/scrollHeight is readonly
 
             set_property(node, prefix + type, val);
 

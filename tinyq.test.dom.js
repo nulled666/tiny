@@ -372,70 +372,44 @@ require([
 
     _warn('positions ------------------')
 
-    do_test('.pos().top', 100,
+    do_test('.pos().x', 100,
         function () {
-            return x.pos().top;
-        },
-        function () {
-            return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
-        });
-
-    do_test('.pos().left', 100,
-        function () {
-            return x.pos().left;
+            return x.pos().x;
         },
         function () {
             return y.position().left + parseFloat(y.css('margin-left'));
         });
 
-    do_test('.pos(true).top', 100,
+    do_test('.pos().y', 100,
         function () {
-            return x.pos(true).top;
+            return x.pos().y;
         },
         function () {
-            return y.offset().top;
+            return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
         });
 
-    do_test('.pos(true).left', 100,
+    do_test('.pos(40, 60)', 99,
         function () {
-            return x.pos(true).left;
+            return x.pos(40, 60);
         },
         function () {
-            return y.offset().left;
+            return y.css('left', 40).css('top', 60);
         });
 
-    _warn('dimensions ------------------')
-
-    do_test('.width(160)', 99,
+    do_test('.pos().x', 100,
         function () {
-            return x.width(98);
+            return x.pos().x;
         },
         function () {
-            return y.width(98);
+            return y.position().left + parseFloat(y.css('margin-left'));
         });
 
-    do_test('.height(100)', 99,
+    do_test('.pos().y', 100,
         function () {
-            return x.height(60);
+            return x.pos().y;
         },
         function () {
-            return y.height(60);
-        });
-
-    do_test('.width()', 99,
-        function () {
-            return x.width();
-        },
-        function () {
-            return y.outerWidth();
-        });
-
-    do_test('.height()', 99,
-        function () {
-            return x.height();
-        },
-        function () {
-            return y.outerHeight();
+            return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
         });
 
     do_test('.top(24)', 99,
@@ -484,6 +458,40 @@ require([
         },
         function () {
             return y.css('left', 0);
+        });
+
+    _warn('dimensions ------------------')
+
+    do_test('.width(160)', 99,
+        function () {
+            return x.width(98);
+        },
+        function () {
+            return y.width(98);
+        });
+
+    do_test('.height(100)', 99,
+        function () {
+            return x.height(60);
+        },
+        function () {
+            return y.height(60);
+        });
+
+    do_test('.width()', 99,
+        function () {
+            return x.width();
+        },
+        function () {
+            return y.outerWidth();
+        });
+
+    do_test('.height()', 99,
+        function () {
+            return x.height();
+        },
+        function () {
+            return y.outerHeight();
         });
 
     do_test('.scrollTop(88)', 99,
