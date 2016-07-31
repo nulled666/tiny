@@ -544,6 +544,14 @@ require([
             return y.outerHeight(true);
         });
 
+    do_test('.box(120, 90)', 100,
+        function () {
+            return x.box(120, 90);
+        },
+        function () {
+            return y.outerHeight(120).outerWidth(90);
+        });
+
     do_test('.box(border).width', 100,
         function () {
             return x.box().width;
@@ -558,6 +566,14 @@ require([
         },
         function () {
             return y.outerHeight();
+        });
+
+    do_test('.box("inner", {100, 80})', 100,
+        function () {
+            return x.box("inner", { width: 100, height: 80 });
+        },
+        function () {
+            return y.innerHeight(100).innerWidth(80);
         });
 
     do_test('.box(inner).width', 100,

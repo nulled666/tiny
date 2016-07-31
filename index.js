@@ -34,7 +34,7 @@ function test_code() {
     require([
         'tinyq.test',
         //'tinyq.test.base',
-        //'tinyq.test.dom',
+        'tinyq.test.dom',
     ], function (do_test) {
 
         _warn('---------')
