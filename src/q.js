@@ -1,6 +1,6 @@
 define([
     './q.base',
-    './q.dom',
+    './q.prop',
     './q.event'
 ], function (TinyQ) {
     'use strict';
