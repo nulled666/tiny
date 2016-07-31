@@ -33,7 +33,7 @@ function test_code() {
 
     require([
         'tinyq.test',
-        'tinyq.test.base',
+        //'tinyq.test.base',
         //'tinyq.test.prop',
     ], function (do_test) {
 
