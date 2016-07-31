@@ -639,7 +639,7 @@ define([
     /**
      * set node offset position
      */
-    function set_position(node, pos, is_absolute) {
+    function set_position(node, pos_val, is_absolute) {
 
         var POS_KEY = { x: 'Left', y: 'Top' };
         var IS_ABSOLUTE_POS_MODE = { absolute: 1, fixed: 1 };
@@ -647,7 +647,7 @@ define([
         var style = _getComputedStyle(node);
         var is_absolute_pos_mode = IS_ABSOLUTE_POS_MODE[style['position']];
         var pos_style = style['position'];
-
+        
         // fixed element's postion is already absolute
         if (pos_style == 'fixed') is_absolute = false;
 
@@ -662,12 +662,12 @@ define([
         }
 
         // set values
-        for (var key in pos) {
+        for (var key in pos_val) {
 
             var type = POS_KEY[key];
             if (!type) continue;
 
-            var value = pos[key];
+            var value = pos_val[key];
             var value_type = typeof value;
 
             if (value_type == 'number') {
@@ -680,7 +680,7 @@ define([
                 continue;
             }
 
-            set_style(node, type.toLowerCase(), value);
+            node.style[type.toLowerCase()] = value;
 
         }
 
@@ -786,7 +786,7 @@ define([
     /**
      * set box size
      */
-    function set_box_size(node, size, type) {
+    function set_box_size(node, size_val, type) {
 
         type = get_actual_box_type(type);
 
@@ -815,11 +815,11 @@ define([
         if (delta) delta = get_bound_area_size(node, delta);
 
         // set values
-        for (var key in size) {
+        for (var key in size_val) {
 
             if (!IS_SIZE_KEY[key]) continue;
 
-            var value = size[key];
+            var value = size_val[key];
             var value_type = typeof value;
 
             if (value_type == 'number') {
@@ -833,7 +833,7 @@ define([
                 continue;
             }
 
-            set_style(node, key, value);
+            node.style[key] = value;
 
         }
 
