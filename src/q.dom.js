@@ -536,7 +536,7 @@ define([
     // POSITIONS
     //////////////////////////////////////////////////////////
     /***
-     * .pos() get position
+     * .pos() get/set position based on border box
      */
     function get_position(is_absolute) {
 
@@ -550,9 +550,8 @@ define([
             is_absolute = true;
 
         if (!is_absolute) {
-            var delta = get_bound_area_size(node, 'margin');
-            rect.top = check_offset_pos(node.offsetTop) - delta.top;
-            rect.left = check_offset_pos(node.offsetLeft) - delta.left;
+            rect.top = check_offset_pos(node.offsetTop);
+            rect.left = check_offset_pos(node.offsetLeft);
         } else {
             var node_rect = get_bounding_rect(node);
             rect.top = node_rect.top + window.pageYOffset;
@@ -599,25 +598,33 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // RECT BOX
+    // BOX
     //////////////////////////////////////////////////////////
     /**
-     * .rect()  get bounding rect
+     * .box()  get box rect values
      */
     function get_box_rect(type, is_absolute) {
         // .rect(true) ==> .rect('border', true)
         if (typeof type == 'boolean')
             is_absolute = type, type = 0;
-        return func_get_rect(this.nodes[0], type, is_absolute);
+        return get_node_rect(this.nodes[0], type, is_absolute);
     }
 
     var RECT_TYPE_TRANSLATE = { outer: 'border', inner: 'padding' };
     var RECT_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2 };
 
     // get element bounding rect
-    function func_get_rect(node, type, is_absolute_pos) {
+    function get_node_rect(node, type, is_absolute_pos) {
 
         var rect_obj = DEFAULT_RECT();
+
+        // window
+        if (TinyQ.x.isWindow(node)) {
+            // always innerWidth/innerHeight
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            return { top: 0, left: 0, right: width, bottom: height, width: width, height: height };
+        }
 
         node = _get_valid_element(node);
         if (!node) return rect_obj;
@@ -654,7 +661,9 @@ define([
 
         // process width & height
         if (type != 'border') {
-            // ==> calculate bound size - other type all use border width
+            // ==> adjust values by bound size
+            // 'border' type don't need adjustment
+            // 'margin' requires adding stylre margin, other types require minus border width
             var delta = get_bound_area_size(node, type == 'margin' ? 'margin' : 'border');
             // calculate
             if (op_type == 1) {
@@ -688,7 +697,7 @@ define([
     }
 
     //////////////////////////////////////////////////////////
-    // OTHER DIMENSIONS
+    // DIMENSION SHORTHANDS
     //////////////////////////////////////////////////////////
 
     // method map list, order matters
@@ -704,7 +713,6 @@ define([
             var prefix = DEM_PREFIX[i];
             var j = DEM_TYPE.length;
             while (--j > -1) {
-                if (i == 0 && j < 2) continue; // no scrollWidth/scrollHeight
                 var type = DEM_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
                 def[prefix + type] = generate_dimension_method(i, j);
@@ -731,40 +739,26 @@ define([
         var tinyq = this.q, prefix = DEM_PREFIX[this.p], type = DEM_TYPE[this.t];
         if (value == undefined) {
             // => get sizes
-            return get_dimension(tinyq, prefix, type);
+            return get_dimension(tinyq.nodes[0], prefix, type);
         } else {
             set_dimension(tinyq, prefix, type, value);
             return tinyq;
         }
     }
 
-    // fast check list
-    var IS_TOP_LEFT = { Top: 1, Left: 1 };
 
     // get size value
-    function get_dimension(tinyq, prefix, type) {
+    function get_dimension(node, prefix, type) {
 
-        var node = tinyq.nodes[0];
-        var is_top_left = IS_TOP_LEFT[type];
-
-        // window
-        if (TinyQ.x.isWindow(node)) {
-            if (is_top_left) return 0;      // always 0
-            return window['inner' + type];  // always innerWidth/innerHeight
-        }
-
-        // only return first element sizes
         node = _get_valid_element(node);
         if (!node) return 0;
 
         if (prefix == '') {
-            // ==> css dimensions width()/height()
-            type = type.toLowerCase();
-            var val = _getComputedStyle(node)[type];
-            return _parseFloat(val);
+            // ==> left/top/width/height
+            return get_node_rect(node)[type.toLowerCase()];
         }
 
-        // scrollLeft/scrollTop
+        // scrollLeft/scrollTop/scrollWidth/scrollHeight
         return node[prefix + type];
 
     }

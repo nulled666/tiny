@@ -33,16 +33,64 @@ function test_code() {
 
     require([
         'tinyq.test',
-        'tinyq.test.base',
+        //'tinyq.test.base',
         //'tinyq.test.dom',
     ], function (do_test) {
 
         _warn('---------')
 
-        var x = _q('.token');
-        var y = $('.token');
+    var x = _q('.run-code');
+    var y = $('.run-code');
 
 
+    do_test('.pos().top', 100,
+        function () {
+            return x.pos().top;
+        },
+        function () {
+            return y.position().top + parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.pos().left', 100,
+        function () {
+            return x.pos().left;
+        },
+        function () {
+            return y.position().left + parseFloat(y.css('margin-left'));
+        });
+
+
+    do_test('.top()', 99,
+        function () {
+            return x.top();
+        },
+        function () {
+            return  y.position().top + parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.left()', 99,
+        function () {
+            return x.left();
+        },
+        function () {
+            return  y.position().left + parseFloat(y.css('margin-left'));
+        });
+
+    do_test('.width()', 99,
+        function () {
+            return x.width();
+        },
+        function () {
+            return y.outerWidth();
+        });
+
+    do_test('.height()', 99,
+        function () {
+            return x.height();
+        },
+        function () {
+            return y.outerHeight();
+        });
 
         _warn('---------')
 
