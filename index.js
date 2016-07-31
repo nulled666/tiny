@@ -39,58 +39,96 @@ function test_code() {
 
         _warn('---------')
 
-    var x = _q('.run-code');
-    var y = $('.run-code');
+        var x = _q('.run-code');
+        var y = $('.run-code');
 
+        do_test('.pos().x', 100,
+            function () {
+                return x.pos().x;
+            },
+            function () {
+                return y.position().left + parseFloat(y.css('margin-left'));
+            });
 
-    do_test('.pos().top', 100,
-        function () {
-            return x.pos().top;
-        },
-        function () {
-            return y.position().top + parseFloat(y.css('margin-top'));
-        });
+        do_test('.pos().y', 100,
+            function () {
+                return x.pos().y;
+            },
+            function () {
+                return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
+            });
 
-    do_test('.pos().left', 100,
-        function () {
-            return x.pos().left;
-        },
-        function () {
-            return y.position().left + parseFloat(y.css('margin-left'));
-        });
+        do_test('.pos(40, 60)', 99,
+            function () {
+                return x.pos(40, 60);
+            },
+            function () {
+                return y.css('left', 40).css('top', 60);
+            });
 
+        do_test('.pos().x', 100,
+            function () {
+                return x.pos().x;
+            },
+            function () {
+                return y.position().left + parseFloat(y.css('margin-left'));
+            });
 
-    do_test('.top()', 99,
-        function () {
-            return x.top();
-        },
-        function () {
-            return  y.position().top + parseFloat(y.css('margin-top'));
-        });
+        do_test('.pos().y', 100,
+            function () {
+                return x.pos().y;
+            },
+            function () {
+                return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
+            });
 
-    do_test('.left()', 99,
-        function () {
-            return x.left();
-        },
-        function () {
-            return  y.position().left + parseFloat(y.css('margin-left'));
-        });
+        do_test('.top(24)', 99,
+            function () {
+                return x.top(24);
+            },
+            function () {
+                return y.css('top', 24);
+            });
 
-    do_test('.width()', 99,
-        function () {
-            return x.width();
-        },
-        function () {
-            return y.outerWidth();
-        });
+        do_test('.left(36)', 99,
+            function () {
+                return x.left(36);
+            },
+            function () {
+                return y.css('left', 36);
+            });
 
-    do_test('.height()', 99,
-        function () {
-            return x.height();
-        },
-        function () {
-            return y.outerHeight();
-        });
+        do_test('.top()', 99,
+            function () {
+                return x.top();
+            },
+            function () {
+                return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
+            });
+
+        do_test('.left()', 99,
+            function () {
+                return x.left();
+            },
+            function () {
+                return y.position().left + parseFloat(y.css('margin-left'));
+            });
+
+        do_test('.top(0)', 99,
+            function () {
+                return x.top(0);
+            },
+            function () {
+                return y.css('top', 0);
+            });
+
+        do_test('.left(0)', 99,
+            function () {
+                return x.left(0);
+            },
+            function () {
+                return y.css('left', 0);
+            });
 
         _warn('---------')
 

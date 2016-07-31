@@ -290,7 +290,7 @@ require([
 
     _warn('bound sizes ------------------')
 
-    do_test('.boundWidth(margin).top', 100,
+    do_test('.boundWidth("margin").top', 100,
         function () {
             return x.boundWidth('margin').top;
         },
@@ -298,7 +298,7 @@ require([
             return parseFloat(y.css('margin-top'));
         });
 
-    do_test('.boundWidth(margin).left', 100,
+    do_test('.boundWidth("margin").left', 100,
         function () {
             return x.boundWidth('margin').left;
         },
@@ -306,7 +306,7 @@ require([
             return parseFloat(y.css('margin-left'));
         });
 
-    do_test('.boundWidth(border).bottom', 100,
+    do_test('.boundWidth("border").bottom', 100,
         function () {
             return x.boundWidth('border').bottom;
         },
@@ -314,7 +314,7 @@ require([
             return parseFloat(y.css('border-bottom-width'));
         });
 
-    do_test('.boundWidth(border).right', 100,
+    do_test('.boundWidth("border").right', 100,
         function () {
             return x.boundWidth('border').right;
         },
@@ -322,7 +322,7 @@ require([
             return parseFloat(y.css('border-right-width'));
         });
 
-    do_test('.boundWidth(padding).bottom', 100,
+    do_test('.boundWidth("padding").bottom', 100,
         function () {
             return x.boundWidth('padding').bottom;
         },
@@ -330,7 +330,7 @@ require([
             return parseFloat(y.css('padding-bottom'));
         });
 
-    do_test('.boundWidth(padding).right', 100,
+    do_test('.boundWidth("padding").right', 100,
         function () {
             return x.boundWidth('padding').right;
         },
@@ -354,6 +354,22 @@ require([
             return parseFloat(y.css('border-right-width')) + parseFloat(y.css('padding-right')) + parseFloat(y.css('margin-right'));
         });
 
+    do_test('.boundWidth("margin,border").top', 100,
+        function () {
+            return x.boundWidth("margin,border").top;
+        },
+        function () {
+            return parseFloat(y.css('border-top-width')) + parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.boundWidth("margin,border").right', 100,
+        function () {
+            return x.boundWidth("margin,border").right;
+        },
+        function () {
+            return parseFloat(y.css('border-right-width')) + parseFloat(y.css('margin-right'));
+        });
+
     _warn('positions ------------------')
 
     do_test('.pos().top', 100,
@@ -361,7 +377,7 @@ require([
             return x.pos().top;
         },
         function () {
-            return y.position().top;
+            return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
         });
 
     do_test('.pos().left', 100,
@@ -369,7 +385,7 @@ require([
             return x.pos().left;
         },
         function () {
-            return y.position().left;
+            return y.position().left + parseFloat(y.css('margin-left'));
         });
 
     do_test('.pos(true).top', 100,
@@ -390,7 +406,7 @@ require([
 
     _warn('dimensions ------------------')
 
-    do_test('.width(98)', 99,
+    do_test('.width(160)', 99,
         function () {
             return x.width(98);
         },
@@ -398,7 +414,7 @@ require([
             return y.width(98);
         });
 
-    do_test('.height(60)', 99,
+    do_test('.height(100)', 99,
         function () {
             return x.height(60);
         },
@@ -406,29 +422,12 @@ require([
             return y.height(60);
         });
 
-    do_test('.top()', 99,
-        function () {
-            return x.top();
-        },
-        function () {
-            return y.css('top');
-        });
-
-    do_test('.left()', 99,
-        function () {
-            return x.left();
-        },
-        function () {
-            return y.css('left');
-        });
-
-
     do_test('.width()', 99,
         function () {
             return x.width();
         },
         function () {
-            return y.width();
+            return y.outerWidth();
         });
 
     do_test('.height()', 99,
@@ -436,7 +435,55 @@ require([
             return x.height();
         },
         function () {
-            return y.height();
+            return y.outerHeight();
+        });
+
+    do_test('.top(24)', 99,
+        function () {
+            return x.top(24);
+        },
+        function () {
+            return y.css('top', 24);
+        });
+
+    do_test('.left(36)', 99,
+        function () {
+            return x.left(36);
+        },
+        function () {
+            return y.css('left', 36);
+        });
+
+    do_test('.top()', 99,
+        function () {
+            return x.top();
+        },
+        function () {
+            return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
+        });
+
+    do_test('.left()', 99,
+        function () {
+            return x.left();
+        },
+        function () {
+            return y.position().left + parseFloat(y.css('margin-left'));
+        });
+
+    do_test('.top(0)', 99,
+        function () {
+            return x.top(0);
+        },
+        function () {
+            return y.css('top', 0);
+        });
+
+    do_test('.left(0)', 99,
+        function () {
+            return x.left(0);
+        },
+        function () {
+            return y.css('left', 0);
         });
 
     do_test('.scrollTop(88)', 99,
@@ -472,22 +519,6 @@ require([
         });
 
     _warn('box ------------------')
-
-    do_test('.box(margin).top', 100,
-        function () {
-            return x.box('margin').top;
-        },
-        function () {
-            return y.position().top;
-        });
-
-    do_test('.box(margin).left', 100,
-        function () {
-            return x.box('margin').left;
-        },
-        function () {
-            return y.position().left;
-        });
 
     do_test('.box(margin).width', 100,
         function () {
@@ -537,22 +568,6 @@ require([
             return y.innerHeight();
         });
 
-    do_test('.box(client).top', 100,
-        function () {
-            return x.box('client').top;
-        },
-        function () {
-            return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
-        });
-
-    do_test('.box(client).left', 100,
-        function () {
-            return x.box('client').left;
-        },
-        function () {
-            return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
-        });
-
     do_test('.box(client).width', 100,
         function () {
             return x.box('client').width;
@@ -567,22 +582,6 @@ require([
         },
         function () {
             return y.get(0).clientHeight;
-        });
-
-    do_test('.box(scroll).top', 100,
-        function () {
-            return x.box('scroll').top;
-        },
-        function () {
-            return y.get(0).offsetTop + parseFloat(y.css('border-top-width'));
-        });
-
-    do_test('.box(scroll).left', 100,
-        function () {
-            return x.box('scroll').left;
-        },
-        function () {
-            return y.get(0).offsetLeft + parseFloat(y.css('border-left-width'));
         });
 
     do_test('.box(scroll).width', 100,
