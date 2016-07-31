@@ -60,7 +60,7 @@ function test_code() {
 
         do_test('.pos(40, 60)', 99,
             function () {
-                return x.pos(40, 60);
+                return x.pos({ x: 40, y: 60 });
             },
             function () {
                 return y.css('left', 40).css('top', 60);

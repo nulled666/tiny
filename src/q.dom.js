@@ -564,7 +564,7 @@ define([
             return this;
         } else {
             // ==> get
-            return get_node_pos(nodes[0], is_absolute);
+            return get_position(nodes[0], is_absolute);
         }
 
     }
@@ -572,15 +572,17 @@ define([
     /**
      * get node position
      */
-    function get_node_pos(node, is_absolute) {
+    function get_position(node, is_absolute) {
 
         var pos = { x: 0, y: 0 };
 
         node = _get_valid_element(node);
         if (!node) return rect_obj;
 
+        var style = _getComputedStyle(node);
+
         // get absolute position for fixed element
-        if (_getComputedStyle(node, 'position') == 'fixed')
+        if (style['position'] == 'fixed')
             is_absolute = true;
 
         if (!is_absolute) {
@@ -643,6 +645,20 @@ define([
 
         var style = _getComputedStyle(node);
         var is_absolute_pos_mode = IS_ABSOLUTE_POS_MODE[style['position']];
+        var pos_style = style['position'];
+
+        // fixed element's postion is already absolute
+        if (pos_style == 'fixed') is_absolute = false;
+
+        // determine position diff for document based absolute position
+        var base;
+        if (is_absolute) {
+            base = get_position(node, true);
+            var diff = get_position(node);
+            base.x -= diff.x;
+            // relative positioned element don't need minus this
+            if (pos_style == 'absolute') base.y -= diff.y;
+        }
 
         for (var key in pos) {
 
@@ -653,11 +669,12 @@ define([
             var value_type = typeof value;
 
             if (value_type == 'number') {
-                if (is_absolute_pos_mode) {
-                    // only minus margin for absolute positioned elements
-                    var delta = _parseFloat(style['margin' + type]);
-                    value -= delta;
-                }
+                // only minus margin for absolute positioned elements
+                if (is_absolute_pos_mode)
+                    value -= _parseFloat(style['margin' + type]);
+                // and minus diff for document based absolute position
+                if (is_absolute)
+                    value -= base[key];
                 value += 'px';
             } else if (value_type != 'string') {
                 continue;
@@ -798,7 +815,7 @@ define([
             type = type.toLowerCase();
             if (pos_name) {
                 // ==> left/top
-                return get_node_pos(node)[pos_name];
+                return get_position(node)[pos_name];
             } else {
                 // ==> width/height
                 return get_box_size(node)[type];
