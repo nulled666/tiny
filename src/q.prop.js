@@ -608,11 +608,8 @@ define([
         return val == null ? 0 : val;
     }
 
-
     // generate a default rect
-    function DEFAULT_RECT() {
-        return { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 };
-    }
+    function DEFAULT_RECT() { return { top: 0, right: 0, left: 0, bottom: 0, width: 0, height: 0 } }
 
     /**
      * get client rect of element
@@ -639,14 +636,13 @@ define([
     }
 
 
-    // quick check list
-    var POS_KEY = { x: 'Left', y: 'Top' };
-    var IS_ABSOLUTE_POS_MODE = { absolute: 1, fixed: 1 };
-
     /**
      * set node offset position
      */
     function set_position(node, pos, is_absolute) {
+
+        var POS_KEY = { x: 'Left', y: 'Top' };
+        var IS_ABSOLUTE_POS_MODE = { absolute: 1, fixed: 1 };
 
         var style = _getComputedStyle(node);
         var is_absolute_pos_mode = IS_ABSOLUTE_POS_MODE[style['position']];
@@ -737,17 +733,13 @@ define([
 
     }
 
-    // generate a default box size
-    function DEFAULT_BOX() { return { width: 0, height: 0 }; }
-
     // box types
     var BOX_TYPE_TRANSLATE = { outer: 'border', inner: 'padding' };
     var BOX_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2 };
 
-    function get_real_box_type(type) {
+    function get_actual_box_type(type) {
         type = BOX_TYPE_TRANSLATE[type] || type;
         return BOX_TYPE[type] ? type : 'border';
-
     }
 
     /**
@@ -755,7 +747,7 @@ define([
      */
     function get_box_size(node, type) {
 
-        var box = DEFAULT_BOX();
+        var box = { width: 0, height: 0 };
 
         // window
         if (TinyQ.x.isWindow(node)) {
@@ -766,7 +758,7 @@ define([
         node = _get_valid_element(node);
         if (!node) return box;
 
-        type = get_real_box_type(type);
+        type = get_actual_box_type(type);
         var op_type = BOX_TYPE[type];
 
         // get size for 'client' & 'scroll' box
@@ -790,20 +782,20 @@ define([
 
     }
 
-    var IS_SIZE_KEY = { width: 1, height: 1 };
 
     /**
      * set box size
      */
     function set_box_size(node, size, type) {
 
-        type = get_real_box_type(type);
+        type = get_actual_box_type(type);
 
         if (BOX_TYPE[type] == 2) {
             _error(TAG_Q, 'The client & scroll boxes are read-only.');
             throw new TypeError(G.SEE_ABOVE);
         }
 
+        var IS_SIZE_KEY = { width: 1, height: 1 };
         // calculate bound size for different box type
         var BORDER_BOX_BOUND_DELTA = { padding: 'border', margin: 'margin' };
         var CONTENT_BOX_BOUND_DELTA = { padding: 'padding', border: 'border,padding', margin: 'all' };
@@ -853,19 +845,19 @@ define([
     //////////////////////////////////////////////////////////
 
     // method map list, order matters
-    var DEM_PREFIX = ['scroll', ''];
-    var DEM_TYPE = ['Width', 'Height', 'Left', 'Top'];
+    var DIM_PREFIX = ['scroll', ''];
+    var DIM_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
     extend_dimension_methods(TinyQ.prototype);
 
     // generate methods for width, height, left, top
     function extend_dimension_methods(def) {
-        var i = DEM_PREFIX.length;
+        var i = DIM_PREFIX.length;
         while (--i > -1) {
-            var prefix = DEM_PREFIX[i];
-            var j = DEM_TYPE.length;
+            var prefix = DIM_PREFIX[i];
+            var j = DIM_TYPE.length;
             while (--j > -1) {
-                var type = DEM_TYPE[j];
+                var type = DIM_TYPE[j];
                 if (prefix == '') type = type.toLowerCase();
                 def[prefix + type] = generate_dimension_method(i, j);
             }
@@ -888,7 +880,7 @@ define([
      * access function for dimension methods
      */
     function access_dimension(value) {
-        var tinyq = this.q, prefix = DEM_PREFIX[this.p], type = DEM_TYPE[this.t];
+        var tinyq = this.q, prefix = DIM_PREFIX[this.p], type = DIM_TYPE[this.t];
         if (value == undefined) {
             // => get 
             return get_dimension(tinyq.nodes[0], prefix, type);
