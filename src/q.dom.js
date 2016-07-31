@@ -27,9 +27,9 @@ define([
 
         pos: access_position,  // pos(to_absolute_position)
 
-        box: get_box,
+        box: access_box_size,
         /**
-         * box(type, to_absolute_position)
+         * box(type, width, height)
          * 
          *      box() == box('border')
          *      box('margin')   - box('outer'), get margin box rect
@@ -60,9 +60,11 @@ define([
         setAttributes: set_node_attributes
     });
 
+    var _error = tiny.error;
     var _parseFloat = parseFloat;
     var _getComputedStyle = window.getComputedStyle;
     var _get_valid_element = TinyQ.x.getElement;
+    var TAG_Q = TinyQ.x.TAG;
 
     /**
      * get/set method helper function
@@ -338,7 +340,7 @@ define([
         if (action_str === undefined) return this.attr('class');
 
         if (typeof action_str != 'string') {
-            tiny.error(TinyQ.x.TAG, 'Expect a class string. > Got "' + typeof action_str + '": ', action_str);
+            _error(TAG_Q, 'Expect a class string. > Got "' + typeof action_str + '": ', action_str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -555,13 +557,16 @@ define([
             val = { x: x, y: y };
         }
 
-        var nodes = this.nodes;
+        var tinyq = this;
+        var nodes = tinyq.nodes;
         if (val) {
             // ==> set
             for (var i = 0, len = nodes.length; i < len; ++i) {
-                set_position(nodes[i], val, is_absolute);
+                var node = _get_valid_element(nodes[i]);
+                if (!node) return;
+                set_position(node, val, is_absolute);
             }
-            return this;
+            return tinyq;
         } else {
             // ==> get
             return get_position(nodes[0], is_absolute);
@@ -660,6 +665,7 @@ define([
             if (pos_style == 'absolute') base.y -= diff.y;
         }
 
+        // set values
         for (var key in pos) {
 
             var type = POS_KEY[key];
@@ -667,6 +673,7 @@ define([
 
             var value = pos[key];
             var value_type = typeof value;
+
             if (value_type == 'number') {
                 // only minus margin for absolute positioned elements
                 if (is_absolute_pos_mode) value -= _parseFloat(style['margin' + type]);
@@ -688,12 +695,46 @@ define([
     // BOX SIZE
     //////////////////////////////////////////////////////////
     /**
-     * .box()  get box size
+     * .box() get/set box size
      */
-    function get_box(type, is_absolute) {
-        // .box(true) ==> .box('border', true)
-        if (typeof type == 'boolean') is_absolute = type, type = 0;
-        return get_box_size(this.nodes[0], type, is_absolute);
+    function access_box_size(type, width, height) {
+
+        // check parameters
+        var val;
+        var type_type = typeof type;
+        if (type && type_type == 'object') {
+            val = type, width = null, height = null;
+        } else if (type_type != 'string') {
+            // shift parameters
+            height = width, width = type;
+            // use default
+            type = null;
+        }
+
+        var type_width = typeof width;
+        if (width && type_width == 'object') {
+            // => ({width, height})
+            val = width;
+        } else if (type_width == 'number' || typeof height == 'number') {
+            // => (width, height)
+            val = { width: width, height: height };
+        }
+
+        var tinyq = this;
+        var nodes = tinyq.nodes;
+        if (val) {
+            // ==> set
+            for (var i = 0, len = nodes.length; i < len; ++i) {
+                var node = _get_valid_element(nodes[i]);
+                if (!node) return;
+                set_box_size(node, val, type);
+            }
+            return tinyq;
+        } else {
+            // ==> get
+            return get_box_size(nodes[0], type);
+        }
+
     }
 
     // generate a default box size
@@ -703,10 +744,16 @@ define([
     var BOX_TYPE_TRANSLATE = { outer: 'border', inner: 'padding' };
     var BOX_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2 };
 
+    function get_real_box_type(type) {
+        type = BOX_TYPE_TRANSLATE[type] || type;
+        return BOX_TYPE[type] ? type : 'border';
+
+    }
+
     /**
      * get element bounding rect
      */
-    function get_box_size(node, type, is_absolute_pos) {
+    function get_box_size(node, type) {
 
         var box = DEFAULT_BOX();
 
@@ -719,8 +766,7 @@ define([
         node = _get_valid_element(node);
         if (!node) return box;
 
-        type = BOX_TYPE_TRANSLATE[type] || type;
-        type = BOX_TYPE[type] ? type : 'border';
+        type = get_real_box_type(type);
         var op_type = BOX_TYPE[type];
 
         // get size for 'client' & 'scroll' box
@@ -733,17 +779,71 @@ define([
 
         // adjust size by style values, 'border' box don't need this adjustment
         if (type != 'border') {
-
             // 'margin' requires adding style margin, other types require minus border width
             var delta = get_bound_area_size(node, type == 'margin' ? 'margin' : 'border');
-
             var sign = type == 'margin' ? 1 : -1;
             box.width += sign * (delta.left + delta.right);
             box.height += sign * (delta.top + delta.bottom);
-
         }
 
         return { width: box.width, height: box.height };
+
+    }
+
+    var IS_SIZE_KEY = { width: 1, height: 1 };
+
+    /**
+     * set box size
+     */
+    function set_box_size(node, size, type) {
+
+        type = get_real_box_type(type);
+
+        if (BOX_TYPE[type] == 2) {
+            _error(TAG_Q, 'The client & scroll boxes are read-only.');
+            throw new TypeError(G.SEE_ABOVE);
+        }
+
+        // calculate bound size for different box type
+        var BORDER_BOX_BOUND_DELTA = { padding: 'border', margin: 'margin' };
+        var CONTENT_BOX_BOUND_DELTA = { padding: 'padding', border: 'border,padding', margin: 'all' };
+
+        var style = _getComputedStyle(node);
+        var is_border_box = style['boxSizing'] == 'border-box';
+        var delta;
+        var sign = 1;
+
+        if (is_border_box) {
+            if (type == 'padding') sign = -1;
+            delta = BORDER_BOX_BOUND_DELTA[type];
+        } else {
+            delta = CONTENT_BOX_BOUND_DELTA[type];
+        }
+
+        if (delta) delta = get_bound_area_size(node, delta);
+
+        // set values
+        for (var key in size) {
+
+            if (!IS_SIZE_KEY[key]) continue;
+
+            var value = size[key];
+            var value_type = typeof value;
+
+            if (value_type == 'number') {
+                if (delta) {
+                    var diff = key == 'width' ? delta.left + delta.right : delta.top + delta.bottom;
+                    value -= sign * diff;
+                }
+                if (value < 0) value = 0;
+                value += 'px';
+            } else if (value_type != 'string') {
+                continue;
+            }
+
+            set_style(node, key, value);
+
+        }
 
     }
 
@@ -833,16 +933,6 @@ define([
 
         if (prefix == '') {
             // ==> width, height, left, top
-
-            // direct css style
-            if (typeof val != 'number') {
-                set_style(node, type.toLowerCase(), val);
-                return;
-            }
-
-            var style = _getComputedStyle(node);
-
-            // numeric values
             var pos_name = NAME_TO_POS[type];
             if (pos_name) {
                 // ==> left, top
@@ -850,24 +940,16 @@ define([
                 obj[pos_name] = val;
                 set_position(node, obj);
             } else {
-                // ==> width, height - minus padding & border
-                if (style['boxSizing'] != 'border-box') {
-                    // only minus border & padding for non-border-box
-                    var delta = get_bound_area_size(node, 'border,padding');
-                    delta = type == 'Width' ? delta.left + delta.right : delta.top + delta.bottom;
-                    val = val - delta;
-                }
+                // ==> width, height 
+                var obj = {};
+                obj[type.toLowerCase()] = val;
+                set_box_size(node, obj);
             }
-
-            set_style(node, type.toLowerCase(), val + 'px');
-
         } else {
             // ==> scrollTop, scrollLeft
-
-            if (!NAME_TO_POS[type]) return;  // scrollWidth/scrollHeight is readonly
-
+            // scrollWidth & scrollHeight is readonly
+            if (!NAME_TO_POS[type]) return;
             set_property(node, prefix + type, val);
-
         }
     }
 

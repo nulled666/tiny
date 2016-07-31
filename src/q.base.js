@@ -87,6 +87,12 @@ define([
 
     };
 
+
+
+    var _error = tiny.error;
+
+
+
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
     //////////////////////////////////////////////////////////
@@ -150,7 +156,7 @@ define([
 
         } else {
 
-            tiny.error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
+            _error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
 
         }
@@ -277,7 +283,7 @@ define([
             return get_by_index.call(this, selector);
 
         if (type != 'string') {
-            tiny.error(TinyQ.x.TAG, 'Expect a selector string. > Got "' + type + '": ', selector);
+            _error(TinyQ.x.TAG, 'Expect a selector string. > Got "' + type + '": ', selector);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -503,7 +509,7 @@ define([
                 list.push([TinyQ.filters['matches'], arg]);
             }
         } else {
-            tiny.error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
+            _error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -534,7 +540,7 @@ define([
             name = item.substring(0, pos);
             param = item.substring(pos + 1);
             if (!param.endsWith(')')) {
-                tiny.error(TAG_Q, 'Unexpected end of filter. ', item);
+                _error(TAG_Q, 'Unexpected end of filter. ', item);
                 throw new SyntaxError(G.SEE_ABOVE);
             }
             param = param.substring(0, param.length - 1).trim();
@@ -546,7 +552,7 @@ define([
             arr = [func, param];
             _CUSTOM_FILTER_CACHE[filter] = arr;
         } else {
-            tiny.error(TAG_Q, 'No such custom filter: ', name);
+            _error(TAG_Q, 'No such custom filter: ', name);
             throw new SyntaxError(G.SEE_ABOVE);
         }
 
@@ -597,7 +603,7 @@ define([
             prefix = '.offsetParent(';
         } else if (type == 2) {
             if (!selector) {
-                tiny.error(TAG_Q, 'Expect a selector for closest()');
+                _error(TAG_Q, 'Expect a selector for closest()');
                 throw new SyntaxError(G.SEE_ABOVE);
             }
             get_func = func_get_closest;
@@ -887,7 +893,7 @@ define([
      */
     function get_elem_by_index(index) {
         if (typeof index != 'number') {
-            tiny.error(TinyQ.x.TAG, 'Expect an index number. > Got "' + typeof index + '": ', index);
+            _error(TinyQ.x.TAG, 'Expect an index number. > Got "' + typeof index + '": ', index);
             throw new TypeError(G.SEE_ABOVE);
         }
         var nodes = this.nodes;

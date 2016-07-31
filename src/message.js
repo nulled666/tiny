@@ -19,6 +19,10 @@ define([
         message: _message
     });
 
+
+    var _error = tiny.error;
+
+
     // internal registry of message handlers
     var _message_handlers = {};
     var _delayed_messages = {};
@@ -35,12 +39,12 @@ define([
     function listen_message(msg, handler) {
 
         if (typeof msg !== 'string') {
-            tiny.error(TAG_MSG_LISTEN, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
+            _error(TAG_MSG_LISTEN, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
         if (typeof handler !== 'function') {
-            tiny.error(TAG_MSG_LISTEN, 'Expect a function. > Got "' + typeof handler + '": ', handler);
+            _error(TAG_MSG_LISTEN, 'Expect a function. > Got "' + typeof handler + '": ', handler);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -65,7 +69,7 @@ define([
     function post_message(msg) {
 
         if (typeof msg !== 'string') {
-            tiny.error(TAG_MSG_POST, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
+            _error(TAG_MSG_POST, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -100,12 +104,12 @@ define([
     function post_delayed_message(delay, msg) {
 
         if (typeof delay !== 'number') {
-            tiny.error(TAG_MSG_POST_DELAYED, 'Expect a delay time in milliseconds. > Got "' + typeof delay + '": ', delay);
+            _error(TAG_MSG_POST_DELAYED, 'Expect a delay time in milliseconds. > Got "' + typeof delay + '": ', delay);
             throw new TypeError(G.SEE_ABOVE);
         }
 
         if (typeof msg !== 'string') {
-            tiny.error(TAG_MSG_POST_DELAYED, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
+            _error(TAG_MSG_POST_DELAYED, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
             throw new TypeError(G.SEE_ABOVE);
         }
 

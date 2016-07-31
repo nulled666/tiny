@@ -22,6 +22,10 @@ define([
     tiny.x.add({
         route: _route
     });
+    
+
+    var _error = tiny.error;
+
 
     // route match route & handler registry
     var _route_rules_ = {};
@@ -67,7 +71,7 @@ define([
             rule = { is_regexp: true, re: re };
         } else {
 
-            tiny.error(TAG_RT_WATCH, 'Expect a string or RegExp. > Got "' + typeof route + '": ', route);
+            _error(TAG_RT_WATCH, 'Expect a string or RegExp. > Got "' + typeof route + '": ', route);
             throw new TypeError(G.SEE_ABOVE);
 
         }
@@ -81,7 +85,7 @@ define([
             _route_handlers_[route] = [];
 
         if (typeof handler !== 'function') {
-            tiny.error(TAG_RT_WATCH, 'Expect a function. > Got "' + typeof handler + '": ', handler);
+            _error(TAG_RT_WATCH, 'Expect a function. > Got "' + typeof handler + '": ', handler);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -150,7 +154,7 @@ define([
     function route_check(str) {
 
         if (str !== undefined && typeof str !== 'string') {
-            tiny.error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof str + '": ', str);
+            _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof str + '": ', str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -283,7 +287,7 @@ define([
     function route_set(route, trigger) {
 
         if (typeof route !== 'string') {
-            tiny.error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof route + '": ', route);
+            _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof route + '": ', route);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -319,7 +323,7 @@ define([
             // array
             route += str_or_arr.join('/');
         } else {
-            tiny.error(TAG_RT_WATCH, 'Expect a string or array. > Got "' + typeof str_or_arr + '": ', str_or_arr);
+            _error(TAG_RT_WATCH, 'Expect a string or array. > Got "' + typeof str_or_arr + '": ', str_or_arr);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -343,7 +347,7 @@ define([
         var route = route_get();
 
         if (typeof str !== 'string') {
-            tiny.error(TAG_RT_REMOVE, 'Expect a string. > Got "' + typeof str + '": ', str);
+            _error(TAG_RT_REMOVE, 'Expect a string. > Got "' + typeof str + '": ', str);
             throw new TypeError(G.SEE_ABOVE);
         }
 

@@ -19,6 +19,9 @@ define([
     });
 
 
+    var _error = tiny.error;
+    
+
     var TAG_STORAGE = '_storage()' + G.TAG_SUFFIX;
     /**
      * Simple window.localStorage wrapper
@@ -112,7 +115,7 @@ define([
 
         } else {
 
-            tiny.error(TAG_STORAGE, 'Expect a string, object or null. > Got "' + typeof key + '": ', key);
+            _error(TAG_STORAGE, 'Expect a string, object or null. > Got "' + typeof key + '": ', key);
             throw new TypeError(G.SEE_ABOVE);
 
         }

@@ -464,18 +464,18 @@ require([
 
     do_test('.width(160)', 99,
         function () {
-            return x.width(98);
+            return x.width(160);
         },
         function () {
-            return y.width(98);
+            return y.outerWidth(160);
         });
 
     do_test('.height(100)', 99,
         function () {
-            return x.height(60);
+            return x.height(100);
         },
         function () {
-            return y.height(60);
+            return y.outerHeight(100);
         });
 
     do_test('.width()', 99,

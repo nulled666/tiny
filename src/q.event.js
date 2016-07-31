@@ -14,6 +14,11 @@ define([
         off: false
     });
 
+
+    var _error = tiny.error;
+
+
+
     /**
      * TinyQ.on() method
      * .on(event, handle)
@@ -23,7 +28,7 @@ define([
     function listen_to_event(event, param, extra) {
 
         if (typeof event != 'string') {
-            tiny.error(TinyQ.x.TAG, 'Expect an event string. > Got "' + typeof event + '": ', event);
+            _error(TinyQ.x.TAG, 'Expect an event string. > Got "' + typeof event + '": ', event);
             throw new TypeError(G.SEE_ABOVE);
         }
 

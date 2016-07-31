@@ -50,6 +50,10 @@ define([
     function html_safe_extension(keep_spaces) { return html_safe(this.valueOf(), keep_spaces) }
     function format_extension(obj) { return format_template(this.valueOf(), obj) }
 
+    
+    var _error = tiny.error;
+
+
     var TAG_HTML_SAFE = '_htmlSafe()' + G.TAG_SUFFIX;
     /**
      * Make string HTML-safe
@@ -65,7 +69,7 @@ define([
     function html_safe(str, keep_spaces) {
 
         if (typeof str !== 'string') {
-            tiny.error(TAG_HTML_SAFE, 'Expect a string. > Got "' + typeof str + '": ', str);
+            _error(TAG_HTML_SAFE, 'Expect a string. > Got "' + typeof str + '": ', str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -110,12 +114,12 @@ define([
         if (format == '$') format = _format.currencyFormat;
 
         if (typeof num !== 'number') {
-            tiny.error(TAG_FORMAT_NUMBER, 'Expect a number. > Got "' + typeof num + '": ', num);
+            _error(TAG_FORMAT_NUMBER, 'Expect a number. > Got "' + typeof num + '": ', num);
             throw new TypeError(G.SEE_ABOVE);
         }
 
         if (typeof format !== 'string') {
-            tiny.error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
+            _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -311,12 +315,12 @@ define([
         } else if (Object.prototype.toString.call(date_in) === "[object Date]") {
             date.setTime(date_in.getTime());
         } else {
-            tiny.error(TAG_FORMAT_DATE, 'Expect a Date.getTime() number or Date object. > Got "' + typeof date + '": ', date);
+            _error(TAG_FORMAT_DATE, 'Expect a Date.getTime() number or Date object. > Got "' + typeof date + '": ', date);
             throw new TypeError(G.SEE_ABOVE);
         }
 
         if (typeof format != 'string') {
-            tiny.error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
+            _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -440,7 +444,7 @@ define([
     function format_template(template_str, obj) {
 
         if (typeof template_str != 'string') {
-            tiny.error(TAG_FORMAT, 'Expect a template string. > Got "' + typeof template_str + '": ', template_str);
+            _error(TAG_FORMAT, 'Expect a template string. > Got "' + typeof template_str + '": ', template_str);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -452,12 +456,12 @@ define([
             var id = template.replace('#', '');
             template_container = document.getElementById(id);
             if (!template_container) {
-                tiny.error(TAG_FORMAT, 'Template container not found: #' + id);
+                _error(TAG_FORMAT, 'Template container not found: #' + id);
                 throw new ReferenceError(G.SEE_ABOVE);
             }
             template = template_container.innerHTML;
             if (template.includes('{#' + id + '}')) {
-                tiny.error(TAG_FORMAT, 'Circular reference to self detected : #' + id);
+                _error(TAG_FORMAT, 'Circular reference to self detected : #' + id);
                 throw new ReferenceError(G.SEE_ABOVE);
             }
         }
@@ -557,7 +561,7 @@ define([
                 if (start_pos > -1 && start_pos < end_pos) {
                     end_pos = template.indexOf(']}', start_pos); // try to find )} end
                     if (end_pos < 0) {
-                        tiny.error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
+                        _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
                         throw new SyntaxError(G.SEE_ABOVE);
                     }
                     end_pos = template.indexOf('\n', end_pos); // use new line after )}
@@ -776,7 +780,7 @@ define([
                 var start_pos = pos + 2;
                 var end_pos = template.indexOf(']}', start_pos);
                 if (end_pos < 0) {
-                    tiny.error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
+                    _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
                     throw new SyntaxError(G.SEE_ABOVE);
                 }
                 result += template.substring(start_pos, end_pos);
@@ -790,7 +794,7 @@ define([
 
             // close } not found
             if (pos < 0) {
-                tiny.error(TAG_FORMAT, 'Missing close "}" from ' + last_pos + '.');
+                _error(TAG_FORMAT, 'Missing close "}" from ' + last_pos + '.');
                 throw new SyntaxError(G.SEE_ABOVE);
             }
 
@@ -848,7 +852,7 @@ define([
         }
 
         if (end < 0) {
-            tiny.error(TAG_FORMAT, 'Missing close token: ' + close_tag);
+            _error(TAG_FORMAT, 'Missing close token: ' + close_tag);
             throw new SyntaxError(G.SEE_ABOVE);
         }
 
@@ -883,7 +887,7 @@ define([
     function render_token(token, obj, parsed_token) {
 
         if (token.indexOf('\n') > -1) {
-            tiny.error(TAG_FORMAT, 'Unexpected "\\n" in token: "' + token + '"');
+            _error(TAG_FORMAT, 'Unexpected "\\n" in token: "' + token + '"');
             throw new SyntaxError(G.SEE_ABOVE);
         }
 
@@ -906,7 +910,7 @@ define([
         }
 
         if (key.indexOf('{') > -1) {
-            tiny.error(TAG_FORMAT, 'Missing close "}" : "' + token + '"');
+            _error(TAG_FORMAT, 'Missing close "}" : "' + token + '"');
             throw new SyntaxError(G.SEE_ABOVE);
         }
 
@@ -978,7 +982,7 @@ define([
     function fetch_value_by_key(obj, key) {
 
         if (typeof obj !== 'object') {
-            tiny.error(TAG_FORMAT, 'Expect a data Object. > Got "' + typeof obj + '": ', obj);
+            _error(TAG_FORMAT, 'Expect a data Object. > Got "' + typeof obj + '": ', obj);
             throw new TypeError(G.SEE_ABOVE);
         }
 
