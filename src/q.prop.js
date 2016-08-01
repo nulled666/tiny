@@ -311,7 +311,7 @@ define([
 
     function check_style_key(key) {
 
-        key = to_camel_case(key);
+        key = dash_to_camel_case(key);
 
         if (key in BASE_STYLE_LIST) return key;
 
@@ -334,12 +334,20 @@ define([
         return key.charAt(0).toUpperCase() + key.slice(1);
     }
 
-    function to_camel_case(key) {
+    // convert dash style key to camel-case
+    function dash_to_camel_case(key) {
+
+        // no need to translate
+        if (!key.includes('-')) return key;
+
+        // translate the key
         key = key.split('-');
         for (var i = 1, len = key.length; i < len; ++i) {
             key[i] = capital_first(key[i]);
         }
+
         return key.join('');
+
     }
 
 
@@ -531,12 +539,15 @@ define([
      */
     function set_visibility(nodes, type) {
 
+        var key = 'display';
+
         for (var i = 0, len = nodes.length; i < len; ++i) {
+
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
 
-            var computed_display = _getComputedStyle(node)['display'];
-            var style_display = node.style.display;
+            var computed_display = _getComputedStyle(node)[key];
+            var style_display = node.style[key];
             var action = type; // make a copy for this node, might modifiy it later
 
             // translate toggle to actual show/hide
@@ -549,17 +560,54 @@ define([
             if (action == 1) {
                 //==> show
                 var mark = node[DISPLAY_MARK]; // read original display style value
-                action = mark != undefined ? mark : 'block';
+                action = mark != undefined ? mark : get_default_display_style(node, key);
             } else if (action == 0) {
                 //==> hide
                 node[DISPLAY_MARK] = style_display; // save display style value
                 action = 'none';
             }
 
-
-            node.style.display = action;
+            node.style.setProperty(key, action);
 
         }
+
+    }
+
+    var _default_display_style = {};
+
+    /**
+     * get default style of given type of element
+     * TODO: should be replaced with 'display: unset' when all essential browsers supports it
+     */
+    function get_default_display_style(node, key) {
+
+        var key = 'display';
+        var tag = node.tagName;
+        var val = _default_display_style[tag];
+
+        if (val) return val;
+
+        // use a temporary element t oget default style
+        var doc = node.ownerDocument;
+        var elem = doc.body.appendChild(doc.createElement(tag));
+        
+        var display = _getComputedStyle(elem)[key];
+        var none = 'none';
+
+        if (display == none) {
+            // try 'initial'
+            elem.style.setProperty(key, 'initial', 'important');
+            display = _getComputedStyle(elem)[key];
+            // fallback to 'block;
+            if (display == none) display = 'block';
+        }
+
+        doc.body.removeChild(elem);
+
+        // save to cache
+        _default_display_style[tag] = display;
+
+        return display;
 
     }
 

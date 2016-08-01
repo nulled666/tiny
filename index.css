@@ -149,12 +149,14 @@ pre{
 }
 pre.run-code,
 pre.html-fragment{
-	display: none !important;
 	position: relative;
 	background: #f9f9f9;
 }
 pre.failed{
 	border-color: #c33;
+}
+code{
+	display: none;
 }
 
 pre.collapse{

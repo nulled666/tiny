@@ -39,9 +39,9 @@ function test_code() {
 
         _warn('---------')
 
-        var x = _q('.run-code');
+        var x = _q('code');
+        var y = $('code');
 
-        //x.style('display', 'none!');
         //x.hide();
         x.show();
 
