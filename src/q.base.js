@@ -25,7 +25,6 @@ define([
     };
 
     var TAG_Q = '_q()' + G.TAG_SUFFIX;
-    var OPID_MARK = 'tinyq-OPID';
 
     // shared function store
     TinyQ.x = {
@@ -89,8 +88,9 @@ define([
 
 
 
-    var _error = tiny.error;
+    var OPID_MARK = 'tinyq-OPID';
 
+    var _error = tiny.error;
 
 
     //////////////////////////////////////////////////////////
@@ -98,12 +98,13 @@ define([
     //////////////////////////////////////////////////////////
     function init_q(obj, param, extra, query_mode, base_nodes) {
 
-        if (!obj) obj = document; // default node
-
+        var doc = document;
         var result = [];
         var tag_start = 'q(', tag_obj = '', tag_end = ')';
         var opid = false;
         var is_add = false;
+
+        if (!obj) obj = doc; // default node
 
         if (is_document(obj)) tag_obj = '[document]';
         if (query_mode == 1) tag_start = 'q1(';
@@ -129,11 +130,11 @@ define([
             // ==> (selector, ...
             if (obj.startsWith('<')) {
                 // ==> (html_fragment [,attributes])
-                result = create_html_fragment(obj, param);
+                result = create_html_fragment(obj, param, doc);
                 tag_obj = '[html]';
             } else {
                 // ==> (selector [,nodes])
-                var parents = [document];
+                var parents = [doc];
                 if (param) {
                     param = nomalize_nodes(param).o;
                     if (is_array_like(param)) {
@@ -248,11 +249,13 @@ define([
     /**
      * html fragement creator
      */
-    function create_html_fragment(html, attrs) {
+    function create_html_fragment(html, attrs, doc) {
 
         if (typeof attrs != 'object') attrs = false;
 
-        var div = document.createElement('div');
+        doc = doc || document;
+
+        var div = doc.createElement('div');
         div.innerHTML = html;
 
         var arr = [];
@@ -321,9 +324,8 @@ define([
         selector = selector.trim();
         if (/^\#([\w-]+)$/.test(selector)) {
             selector = selector.replace('#', '');
-            var r = document.getElementById(selector);
-            if (r) result.push(r);
-            return result;
+            action = do_get_by_id;
+            query_mode == 1;
         } else if (/^\.([\w-.]+)\w$/.test(selector)) {
             selector = selector.replace(/\./g, ' ');
             action = do_get_by_class;
@@ -348,14 +350,19 @@ define([
 
     }
 
+    function do_get_by_id(node, id) {
+        var doc = node.ownerDocument;
+        var r = doc.getElementById(id);
+        return r ? [r] : r;
+    }
     function do_query_all(node, selector) {
         return node.querySelectorAll(selector);
     }
-    function do_get_by_tag(node, selector) {
-        return node.getElementsByTagName(selector);
+    function do_get_by_tag(node, tagname) {
+        return node.getElementsByTagName(tagname);
     }
-    function do_get_by_class(node, selector) {
-        return node.getElementsByClassName(selector);
+    function do_get_by_class(node, classname) {
+        return node.getElementsByClassName(classname);
     }
 
 
