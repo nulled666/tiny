@@ -24,8 +24,8 @@ define([
         return this;
     };
 
-    var OPID_MARK = 'tinyq-OPID';
     var TAG_Q = '_q()' + G.TAG_SUFFIX;
+    var OPID_MARK = 'tinyq-OPID';
 
     // shared function store
     TinyQ.x = {

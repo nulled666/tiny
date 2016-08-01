@@ -149,6 +149,7 @@ pre{
 }
 pre.run-code,
 pre.html-fragment{
+	display: none !important;
 	position: relative;
 	background: #f9f9f9;
 }

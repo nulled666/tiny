@@ -40,7 +40,10 @@ function test_code() {
         _warn('---------')
 
         var x = _q('.run-code');
-        var y = $('.run-code');
+
+        //x.style('display', 'none!');
+        //x.hide();
+        x.show();
 
         _warn('---------')
 

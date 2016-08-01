@@ -222,6 +222,21 @@ require([
             });
         });
 
+    _warn('show/hide ------------------')
+
+    do_test('.style({key: null})', 100,
+        function () {
+            return x.style({
+                'text-shadow': null,
+                'user-select': null
+            });
+        },
+        function () {
+            return y.css({
+                'text-shadow': null,
+                'user-select': null
+            });
+        });
 
     _warn('class ------------------')
 

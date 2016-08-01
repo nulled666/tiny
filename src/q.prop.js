@@ -23,6 +23,10 @@ define([
         style: access_style,
         class: process_class,
 
+        show: show_node,
+        hide: hide_node,
+        toggle: toggle_node,
+
         boundWidth: get_bound_width, // get style border/padding/margin width
 
         pos: access_position,  // pos(to_absolute_position)
@@ -64,7 +68,10 @@ define([
     var _parseFloat = parseFloat;
     var _getComputedStyle = window.getComputedStyle;
     var _get_valid_element = TinyQ.x.getElement;
+
     var TAG_Q = TinyQ.x.TAG;
+    var DISPLAY_MARK = 'tinyq-DISPLAY';
+
 
     /**
      * get/set method helper function
@@ -284,9 +291,17 @@ define([
     }
 
     function set_style(node, key, val) {
+
         key = check_style_key(key);
         if (val == null) val = '';
-        node.style[key] = val;
+
+        var priority = '';
+        if (val.endsWith('!')) {
+            val = val.substring(0, val.length - 1);
+            priority = 'important';
+        }
+
+        node.style.setProperty(key, val, priority);
     }
 
     // helper for convert vendor-prefixed style name
@@ -485,6 +500,70 @@ define([
     }
 
 
+
+    //////////////////////////////////////////////////////////
+    // SHOW/HIDE/TOGGLE
+    //////////////////////////////////////////////////////////
+    /**
+     * .show()
+     */
+    function show_node() {
+        return set_visibility(this.nodes, 1);
+    }
+
+    /**
+     * .hide()
+     */
+    function hide_node() {
+        return set_visibility(this.nodes, 0);
+    }
+
+    /**
+     * .toggle()
+     */
+    function toggle_node() {
+        return set_visibility(this.nodes, -1);
+    }
+
+
+    /**
+     * set node visibility by style.display
+     */
+    function set_visibility(nodes, type) {
+
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = _get_valid_element(nodes[i]);
+            if (!node) continue;
+
+            var computed_display = _getComputedStyle(node)['display'];
+            var style_display = node.style.display;
+            var action = type; // make a copy for this node, might modifiy it later
+
+            // translate toggle to actual show/hide
+            if (action == -1) action = computed_display == 'none' ? 1 : 0;
+
+            // skip no-action situations
+            if (action == 1 && computed_display != 'none') continue;
+            if (action == 0 && computed_display == 'none') continue;
+
+            if (action == 1) {
+                //==> show
+                var mark = node[DISPLAY_MARK]; // read original display style value
+                action = mark != undefined ? mark : 'block';
+            } else if (action == 0) {
+                //==> hide
+                node[DISPLAY_MARK] = style_display; // save display style value
+                action = 'none';
+            }
+
+
+            node.style.display = action;
+
+        }
+
+    }
+
+
     //////////////////////////////////////////////////////////
     //  BOUND BOX SIZES
     //////////////////////////////////////////////////////////
@@ -647,7 +726,7 @@ define([
         var style = _getComputedStyle(node);
         var is_absolute_pos_mode = IS_ABSOLUTE_POS_MODE[style['position']];
         var pos_style = style['position'];
-        
+
         // fixed element's postion is already absolute
         if (pos_style == 'fixed') is_absolute = false;
 
