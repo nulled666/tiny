@@ -241,7 +241,7 @@ define([
     function get_valid_element(node) {
         if (!node) return false;
         var type = node.nodeType;
-        if (type == 9) return node.body;
+        if (type == 9) return node.documentElement;
         if (type != 1) return false;
         return node;
     }
@@ -417,14 +417,26 @@ define([
      * a helper for determine node order
      */
     function compare_node_position(a, b) {
+
         var a_check = is_element(a);
         var b_check = is_element(b);
+
         if (!a_check) return b_check ? -1 : 0;
         if (!b_check) return 1;
+        
         var r = a.compareDocumentPosition(b);
-        if (r == 2 || r == 8) return 1;
-        if (r == 4 || r == 16) return -1;
+
+        // DOCUMENT_POSITION_DISCONNECTED	1
+        // DOCUMENT_POSITION_PRECEDING	2
+        // DOCUMENT_POSITION_FOLLOWING	4
+        // DOCUMENT_POSITION_CONTAINS	8
+        // DOCUMENT_POSITION_CONTAINED_BY	16
+        // DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC	32
+        if (r & 2 || r & 8) return 1;
+        if (r & 1 || r & 4 || r & 16) return -1;
+
         return 0;
+
     }
 
 
@@ -590,6 +602,51 @@ define([
     //////////////////////////////////////////////////////////
     // TRAVERSAL FUNCTIONS
     //////////////////////////////////////////////////////////
+    /**
+     * .parent() - get parentElement
+     */
+    function get_parent(selector) {
+        return do_traversal_helper(this, selector, 0);
+    }
+
+    /**
+     * .offsetParent() - get offsetParent
+     */
+    function get_offset_parent(selector) {
+        return do_traversal_helper(this, selector, 1);
+    }
+
+    /**
+     * .closest() - get closest element matches selector
+     */
+    function get_closest(selector) {
+        return do_traversal_helper(this, selector, 2);
+    }
+
+    /**
+     * .get_children() - get children
+     */
+    function get_children(selector) {
+        return do_traversal_helper(this, selector, 3);
+    }
+
+    /**
+     * .prev() - get previousElementSibling
+     */
+    function get_prev(selector) {
+        return do_traversal_helper(this, selector, 4);
+    }
+
+    /**
+     * .next() - get nextElementSibling
+     */
+    function get_next(selector) {
+        return do_traversal_helper(this, selector, 5);
+    }
+
+
+    var TRAVERSE_FUNC = [func_get_parent, func_get_offset_parent, func_get_closest, func_get_children, func_get_prev, func_get_next];
+    var TRAVERSE_TAG = ['parent', 'offsetParent', 'closest', 'children', 'prev', 'next'];
 
     /**
      * Helper function for batch traversing
@@ -598,34 +655,14 @@ define([
 
         selector = selector || false;
 
-        var prefix = '.parent(';  // type == 0
-        var get_func = func_get_parent;
-
-        // generate a unique operation id for duplicate-check
-        var opid = tiny.guid();
-        var filter = selector ? traversal_match_filter.bind(selector) : false;
-
-        if (type == 1) {
-            get_func = func_get_offset_parent;
-            prefix = '.offsetParent(';
-        } else if (type == 2) {
-            if (!selector) {
-                _error(TAG_Q, 'Expect a selector for closest()');
-                throw new SyntaxError(G.SEE_ABOVE);
-            }
-            get_func = func_get_closest;
-            prefix = '.closest(' + selector;
-        } else if (type == 3) {
-            get_func = func_get_children;
-            prefix = '.children(' + selector;
-        } else if (type == 4) {
-            get_func = func_get_prev;
-            prefix = '.prev(';
-        } else if (type == 5) {
-            get_func = func_get_next;
-            prefix = '.next(';
+        if (type == 2 && !selector) {
+            _error(TAG_Q, 'Expect a selector for closest()');
+            throw new SyntaxError(G.SEE_ABOVE);
         }
 
+        var get_func = TRAVERSE_FUNC[type];
+        var filter = selector ? traversal_match_filter.bind(selector) : false;
+        var opid = tiny.guid();  // generate a unique operation id for duplicate-check
 
         // do the work
         var arr = [];
@@ -649,15 +686,22 @@ define([
             }
         }
 
-        return create_tinyq(arr, tinyq.chain + prefix + ')');
+        // sort nodes to document order
+        if (type < 3) arr = arr.sort(compare_node_position);
+
+        var tag = '.' + TRAVERSE_TAG[type] + '(' + (selector ? selector : '') + ')';
+
+        return create_tinyq(arr, tinyq.chain + tag);
 
     }
 
+    // filter helper
     function traversal_match_filter(node) {
         if (!node) return false;
         return node.matches(this);
     }
 
+    // action functions
     function func_get_parent(node, filter) {
         var r = node.parentElement;
         if (filter && !filter(r)) return false;
@@ -665,6 +709,7 @@ define([
     }
     function func_get_offset_parent(node, filter) {
         var r = node.offsetParent;
+        if (!r) r = node.ownerDocument.documentElement;
         if (filter && !filter(r)) return false;
         return r;
     }
@@ -696,92 +741,47 @@ define([
         return r;
     }
 
-    /**
-     * .parent() - get parentElement
-     */
-    function get_parent(selector) {
-        var r = do_traversal_helper(this, selector, 0);
-        r.nodes.sort(compare_node_position);
-        return r;
-    }
-
-    /**
-     * .offsetParent() - get offsetParent
-     */
-    function get_offset_parent(selector) {
-        var r = do_traversal_helper(this, selector, 1);
-        r.nodes.sort(compare_node_position);
-        return r;
-    }
-
-    /**
-     * .closest() - get closest element matches selector
-     */
-    function get_closest(selector) {
-        var r = do_traversal_helper(this, selector, 2);
-        r.nodes.sort(compare_node_position);
-        return r;
-    }
-
-    /**
-     * .get_children() - get children
-     */
-    function get_children(selector) {
-        return do_traversal_helper(this, selector, 3);
-    }
-
-    /**
-     * .prev() - get previousElementSibling
-     */
-    function get_prev(selector) {
-        return do_traversal_helper(this, selector, 4);
-    }
-
-    /**
-     * .next() - get nextElementSibling
-     */
-    function get_next(selector) {
-        return do_traversal_helper(this, selector, 5);
-    }
-
-
 
     //////////////////////////////////////////////////////////
     // DOM MANIPULATE FUNCTIONS
     //////////////////////////////////////////////////////////
-
     /**
      * .append() obj /////////////////////////////////
      */
     function append_child(obj, attrs) {
-        return add_nodes_helper.call(this, obj, attrs, 0);
+        return append_children_helper.call(this, obj, attrs, 0);
     }
 
     /**
      * .prepend() obj /////////////////////////////////
      */
     function prepend_child(obj, attrs) {
-        return add_nodes_helper.call(this, obj, attrs, 1);
+        return append_children_helper.call(this, obj, attrs, 1);
     }
 
     /**
      * .after() insert obj after this /////////////////////////////////
      */
     function insert_after_this(obj, attrs) {
-        return add_nodes_helper.call(this, obj, attrs, 2);
+        return append_children_helper.call(this, obj, attrs, 2);
     }
 
     /**
      * .before() insert obj before this /////////////////////////////////
      */
     function insert_before_this(obj, attrs) {
-        return add_nodes_helper.call(this, obj, attrs, 3);
+        return append_children_helper.call(this, obj, attrs, 3);
     }
 
+
+    var APPEND_FUNC = [node_append_func, node_prepend_func, node_insert_after_func, node_insert_before_func];
+    var APPEND_LOOP_DIRECTION = [0, 1, 1, 0];
+    var APPEND_LOOP_FUNC = [forward_loop_func, backward_loop_func];
+
     /**
-     * Add children to nodes
+     * Append children to nodes
      */
-    function add_nodes_helper(obj, attrs, type) {
+    function append_children_helper(obj, attrs, type) {
 
         var tinyq = this;
 
@@ -800,23 +800,14 @@ define([
         }
 
         // determine action type
-        var action = node_append_func; // type == 0
-        var loop = forward_loop_func;
-        if (type == 1) {
-            action = node_prepend_func;
-            loop = backward_loop_func;
-        } else if (type == 2) {
-            action = node_insert_after_func;
-            loop = backward_loop_func;
-        } else if (type == 3) {
-            action = node_insert_before_func;
-        }
+        var action_func = APPEND_FUNC[type];
+        var loop_func = APPEND_LOOP_FUNC[APPEND_LOOP_DIRECTION[type]];
 
         // append child
         for (var this_nodes = tinyq.nodes, i = 0, len = this_nodes.length, end = len - 1, require_clone = len > 1; i < len; ++i) {
             var this_node = get_valid_element(this_nodes[i]);
             if (!this_node) continue;
-            loop(obj, end, require_clone && i != end, this_node, action);
+            loop_func(obj, end, require_clone && i != end, this_node, action_func);
         }
 
         return tinyq;

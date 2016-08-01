@@ -348,7 +348,7 @@ define([
             return x.offsetParent();
         },
         function () {
-            return y.offsetParent();
+            return $.uniqueSort(y.offsetParent());
         });
 
     do_test('.closest()', 10,
