@@ -536,6 +536,7 @@ define([
 
     /**
      * set node visibility by style.display
+     * TODO: use 'box-supress: hide' when all essential browsers supports it
      */
     function set_visibility(nodes, type) {
 
@@ -574,10 +575,11 @@ define([
     }
 
     var _default_display_style = {};
+    var INLINE_ELEMENTS = ',B,BIG,I,SMALL,TT,ABBR,ACRONYM,CITE,CODE,DFN,EM,KBD,STRONG,SAMP,TIME,VAR,A,BDO,BR,IMG,MAP,OBJECT,Q,SCRIPT,SPAN,SUB,SUP,';
+    var INLINE_BLOCK_ELEMENTS = ',BUTTON,INPUT,LABEL,SELECT,TEXTAREA,';
 
     /**
      * get default style of given type of element
-     * TODO: should be replaced with 'display: unset' when all essential browsers supports it
      */
     function get_default_display_style(node, key) {
 
@@ -590,19 +592,19 @@ define([
         // use a temporary element t oget default style
         var doc = node.ownerDocument;
         var elem = doc.body.appendChild(doc.createElement(tag));
-        
         var display = _getComputedStyle(elem)[key];
-        var none = 'none';
-
-        if (display == none) {
-            // try 'initial'
-            elem.style.setProperty(key, 'initial', 'important');
-            display = _getComputedStyle(elem)[key];
-            // fallback to 'block;
-            if (display == none) display = 'block';
-        }
-
         doc.body.removeChild(elem);
+
+        if (display == 'none') {
+            // use our list in case somebody have 'tagname { display: none }' definition in css file
+            if (INLINE_ELEMENTS.includes(tag)) {
+                display = 'inline';
+            } else if (INLINE_BLOCK_ELEMENTS.includes(tag)) {
+                display = 'inline-block';
+            } else {
+                display = 'block';
+            }
+        }
 
         // save to cache
         _default_display_style[tag] = display;
