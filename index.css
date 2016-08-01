@@ -155,9 +155,6 @@ pre.html-fragment{
 pre.failed{
 	border-color: #c33;
 }
-code{
-	display: none;
-}
 
 pre.collapse{
 	cursor: pointer;

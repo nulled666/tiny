@@ -190,7 +190,7 @@ require([
         function () {
             return x.style({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
-                'user-select': 'none'
+                'user-select': 'none!'
             });
         },
         function () {
@@ -224,18 +224,14 @@ require([
 
     _warn('show/hide ------------------')
 
-    do_test('.style({key: null})', 100,
+    do_test('.show/hide()', 100,
         function () {
-            return x.style({
-                'text-shadow': null,
-                'user-select': null
-            });
+            x.hide();
+            return x.show();
         },
         function () {
-            return y.css({
-                'text-shadow': null,
-                'user-select': null
-            });
+            y.hide();
+            return y.show();
         });
 
     _warn('class ------------------')

@@ -64,13 +64,14 @@ define([
         setAttributes: set_node_attributes
     });
 
-    var _error = tiny.error;
+
     var _parseFloat = parseFloat;
-    var _getComputedStyle = window.getComputedStyle;
-    var _get_valid_element = TinyQ.x.getElement;
+
+    var _error = tiny.error;
 
     var TAG_Q = TinyQ.x.TAG;
     var DISPLAY_MARK = 'tinyq-DISPLAY';
+    var _get_valid_element = TinyQ.x.getElement;
 
 
     /**
@@ -279,10 +280,10 @@ define([
             // get style list
             if (key === undefined) return node.style;
             // get all computed style
-            if (key === true) return _getComputedStyle(node);
+            if (key === true) return get_computed_style(node);
             // always return computed style
             key = check_style_key(key);
-            return _getComputedStyle(node)[key];
+            return get_computed_style(node)[key];
         } else {
             for (var key in value) {
                 set_style(node, key, value[key]);
@@ -295,13 +296,36 @@ define([
         key = check_style_key(key);
         if (val == null) val = '';
 
-        var priority = '';
+        var important;
         if (val.endsWith('!')) {
             val = val.substring(0, val.length - 1);
-            priority = 'important';
+            important = true;
         }
 
-        node.style.setProperty(key, val, priority);
+        node.style[key] = val;
+
+        // NOTE: some property like textShadow can not be applied with setProperty()
+        if (important)
+            node.style.setProperty(key, val, 'important');
+
+    }
+
+
+    /**
+     * get node's parent view
+     */
+    function get_parent_view(node) {
+        var view = node.ownerDocument.defaultView;
+        // NOTE: safety check code from jquery
+        if (!view || !view.opener) view = window;
+        return view;
+    }
+
+    /**
+     * get computed style for element
+     */
+    function get_computed_style(node) {
+        return get_parent_view(node).getComputedStyle(node);
     }
 
     // helper for convert vendor-prefixed style name
@@ -331,6 +355,7 @@ define([
     }
 
     function capital_first(key) {
+        if (key.length < 1) return ley;
         return key.charAt(0).toUpperCase() + key.slice(1);
     }
 
@@ -516,61 +541,62 @@ define([
      * .show()
      */
     function show_node() {
-        return set_visibility(this.nodes, 1);
+        return set_nodes_display(this, 1);
     }
 
     /**
      * .hide()
      */
     function hide_node() {
-        return set_visibility(this.nodes, 0);
+        return set_nodes_display(this, 0);
     }
 
     /**
      * .toggle()
      */
     function toggle_node() {
-        return set_visibility(this.nodes, -1);
+        return set_nodes_display(this, -1);
     }
 
+    // helper function
+    function set_nodes_display(tinyq, type) {
+        var nodes = tinyq.nodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = _get_valid_element(nodes[i]);
+            if (!node) continue;
+            set_display(node, type);
+        }
+        return tinyq;
+    }
 
     /**
      * set node visibility by style.display
      * TODO: use 'box-supress: hide' when all essential browsers supports it
      */
-    function set_visibility(nodes, type) {
+    function set_display(node, type) {
 
         var key = 'display';
+        var computed_display = get_computed_style(node)[key];
+        var style_display = node.style[key];
 
-        for (var i = 0, len = nodes.length; i < len; ++i) {
+        // translate toggle to actual show/hide
+        if (type == -1) type = computed_display == 'none' ? 1 : 0;
 
-            var node = _get_valid_element(nodes[i]);
-            if (!node) continue;
+        // skip no-action situations
+        if (type == 1 && computed_display != 'none') return;
+        if (type == 0 && computed_display == 'none') return;
 
-            var computed_display = _getComputedStyle(node)[key];
-            var style_display = node.style[key];
-            var action = type; // make a copy for this node, might modifiy it later
-
-            // translate toggle to actual show/hide
-            if (action == -1) action = computed_display == 'none' ? 1 : 0;
-
-            // skip no-action situations
-            if (action == 1 && computed_display != 'none') continue;
-            if (action == 0 && computed_display == 'none') continue;
-
-            if (action == 1) {
-                //==> show
-                var mark = node[DISPLAY_MARK]; // read original display style value
-                action = mark != undefined ? mark : get_default_display_style(node, key);
-            } else if (action == 0) {
-                //==> hide
-                node[DISPLAY_MARK] = style_display; // save display style value
-                action = 'none';
-            }
-
-            node.style.setProperty(key, action);
-
+        if (type == 1) {
+            //==> show
+            var mark = node[DISPLAY_MARK]; // read original display style value
+            type = mark != undefined ? mark : get_default_display_style(node, key);
+        } else if (type == 0) {
+            //==> hide
+            node[DISPLAY_MARK] = style_display; // save display style value
+            type = 'none';
         }
+
+        node.style[key] = type;
 
     }
 
@@ -592,7 +618,7 @@ define([
         // use a temporary element t oget default style
         var doc = node.ownerDocument;
         var elem = doc.body.appendChild(doc.createElement(tag));
-        var display = _getComputedStyle(elem)[key];
+        var display = get_computed_style(elem)[key];
         doc.body.removeChild(elem);
 
         if (display == 'none') {
@@ -643,7 +669,7 @@ define([
 
         var delta = DEFAULT_BOUND();
         var side_list = ['Top', 'Right', 'Bottom', 'Left'];
-        var style = _getComputedStyle(node);
+        var style = get_computed_style(node);
 
         var types = type.split(',');
         var len = types.length;
@@ -713,7 +739,7 @@ define([
         node = _get_valid_element(node);
         if (!node) return rect_obj;
 
-        var style = _getComputedStyle(node);
+        var style = get_computed_style(node);
 
         // get absolute position for fixed element
         if (style['position'] == 'fixed')
@@ -724,8 +750,9 @@ define([
             pos.y = check_offset_pos(node.offsetTop);
         } else {
             var rect = get_bounding_rect(node);
-            pos.x = rect.left + window.pageXOffset;
-            pos.y = rect.top + window.pageYOffset;
+            var view = get_parent_view(node);
+            pos.x = rect.left + view.pageXOffset;
+            pos.y = rect.top + view.pageYOffset;
         }
 
         return pos;
@@ -773,7 +800,7 @@ define([
         var POS_KEY = { x: 'Left', y: 'Top' };
         var IS_ABSOLUTE_POS_MODE = { absolute: 1, fixed: 1 };
 
-        var style = _getComputedStyle(node);
+        var style = get_computed_style(node);
         var is_absolute_pos_mode = IS_ABSOLUTE_POS_MODE[style['position']];
         var pos_style = style['position'];
 
@@ -929,7 +956,7 @@ define([
         var BORDER_BOX_BOUND_DELTA = { padding: 'border', margin: 'margin' };
         var CONTENT_BOX_BOUND_DELTA = { padding: 'padding', border: 'border,padding', margin: 'all' };
 
-        var style = _getComputedStyle(node);
+        var style = get_computed_style(node);
         var is_border_box = style['boxSizing'] == 'border-box';
         var delta;
         var sign = 1;

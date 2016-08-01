@@ -33,17 +33,20 @@ function test_code() {
 
     require([
         'tinyq.test',
-        'tinyq.test.base',
-        //'tinyq.test.prop',
+        //'tinyq.test.base',
+        'tinyq.test.prop',
     ], function (do_test) {
 
         _warn('---------')
 
-        var x = _q('code');
-        var y = $('code');
+        var x = _q('h3');
+        var y = $('h3');
+        
+        // x.style('text-shadow', '0 3px 5px rgba(0,0,0,0.3)!');
+        // _log(x.style('textShadow'));
 
-        //x.hide();
-        x.show();
+        // x.style('text-shadow', null);
+        // _log(x.style('textShadow'));
 
         _warn('---------')
 
