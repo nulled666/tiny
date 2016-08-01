@@ -600,9 +600,9 @@ define([
 
     }
 
+    var INLINE_ELEMENTS = ',SPAN,B,I,CODE,EM,STRONG,A,BR,IMG,LABEL,OBJECT,SUB,SUP,';
+    var INLINE_BLOCK_ELEMENTS = ',BUTTON,INPUT,SELECT,TEXTAREA,';
     var _default_display_style = {};
-    var INLINE_ELEMENTS = ',B,BIG,I,SMALL,TT,ABBR,ACRONYM,CITE,CODE,DFN,EM,KBD,STRONG,SAMP,TIME,VAR,A,BDO,BR,IMG,MAP,OBJECT,Q,SCRIPT,SPAN,SUB,SUP,';
-    var INLINE_BLOCK_ELEMENTS = ',BUTTON,INPUT,LABEL,SELECT,TEXTAREA,';
 
     /**
      * get default style of given type of element
@@ -622,7 +622,9 @@ define([
         doc.body.removeChild(elem);
 
         if (display == 'none') {
-            // use our list in case somebody have 'tagname { display: none }' definition in css file
+            // somebody have 'tagname { display: none }' definition in css file
+            // use our short lists to determine default value
+            var tag = ',' + tag + ',';
             if (INLINE_ELEMENTS.includes(tag)) {
                 display = 'inline';
             } else if (INLINE_BLOCK_ELEMENTS.includes(tag)) {
