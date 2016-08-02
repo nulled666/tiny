@@ -383,17 +383,17 @@ require([
 
     _warn('positions ------------------')
 
-    do_test('.pos().x', 100,
+    do_test('.pos().left', 100,
         function () {
-            return x.pos().x;
+            return x.pos().left;
         },
         function () {
             return y.position().left + parseFloat(y.css('margin-left'));
         });
 
-    do_test('.pos().y', 100,
+    do_test('.pos().top', 100,
         function () {
-            return x.pos().y;
+            return x.pos().top;
         },
         function () {
             return parseInt(y.position().top) + parseFloat(y.css('margin-top'));
@@ -407,17 +407,17 @@ require([
             return y.css('left', 40).css('top', 60);
         });
 
-    do_test('.pos().x', 100,
+    do_test('.pos().left', 100,
         function () {
-            return x.pos().x;
+            return x.pos().left;
         },
         function () {
             return y.position().left + parseFloat(y.css('margin-left'));
         });
 
-    do_test('.pos().y', 100,
+    do_test('.pos().top', 100,
         function () {
-            return x.pos().y;
+            return x.pos().top;
         },
         function () {
             return parseInt(y.position().top) + parseFloat(y.css('margin-top'));

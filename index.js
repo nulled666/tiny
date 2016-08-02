@@ -33,15 +33,17 @@ function test_code() {
 
     require([
         'tinyq.test',
-        'tinyq.test.base',
-        //'tinyq.test.prop',
+        //'tinyq.test.base',
+        'tinyq.test.prop',
     ], function (do_test) {
 
         _warn('---------')
 
-        var x = _q('.token');
+        var x = _q('.run-code');
         var y = $('.token');
         
+
+        //_log(x.box('margin', {width: 700, height: 20}))
 
         _warn('---------')
 
