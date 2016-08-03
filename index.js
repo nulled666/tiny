@@ -39,11 +39,10 @@ function test_code() {
 
         _warn('---------')
 
-        var x = _q('.run-code');
-        var y = $('.token');
-        
+        var x = _q('h3');
+        var y = $('h3');
 
-        //_log(x.box('margin', {width: 700, height: 20}))
+        //_log(x.prop('innerHTML'))
 
         _warn('---------')
 

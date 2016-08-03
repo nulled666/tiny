@@ -11,16 +11,6 @@ define([
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
 
-        text: access_text,
-        innerText: access_inner_text,
-        html: access_html,
-        outerHTML: access_outer_html,
-        val: access_value,
-
-        attr: access_attribute,
-        prop: access_property,
-
-        style: access_style,
         class: process_class,
 
         show: show_node,
@@ -74,10 +64,61 @@ define([
     var _get_valid_element = TinyQ.x.getElement;
 
 
+    //////////////////////////////////////////////////////////
+    // BASIC PROPERTY ACCESS METHODS
+    //////////////////////////////////////////////////////////
+
+    var ACCESS_METHOD_LIST = {
+
+        // f: access function handlers
+        // k: pre-defined key for single parameter methods. If not set, generate a two parameter (key, value) method.
+        // a: read action loop throught all nodes. defualt is read from first one only.
+        // p: value prepare function for write action
+
+        'text': { f: access_text, k: 0, a: true },
+        'innerText': { f: access_text, k: 1, a: true },
+        'html': { f: access_html, k: 0 },
+        'outerHTML': { f: access_html, k: 1 },
+
+        'value': { f: access_value },
+        'attr': { f: access_attribute },
+        'prop': { f: access_property },
+        'style': { f: access_style, p: prepare_style_value }
+
+    }
+
+    // append to definition
+    extend_access_methods(TinyQ.prototype);
+
+    function extend_access_methods(def) {
+        for (var method in ACCESS_METHOD_LIST) {
+            def[method] = generate_access_method(ACCESS_METHOD_LIST[method]);
+        }
+    }
+
+    // generate access method handlers
+    function generate_access_method(def) {
+
+        if (def.k != undefined) {
+            // ==> .method(value)
+            return function (value) {
+                return access_helper(this, def.f, def.k, value, def.p, def.a);
+            }
+        } else {
+            // ==> .method(key, value)
+            return function (key, value) {
+                value = prepare_2_parameters(key, value);
+                return access_helper(this, def.f, key, value, def.p);
+            }
+        }
+
+    }
+
+    //////////////////////////////////////////////////////////
     /**
      * get/set method helper function
      */
-    function access_helper(tinyq, key, value, func, read_one) {
+    function access_helper(tinyq, func_action, key, value, func_prepare_value, read_all) {
 
         var nodes = tinyq.nodes;
         var is_read = false;
@@ -85,16 +126,23 @@ define([
         if (value === undefined) is_read = true;
 
         var node_len = nodes.length;
-        if (is_read && read_one && nodes.length > 1) node_len = 1;
+
+        // read first node only if read_all== false
+        if (is_read && !read_all && nodes.length > 1)
+            node_len = 1;
+
+        // prepare value if func_prepare is given
+        if (!is_read && func_prepare_value)
+            value = func_prepare_value(value);
 
         var result = '';
         for (var i = 0, len = node_len; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
             if (is_read) {
-                result = func(node, key, result, is_read);
+                result = func_action(node, key, result, is_read);
             } else {
-                func(node, key, value);
+                func_action(node, key, value);
             }
         }
 
@@ -103,9 +151,9 @@ define([
     }
 
     /**
-     * process {} batch parameter for supported methods
+     * prepare parameters for two-parameter methods
      */
-    function process_batch_parameter(key, value, is_style) {
+    function prepare_2_parameters(key, value, is_style) {
         if (typeof key == 'object') {
             value = key;
             key = 0;
@@ -126,24 +174,12 @@ define([
         return value;
     }
 
-    //////////////////////////////////////////////////////////
-    // TEXT CONTENT & HTML
+
     //////////////////////////////////////////////////////////
     /**
-     * .text()
+     * .text() .innerText()
      */
-    function access_text(value) {
-        return access_helper(this, 0, value, func_access_text);
-    }
-
-    /**
-     * .innerText()
-     */
-    function access_inner_text(value) {
-        return access_helper(this, 1, value, func_access_text);
-    }
-
-    function func_access_text(node, key, val, is_get) {
+    function access_text(node, key, val, is_get) {
         if (is_get) {
             val += key ? node.innerText : node.textContent;
             return val;
@@ -158,23 +194,10 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // HTML
-    //////////////////////////////////////////////////////////
     /**
-     * .html()
+     * .html() .outerHTML()
      */
-    function access_html(value) {
-        return access_helper(this, 0, value, func_access_html, 1);
-    }
-
-    /**
-     * .outerHTML()
-     */
-    function access_outer_html(value) {
-        return access_helper(this, 1, value, func_access_html, 1);
-    }
-
-    function func_access_html(node, key, val, is_get) {
+    function access_html(node, key, val, is_get) {
         if (is_get) {
             return key ? node.outerHTML : node.innerHTML;
         } else {
@@ -187,17 +210,12 @@ define([
         }
     }
 
-    //////////////////////////////////////////////////////////
-    // VALUES
+
     //////////////////////////////////////////////////////////
     /**
-     * .val()
+     * .value()
      */
-    function access_value(value) {
-        return access_helper(this, 0, value, func_access_value, 1);
-    }
-
-    function func_access_value(node, key, val, is_get) {
+    function access_value(node, key, val, is_get) {
         if (is_get) {
             // TODO
         } else {
@@ -206,17 +224,10 @@ define([
     }
 
     //////////////////////////////////////////////////////////
-    // ATTRIBUTES
-    //////////////////////////////////////////////////////////
     /**
      * .attr()
      */
-    function access_attribute(key, value) {
-        value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, func_access_attribute, 1);
-    }
-
-    function func_access_attribute(node, key, val, is_get) {
+    function access_attribute(node, key, val, is_get) {
         if (is_get) {
             return key === undefined ? node.attributes : node.getAttribute(key);
         } else {
@@ -241,17 +252,10 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // PROPERTIES
-    //////////////////////////////////////////////////////////
     /**
      * .prop()
      */
-    function access_property(key, value) {
-        value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, func_access_prop, 1);
-    }
-
-    function func_access_prop(node, key, value, is_get) {
+    function access_property(node, key, value, is_get) {
         if (is_get) {
             return node[key];
         } else {
@@ -268,14 +272,10 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // CSS STYLE
-    //////////////////////////////////////////////////////////
-    function access_style(key, value) {
-        value = process_batch_parameter(key, value);
-        return access_helper(this, key, value, func_access_style, 1);
-    }
-
-    function func_access_style(node, key, value, is_get) {
+    /**
+     * .style()
+     */
+    function access_style(node, key, value, is_get) {
         if (is_get) {
             // get style list
             if (key === undefined) return node.style;
@@ -285,33 +285,23 @@ define([
             key = check_style_key(key);
             return key ? get_computed_style(node)[key] : undefined;
         } else {
-            for (var key in value) {
-                set_style(node, key, value[key]);
+            var i = value.length, item;
+            while (item = value[--i]) {
+                set_style(node, item[0], item[1], item[2]);
             }
         }
     }
 
-    function set_style(node, key, val) {
-
-        key = check_style_key(key);
-        if (!key) return;
-
-        if (val == null) val = '';
-
-        var important;
-        if (val.endsWith('!')) {
-            val = val.substring(0, val.length - 1);
-            important = true;
-        }
-
+    /**
+     * set node style
+     */
+    function set_style(node, key, val, important) {
         node.style[key] = val;
-
-        // NOTE: some property like textShadow can not be applied with setProperty()
-        if (important)
-            node.style.setProperty(key, val, 'important');
-
+        // we need this to set '!important' style
+        // NOTE: some properties cannot be set with setProperty()
+        // e.g. textShadow, userSelect
+        if (important) node.style.setProperty(key, val, 'important');
     }
-
 
     /**
      * get node's parent view
@@ -329,6 +319,36 @@ define([
     function get_computed_style(node) {
         return get_parent_view(node).getComputedStyle(node);
     }
+
+    /**
+     * prepare style value input before the write loop
+     */
+    function prepare_style_value(value) {
+
+        var list = [];
+
+        for (var key in value) {
+
+            var val = value[key], important;
+
+            key = check_style_key(key);
+            if (!key) continue;
+
+            if (val == null) {
+                val = '';
+            } else if (val.endsWith('!')) {
+                val = val.substring(0, val.length - 1);
+                important = true;
+            }
+
+            list.push([key, val, important]);
+
+        }
+
+        return list;
+
+    }
+
 
     // helper for convert vendor-prefixed style name
     var BASE_STYLE_LIST = document.createElement('div').style;
@@ -384,7 +404,7 @@ define([
         return key.join('');
 
     }
-
+    
 
     //////////////////////////////////////////////////////////
     // CSS CLASS
@@ -889,7 +909,7 @@ define([
 
         // use default type if not set
         if (!type) type = 'border';
-        
+
 
         var tinyq = this;
         var nodes = tinyq.nodes;

@@ -130,8 +130,6 @@ require([
 
     _warn('property ------------------')
 
-    var nodes = document.querySelectorAll('h3');
-
     do_test('.prop()', 1000,
         function () {
             return x.prop('innerHTML');
@@ -190,13 +188,15 @@ require([
         function () {
             return x.style({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
-                'user-select': 'none!'
+                'user-select': 'none!',
+                color: 'red!'
             });
         },
         function () {
             return y.css({
                 'text-shadow': '0 3px 5px rgba(0,0,0,0.3)',
-                'user-select': 'none'
+                'user-select': 'none',
+                color: 'red'
             });
         });
 
@@ -212,13 +212,15 @@ require([
         function () {
             return x.style({
                 'text-shadow': null,
-                'user-select': null
+                'user-select': null,
+                color: null
             });
         },
         function () {
             return y.css({
                 'text-shadow': null,
-                'user-select': null
+                'user-select': null,
+                color: null
             });
         });
 
