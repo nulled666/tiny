@@ -1055,19 +1055,18 @@ define([
     function generate_dimension_method(prefix, type) {
         if (prefix == 2) prefix = 3; // outer == offset
         return function (val) {
-            return access_dimension.call({
-                q: this,
-                p: prefix,
-                t: type
-            }, val)
+            return access_dimension(this, prefix, type, val);
         }
     }
 
     /**
      * access function for dimension methods
      */
-    function access_dimension(value) {
-        var tinyq = this.q, prefix = DIM_PREFIX[this.p], type = DIM_TYPE[this.t];
+    function access_dimension(tinyq, prefix, type, value) {
+
+        prefix = DIM_PREFIX[prefix];
+        type = DIM_TYPE[type];
+
         if (value == undefined) {
             // => get 
             return get_dimension(tinyq.nodes[0], prefix, type);
