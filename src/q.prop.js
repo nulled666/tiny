@@ -91,8 +91,8 @@ define([
 
         // f: access function handlers
         // k: pre-defined key for single parameter methods. If not set, generate a two parameter (key, value) method.
-        // a: read action loop throught all nodes. defualt is read from first one only.
-        // p: value prepare function for write action
+        // a: loop throught all nodes in get action. defualt is get from first element only.
+        // p: value prepare function for set action
 
         'text': { f: access_text, k: 0, a: true },
         'innerText': { f: access_text, k: 1, a: true },
@@ -757,7 +757,7 @@ define([
     }
 
     /**
-     * access function for .po() & .box()
+     * access function for .pos() & .box()
      */
     function access_box_helper(func, func_type, func_value, args) {
 

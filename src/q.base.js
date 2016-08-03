@@ -286,7 +286,7 @@ define([
             return get_by_index.call(this, selector);
 
         if (type != 'string') {
-            _error(TinyQ.x.TAG, 'Expect a selector string. > Got "' + type + '": ', selector);
+            _error(TAG_Q, 'Expect a selector string. > Got "' + type + '": ', selector);
             throw new TypeError(G.SEE_ABOVE);
         }
 
@@ -891,7 +891,7 @@ define([
      */
     function get_elem_by_index(index) {
         if (typeof index != 'number') {
-            _error(TinyQ.x.TAG, 'Expect an index number. > Got "' + typeof index + '": ', index);
+            _error(TAG_Q, 'Expect an index number. > Got "' + typeof index + '": ', index);
             throw new TypeError(G.SEE_ABOVE);
         }
         var nodes = this.nodes;
@@ -905,7 +905,7 @@ define([
     function get_by_index(index) {
 
         var tinyq = this;
-        var nodes = this.nodes;
+        var nodes = tinyq.nodes;
         var node = get_elem_by_index.call(tinyq, index);
         node = node ? [node] : [];
 
