@@ -12,7 +12,7 @@ define([
     tiny.extend(TinyQ.prototype, {
 
         /**
-         * following dimension methods are extended in extend_size_methods():
+         * following methods are extended in extend_access_methods():
          * 
          *   text()       - get/set node.textContent (get result includes all nodes)
          *   innerText()  - get/set node.innerText (get result includes all nodes)
@@ -27,11 +27,16 @@ define([
          * 
          */
 
-        class: process_class,
+        class: access_class, // this one is special
 
-        show: show_node,
-        hide: hide_node,
-        toggle: toggle_node,
+        /**
+         * following methods are extended in extend_display_methods():
+         * 
+         *   show()       - show node by setting node.style.display
+         *   hide()       - hide node by setting node.style.display
+         *   toggle()     - toggle node node.style.display state
+         * 
+         */
 
         boundWidth: get_bound_width, // get style border/padding/margin width
 
@@ -423,35 +428,28 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // CSS CLASS
-    //////////////////////////////////////////////////////////
     /**
-     * .class() method
+     * .class()
      */
-    function process_class(action_str) {
+    function access_class(action_str) {
 
         // simple return the class attribute
-        if (action_str === undefined) return this.attr('class');
+        if (action_str === undefined)
+            return this.attr('class');
 
-        if (typeof action_str != 'string') {
-            _error(TAG_Q, 'Expect a class string. > Got "' + typeof action_str + '": ', action_str);
-            throw new TypeError(G.SEE_ABOVE);
-        }
-
-        // a little startup overhead (for the flexible syntax)
-        var actions = prepare_class_actions(action_str);
-        var has_do = actions.do.length > 0;
-        var has_check = !!(actions.check);
+        // prepare actions (a little startup overhead for the flexible syntax)
+        var actions = prepare_class_value(action_str);
+        var has_check = !!(actions.is);
         var result = false;
 
         for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
-            var r = do_class_actions(node, actions.do, actions.check);
+            var r = do_class_actions(node, actions.do, actions.is);
             if (r == true) {
                 result = true;
-                if (!has_do) break;      // check only - jump out
-                actions.check = false;  // suppress further check
+                if (!actions.do) break;      // check only - jump out
+                actions.is = false;  // suppress further check
             }
         }
 
@@ -462,7 +460,12 @@ define([
     /**
      * Prepare the action list for className change
      */
-    function prepare_class_actions(str) {
+    function prepare_class_value(str) {
+
+        if (typeof str != 'string') {
+            _error(TAG_Q, 'Expect a class string. > Got "' + typeof str + '": ', str);
+            throw new TypeError(G.SEE_ABOVE);
+        }
 
         var def_sign;
         if (str.charAt(1) == ':') {
@@ -496,7 +499,7 @@ define([
         var actions = [];
 
         // extract check last
-        var check_list = list['?'];
+        var is_list = list['?'];
         delete list['?'];
 
         for (var sign in list) {
@@ -504,9 +507,14 @@ define([
             if (item) actions.push(CLASS_ACTIONS[sign].bind(item));
         }
 
-        return { do: actions, check: check_list };
+        return {
+            do: actions.length > 0 ? actions : false,
+            is: is_list
+        };
 
     }
+
+
 
     /**
      * class actions executor
@@ -583,28 +591,27 @@ define([
     //////////////////////////////////////////////////////////
     // SHOW/HIDE/TOGGLE
     //////////////////////////////////////////////////////////
-    /**
-     * .show()
-     */
-    function show_node() {
-        return set_nodes_display(this, 1);
+
+    var DISPLAY_METHOD_LIST = {
+        'show': 1,
+        'hide': 0,
+        'toggle': -1
+    };
+
+    // append to definition
+    extend_display_methods(TinyQ.prototype);
+
+    function extend_display_methods(def) {
+        for (var method in DISPLAY_METHOD_LIST) {
+            def[method] = function () {
+                return set_nodes_display(this, DISPLAY_METHOD_LIST[method]);
+            }
+        }
     }
 
     /**
-     * .hide()
+     * .show() .hide() .toggle()
      */
-    function hide_node() {
-        return set_nodes_display(this, 0);
-    }
-
-    /**
-     * .toggle()
-     */
-    function toggle_node() {
-        return set_nodes_display(this, -1);
-    }
-
-    // helper function
     function set_nodes_display(tinyq, type) {
         var nodes = tinyq.nodes;
         for (var i = 0, len = nodes.length; i < len; ++i) {
