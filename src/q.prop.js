@@ -12,7 +12,7 @@ define([
     tiny.extend(TinyQ.prototype, {
 
         /**
-         * following methods are extended in extend_access_methods():
+         * following methods are extended in extend_basic_methods():
          * 
          *   text()       - get/set node.textContent (get result includes all nodes)
          *   innerText()  - get/set node.innerText (get result includes all nodes)
@@ -29,7 +29,7 @@ define([
         class: access_class,
 
         /**
-         * following methods are extended in extend_display_methods():
+         * following methods are extended with extend_display_methods():
          * 
          *   show()       - show node by setting node.style.display
          *   hide()       - hide node by setting node.style.display
@@ -40,7 +40,7 @@ define([
         boundWidth: get_bound_width, // get style border/padding/margin width
 
         /**
-         * following dimension methods are extended in extend_box_methods():
+         * following methods are extended with extend_box_methods():
          *   pos()      - get/set node position
          *   box()      - get/set/ node box size
          * 
@@ -53,7 +53,7 @@ define([
          */
 
         /**
-         * following dimension methods are extended in extend_size_methods():
+         * following methods are extended with extend_size_methods():
          * 
          *   top()       - get/set border box top (margin box for position: relative)
          *   left()      - get/set border box left (margin box for position: relative)
@@ -79,7 +79,7 @@ define([
     var _error = tiny.error;
 
     var TAG_Q = TinyQ.x.TAG;
-    var DISPLAY_MARK = 'tinyq-DISPLAY';
+    var DISPLAY_MARK = 'tinyQ-DISPLAY';
     var _get_valid_element = TinyQ.x.getElement;
 
 
@@ -87,7 +87,7 @@ define([
     // BASIC PROPERTY ACCESS METHODS
     //////////////////////////////////////////////////////////
 
-    var ACCESS_METHOD_LIST = {
+    var BASIC_METHOD_LIST = {
 
         // f: access function handlers
         // k: pre-defined key for single parameter methods. If not set, generate a two parameter (key, value) method.
@@ -107,11 +107,11 @@ define([
     }
 
     // append to definition
-    extend_access_methods(TinyQ.prototype);
+    extend_basic_methods(TinyQ.prototype);
 
-    function extend_access_methods(def) {
-        for (var method in ACCESS_METHOD_LIST) {
-            def[method] = generate_access_method(ACCESS_METHOD_LIST[method]);
+    function extend_basic_methods(def) {
+        for (var method in BASIC_METHOD_LIST) {
+            def[method] = generate_access_method(BASIC_METHOD_LIST[method]);
         }
     }
 

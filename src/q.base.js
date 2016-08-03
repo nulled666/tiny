@@ -88,7 +88,7 @@ define([
 
 
 
-    var OPID_MARK = 'tinyq-OPID';
+    var OPID_MARK = 'tinyQ-OPID';
 
     var _error = tiny.error;
 
