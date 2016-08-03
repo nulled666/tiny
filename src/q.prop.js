@@ -11,6 +11,22 @@ define([
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
 
+        /**
+         * following dimension methods are extended in extend_size_methods():
+         * 
+         *   text()       - get/set node.textContent (get result includes all nodes)
+         *   innerText()  - get/set node.innerText (get result includes all nodes)
+         *   html()       - get/set node.innerHTML
+         *   outerHTML()  - get/set node.outerHTML
+         *   value()      - get/set input control values
+         * 
+         *   attr()       - get/set node.attributes[key]
+         *   prop()       - get/set node's properties
+         *   style()      - get/set node.style[key], set key=true to get computed style
+         *   class()      - get/set node.className
+         * 
+         */
+
         class: process_class,
 
         show: show_node,
@@ -404,7 +420,7 @@ define([
         return key.join('');
 
     }
-    
+
 
     //////////////////////////////////////////////////////////
     // CSS CLASS
