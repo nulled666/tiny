@@ -23,11 +23,10 @@ define([
          *   attr()       - get/set node.attributes[key]
          *   prop()       - get/set node's properties
          *   style()      - get/set node.style[key], set key=true to get computed style
-         *   class()      - get/set node.className
          * 
          */
 
-        class: access_class, // this one is special
+        class: access_class,
 
         /**
          * following methods are extended in extend_display_methods():
@@ -40,11 +39,10 @@ define([
 
         boundWidth: get_bound_width, // get style border/padding/margin width
 
-        pos: access_position,  // pos(to_absolute_position)
-
-        box: access_box_size,
         /**
-         * box(type, width, height)
+         * following dimension methods are extended in extend_box_methods():
+         *   pos()      - get/set node position
+         *   box()      - get/set/ node box size
          * 
          *      box() == box('border')
          *      box('margin')   - box('outer'), get margin box rect
@@ -72,7 +70,7 @@ define([
     });
 
     tiny.extend(TinyQ.x, {
-        setAttributes: set_node_attributes
+        setAttributes: set_attributes
     });
 
 
@@ -142,53 +140,44 @@ define([
     function access_helper(tinyq, func_action, key, value, func_prepare_value, read_all) {
 
         var nodes = tinyq.nodes;
-        var is_read = false;
+        var is_set = true;
 
-        if (value === undefined) is_read = true;
+        if (value === undefined) is_set = false;
 
         var node_len = nodes.length;
 
         // read first node only if read_all== false
-        if (is_read && !read_all && nodes.length > 1)
+        if (!is_set && !read_all && nodes.length > 1)
             node_len = 1;
 
         // prepare value if func_prepare is given
-        if (!is_read && func_prepare_value)
+        if (is_set && func_prepare_value)
             value = func_prepare_value(value);
 
         var result = '';
         for (var i = 0, len = node_len; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
-            if (is_read) {
-                result = func_action(node, key, result, is_read);
+            if (!is_set) {
+                result = func_action(node, key, result);
             } else {
-                func_action(node, key, value);
+                func_action(node, key, value, is_set);
             }
         }
 
-        return is_read ? result : tinyq;
+        return is_set ? tinyq : result;
 
     }
 
     /**
      * prepare parameters for two-parameter methods
      */
-    function prepare_2_parameters(key, value, is_style) {
+    function prepare_2_parameters(key, value) {
         if (typeof key == 'object') {
             value = key;
             key = 0;
-            if (is_style) {
-                var obj = {};
-                for (var key in value) {
-                    key = check_style_key(key);
-                    obj[key] = value[key];
-                }
-                value = obj;
-            }
         } else if (value !== undefined) {
             var obj = {};
-            if (is_style) key = check_style_key(key);
             obj[key] = value;
             value = obj;
         }
@@ -200,16 +189,16 @@ define([
     /**
      * .text() .innerText()
      */
-    function access_text(node, key, val, is_get) {
-        if (is_get) {
-            val += key ? node.innerText : node.textContent;
-            return val;
-        } else {
+    function access_text(node, key, val, is_set) {
+        if (is_set) {
             if (key) {
                 node.innerText = val;
             } else {
                 node.textContent = val;
             }
+        } else {
+            val += key ? node.innerText : node.textContent;
+            return val;
         }
     }
 
@@ -218,16 +207,16 @@ define([
     /**
      * .html() .outerHTML()
      */
-    function access_html(node, key, val, is_get) {
-        if (is_get) {
-            return key ? node.outerHTML : node.innerHTML;
-        } else {
+    function access_html(node, key, val, is_set) {
+        if (is_set) {
             if (key && node.parentNode) {
                 // set outerHTML only for nodes with a parent
                 node.outerHTML = val;
             } else {
                 node.innerHTML = val;
             }
+        } else {
+            return key ? node.outerHTML : node.innerHTML;
         }
     }
 
@@ -236,8 +225,8 @@ define([
     /**
      * .value()
      */
-    function access_value(node, key, val, is_get) {
-        if (is_get) {
+    function access_value(node, key, val, is_set) {
+        if (is_set) {
             // TODO
         } else {
             // TODO
@@ -248,15 +237,15 @@ define([
     /**
      * .attr()
      */
-    function access_attribute(node, key, val, is_get) {
-        if (is_get) {
-            return key === undefined ? node.attributes : node.getAttribute(key);
+    function access_attribute(node, key, val, is_set) {
+        if (is_set) {
+            set_attributes(node, val);
         } else {
-            set_node_attributes(node, val);
+            return key === undefined ? node.attributes : node.getAttribute(key);
         }
     }
 
-    function set_node_attributes(node, attrs) {
+    function set_attributes(node, attrs) {
         for (var key in attrs) {
             var val = attrs[key];
             if (key == '_text') {
@@ -276,13 +265,13 @@ define([
     /**
      * .prop()
      */
-    function access_property(node, key, value, is_get) {
-        if (is_get) {
-            return node[key];
-        } else {
+    function access_property(node, key, value, is_set) {
+        if (is_set) {
             for (var key in value) {
                 set_property(node, key, value[key]);
             }
+        } else {
+            return node[key];
         }
     }
 
@@ -296,8 +285,13 @@ define([
     /**
      * .style()
      */
-    function access_style(node, key, value, is_get) {
-        if (is_get) {
+    function access_style(node, key, value, is_set) {
+        if (is_set) {
+            var i = value.length, item;
+            while (item = value[--i]) {
+                set_style(node, item[0], item[1], item[2]);
+            }
+        } else {
             // get style list
             if (key === undefined) return node.style;
             // get all computed style
@@ -305,11 +299,6 @@ define([
             // always return computed style
             key = check_style_key(key);
             return key ? get_computed_style(node)[key] : undefined;
-        } else {
-            var i = value.length, item;
-            while (item = value[--i]) {
-                set_style(node, item[0], item[1], item[2]);
-            }
         }
     }
 
@@ -514,8 +503,6 @@ define([
 
     }
 
-
-
     /**
      * class actions executor
      */
@@ -587,7 +574,6 @@ define([
     }
 
 
-
     //////////////////////////////////////////////////////////
     // SHOW/HIDE/TOGGLE
     //////////////////////////////////////////////////////////
@@ -603,9 +589,12 @@ define([
 
     function extend_display_methods(def) {
         for (var method in DISPLAY_METHOD_LIST) {
-            def[method] = function () {
-                return set_nodes_display(this, DISPLAY_METHOD_LIST[method]);
-            }
+            def[method] = generate_display_method(DISPLAY_METHOD_LIST[method]);
+        }
+    }
+    function generate_display_method(type) {
+        return function () {
+            return set_nodes_display(this, type);
         }
     }
 
@@ -745,54 +734,75 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // POSITIONS
+    // POSITION & BOX
     //////////////////////////////////////////////////////////
-    /***
-     * .pos() get/set position based on border box
+
+    var BOX_METHOD_LIST = {
+        'pos': [access_position, prepare_position_type, prepare_position_value],
+        'box': [access_box, prepare_box_type, prepare_box_value]
+    }
+
+    // append to definition
+    extend_box_methods(TinyQ.prototype);
+
+    function extend_box_methods(def) {
+        for (var method in BOX_METHOD_LIST) {
+            def[method] = generate_box_method(BOX_METHOD_LIST[method]);
+        }
+    }
+    function generate_box_method(method_def) {
+        return function () {
+            return access_box_helper.call(this, method_def[0], method_def[1], method_def[2], arguments);
+        }
+    }
+
+    /**
+     * access function for .po() & .box()
      */
-    function access_position() {
+    function access_box_helper(func, func_type, func_value, args) {
 
         // check parameters
-        var val = process_tri_parameter(arguments, { 'abs': 1 }, ['left', 'top']);
-        var type = val[0] ? true : false;
-        val = val[1];
+        var type, value;
+        var index = 0;
 
-        var tinyq = this;
-        var nodes = tinyq.nodes;
-        if (val) {
-            // ==> set
-            for (var i = 0, len = nodes.length; i < len; ++i) {
-                var node = _get_valid_element(nodes[i]);
-                if (!node) return;
-                set_position(node, val, type);
-            }
-            return tinyq;
-        } else {
-            // ==> get
-            return get_position(nodes[0], type);
+        // get type
+        type = func_type(args[index]);
+        // if it's a valid type, shift index
+        if (type != undefined)++index;
+
+        // get value
+        var a = args[index], b = args[index + 1];
+        if (a != null && typeof a == 'object') {
+            value = a;
+        } else if (a != undefined || b != undefined) {
+            value = func_value(a, b);
         }
+
+        // do the job
+        return access_helper(this, func, type, value);
 
     }
 
-    function process_tri_parameter(args, types, names) {
 
-        var type, val;
-        var index = 0;
-
-        // get type and shift index
-        var first = args[index];
-        if (types[first]) type = first, ++index;
-
-        var a = args[index], b = args[index + 1];
-        if (a != null && typeof a == 'object') {
-            val = a;
-        } else if (a != undefined || b != undefined) {
-            val = {};
-            val[names[0]] = a, val[names[1]] = b;
+    //////////////////////////////////////////////////////////
+    /***
+     * .pos()
+     */
+    function access_position(node, type, value, is_set) {
+        if (is_set) {
+            set_position(node, value, type);
+        } else {
+            return get_position(node, type);
         }
+    }
 
-        return [type, val];
+    function prepare_position_type(type) {
+        if (type == 'abs') return true;
+        return;
+    }
 
+    function prepare_position_value(x, y) {
+        return { left: x, top: y };
     }
 
 
@@ -802,9 +812,6 @@ define([
     function get_position(node, is_absolute) {
 
         var pos = { left: 0, top: 0 };
-
-        node = _get_valid_element(node);
-        if (!node) return rect_obj;
 
         var style = get_computed_style(node);
 
@@ -858,7 +865,6 @@ define([
 
     }
 
-
     /**
      * set node offset position
      */
@@ -910,45 +916,29 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // BOX SIZE
-    //////////////////////////////////////////////////////////
 
-    // box types
-    var BOX_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2, /* need translate: */ outer: -1, inner: -1 };
     var BOX_TYPE_TRANSLATE = { outer: 'border', inner: 'padding' };
+    var BOX_TYPE = { margin: 1, border: 1, padding: 1, client: 2, scroll: 2 };
 
-    /**
-     * .box() get/set box size
+    /***
+     * .box()
      */
-    function access_box_size() {
-
-        // check parameters
-        var val = process_tri_parameter(arguments, BOX_TYPE, ['width', 'height']);
-        var type = val[0];
-        val = val[1];
-
-        // tranlate type name
-        type = BOX_TYPE_TRANSLATE[type] || type;
-
-        // use default type if not set
-        if (!type) type = 'border';
-
-
-        var tinyq = this;
-        var nodes = tinyq.nodes;
-        if (val) {
-            // ==> set
-            for (var i = 0, len = nodes.length; i < len; ++i) {
-                var node = _get_valid_element(nodes[i]);
-                if (!node) return;
-                set_box_size(node, val, type);
-            }
-            return tinyq;
+    function access_box(node, type, value, is_set) {
+        if (!type) type = 'border'; // default box
+        if (is_set) {
+            set_box_size(node, value, type);
         } else {
-            // ==> get
-            return get_box_size(nodes[0], type);
+            return get_box_size(node, type);
         }
+    }
 
+    function prepare_box_type(type) {
+        type = BOX_TYPE_TRANSLATE[type] || type; // translate first
+        return BOX_TYPE[type] ? type : undefined;
+    }
+
+    function prepare_box_value(w, h) {
+        return { width: w, height: h };
     }
 
 
@@ -957,26 +947,16 @@ define([
      */
     function get_box_size(node, type) {
 
-        var box = { width: 0, height: 0 };
-
-        // window
-        if (TinyQ.x.isWindow(node)) {
-            // always innerWidth/innerHeight
-            return { width: node.innerWidth, height: node.innerHeight };
-        }
-
-        node = _get_valid_element(node);
-        if (!node) return box;
-
+        if (!type) type = 'border'; // default box
         var op_type = BOX_TYPE[type];
 
-        // get size for 'client' & 'scroll' box
+        // ==> get size for 'client' & 'scroll' box
         if (op_type == 2) {
             return { width: node[type + 'Width'], height: node[type + 'Height'] };
         }
 
-        // get 'border' box size, 'inner' & 'margin' also based on this
-        box = get_bounding_rect(node, true);
+        // ==> get 'border' box size, 'inner' & 'margin' also based on this
+        var box = get_bounding_rect(node, true);
 
         // adjust size by style values, 'border' box don't need this adjustment
         if (type != 'border') {
@@ -1093,6 +1073,7 @@ define([
             return get_dimension(tinyq.nodes[0], prefix, type);
         } else {
             // ==> set
+            // TODO: need to set all
             set_dimension(tinyq.nodes[0], prefix, type, value);
             return tinyq;
         }
