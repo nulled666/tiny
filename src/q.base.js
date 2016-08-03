@@ -325,7 +325,7 @@ define([
         if (/^\#([\w-]+)$/.test(selector)) {
             selector = selector.replace('#', '');
             action = do_get_by_id;
-            query_mode == 1;
+            query_mode = 1;
         } else if (/^\.([\w-.]+)\w$/.test(selector)) {
             selector = selector.replace(/\./g, ' ');
             action = do_get_by_class;
