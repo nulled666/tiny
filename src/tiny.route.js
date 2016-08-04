@@ -1,6 +1,6 @@
 define([
     './global',
-    "./base",
+    "./tiny.base",
 ], function (G, tiny) {
     "use strict";
 
@@ -24,6 +24,8 @@ define([
     });
     
 
+    var TAG_SUFFIX = G.TAG_SUFFIX;
+    var SEE_ABOVE = G.SEE_ABOVE;
     var _error = tiny.error;
 
 
@@ -33,7 +35,7 @@ define([
     var _route_on_ = false;
     var _route_bind_event_ = false;
 
-    var TAG_RT_WATCH = '_route.watch()' + G.TAG_SUFFIX;
+    var TAG_RT_WATCH = '_route.watch()' + TAG_SUFFIX;
     /**
      * Set a function to watch specific route
      * This simple route system only watches window.location.hash
@@ -72,7 +74,7 @@ define([
         } else {
 
             _error(TAG_RT_WATCH, 'Expect a string or RegExp. > Got "' + typeof route + '": ', route);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
 
         }
 
@@ -86,7 +88,7 @@ define([
 
         if (typeof handler !== 'function') {
             _error(TAG_RT_WATCH, 'Expect a function. > Got "' + typeof handler + '": ', handler);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         _route_handlers_[route].push(handler);
@@ -142,7 +144,7 @@ define([
 
     }
 
-    var TAG_RT_CHECK = '_route.check()' + G.TAG_SUFFIX;
+    var TAG_RT_CHECK = '_route.check()' + TAG_SUFFIX;
     /**
      * Parse a route string or window.location
      * ```
@@ -155,7 +157,7 @@ define([
 
         if (str !== undefined && typeof str !== 'string') {
             _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof str + '": ', str);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (str === undefined) str = route_get();
@@ -265,7 +267,7 @@ define([
             route_check();
     }
 
-    var TAG_RT_GET = '_route.get()' + G.TAG_SUFFIX;
+    var TAG_RT_GET = '_route.get()' + TAG_SUFFIX;
     /**
      * Get current route string
      * ```
@@ -276,7 +278,7 @@ define([
         return window.location.hash.replace(/^#/, '');
     }
 
-    var TAG_RT_SET = '_route.set()' + G.TAG_SUFFIX;
+    var TAG_RT_SET = '_route.set()' + TAG_SUFFIX;
     /**
      * Set route
      * ```
@@ -288,7 +290,7 @@ define([
 
         if (typeof route !== 'string') {
             _error(TAG_RT_WATCH, 'Expect a route string. > Got "' + typeof route + '": ', route);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         trigger = (trigger !== false);
@@ -303,7 +305,7 @@ define([
     }
 
 
-    var TAG_RT_APPEND = '_route.append()' + G.TAG_SUFFIX;
+    var TAG_RT_APPEND = '_route.append()' + TAG_SUFFIX;
     /**
      * Append sections to current route
      * ```
@@ -324,7 +326,7 @@ define([
             route += str_or_arr.join('/');
         } else {
             _error(TAG_RT_WATCH, 'Expect a string or array. > Got "' + typeof str_or_arr + '": ', str_or_arr);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         route_set(route, trigger);
@@ -334,7 +336,7 @@ define([
     }
 
 
-    var TAG_RT_REMOVE = '_route.remove()' + G.TAG_SUFFIX;
+    var TAG_RT_REMOVE = '_route.remove()' + TAG_SUFFIX;
     /**
      * Remove child levels from section with given start string
      * ```
@@ -348,7 +350,7 @@ define([
 
         if (typeof str !== 'string') {
             _error(TAG_RT_REMOVE, 'Expect a string. > Got "' + typeof str + '": ', str);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var pos = route.indexOf(str);

@@ -1,4 +1,4 @@
-define([
+define([,
     './q.base',
     './q.prop',
     './q.event'

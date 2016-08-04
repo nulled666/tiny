@@ -1,6 +1,6 @@
 define([
     './global',
-    './base'
+    './tiny.base'
 ], function (G, tiny) {
 
     'use strict';

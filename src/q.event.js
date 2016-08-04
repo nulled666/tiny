@@ -1,6 +1,6 @@
 define([
     './global',
-    './base',
+    './tiny.base',
     './q.base'
 ], function (G, tiny, TinyQ) {
 

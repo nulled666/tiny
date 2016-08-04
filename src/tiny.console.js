@@ -1,6 +1,6 @@
 define([
     "./global",
-    "./base"
+    "./tiny.base"
 ], function (G, tiny) {
     "use strict";
 
@@ -9,6 +9,7 @@ define([
     //////////////////////////////////////////////////////////
     var _log, _dir, _info, _warn, _error;
     var _win = window;
+    var _con = console;
 
     tiny.x.add({
         inspect: _inspect,
@@ -16,8 +17,8 @@ define([
         verbose: verbose_level
     });
 
+    // default output verbose level
     var DEFAULT_VERBOSE = 'warn|error';
-    var con = console;
 
     // enable console shorthands now
     verbose_level();
@@ -94,7 +95,7 @@ define([
     /**
      * Enable/disable console method output
      * ```
-     *   tiny.verbose('none');          // disable all
+     *   tiny.verbose('none');      // disable all
      *   tiny.verbose('all');       // enable all = 'log|info|warn|error', 'log' flag includes dir()
      *   tiny.verbose('log|error'); // console.log() & console.error() only
      *   tiny.verbose();            // default = 'warn|error' only
@@ -107,11 +108,11 @@ define([
                 on == 'all' ? 'log|info|warn|error' :
                     on;
 
-        _log = on.includes('log') ? con.log.bind(con) : noop;
-        _dir = on.includes('log') ? con.dir.bind(con) : noop;
-        _info = on.includes('info') ? con.info.bind(con) : noop;
-        _warn = on.includes('warn') ? con.warn.bind(con) : noop;
-        _error = on.includes('error') ? con.error.bind(con) : noop;
+        _log = on.includes('log') ? _con.log.bind(_con) : noop;
+        _dir = on.includes('log') ? _con.dir.bind(_con) : noop;
+        _info = on.includes('info') ? _con.info.bind(_con) : noop;
+        _warn = on.includes('warn') ? _con.warn.bind(_con) : noop;
+        _error = on.includes('error') ? _con.error.bind(_con) : noop;
 
         tiny.x.add({
             log: _log,

@@ -1,6 +1,6 @@
 define([
     './global',
-    './base',
+    './tiny.base',
 ], function (G, tiny) {
 
     'use strict';
@@ -17,7 +17,6 @@ define([
     tiny.x.add({
         storage: _storage
     });
-
 
     var _error = tiny.error;
     

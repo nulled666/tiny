@@ -1,12 +1,12 @@
 define([
-    './base',
-    './console',
-    './message',
-    './route',
-    './storage',
+    './tiny.base',
+    './tiny.console',
+    './tiny.message',
+    './tiny.route',
+    './tiny.storage',
+    './tiny.lang',
+    './tiny.format',
     './q',
-    './lang',
-    './format',
 ], function (tiny) {
 
     'use strict';

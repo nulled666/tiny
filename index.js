@@ -33,7 +33,7 @@ function test_code() {
 
     require([
         'tinyq.test',
-        'tinyq.test.base',
+        //'tinyq.test.base',
         //'tinyq.test.prop',
     ], function (do_test) {
 
@@ -205,7 +205,7 @@ function run_code(elem) {
         var assert_list = code_block.q(".function").filter("@contains(ASSERT)");\
         var test_result = true;\
         var get_assert = function(){\
-            var elem = assert_list.get(assert_index);\
+            var elem = assert_list.q(assert_index);\
             assert_index++;\
             return elem;\
         };\

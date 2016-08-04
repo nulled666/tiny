@@ -1,7 +1,7 @@
 
 define([
     './global',
-    "./base",
+    "./tiny.base",
 ], function (G, tiny) {
     "use strict";
 
@@ -50,11 +50,13 @@ define([
     function html_safe_extension(keep_spaces) { return html_safe(this.valueOf(), keep_spaces) }
     function format_extension(obj) { return format_template(this.valueOf(), obj) }
 
-    
+
+    var TAG_SUFFIX = G.TAG_SUFFIX;
+    var SEE_ABOVE = G.SEE_ABOVE;
     var _error = tiny.error;
 
 
-    var TAG_HTML_SAFE = '_htmlSafe()' + G.TAG_SUFFIX;
+    var TAG_HTML_SAFE = '_htmlSafe()' + TAG_SUFFIX;
     /**
      * Make string HTML-safe
      * ```
@@ -70,7 +72,7 @@ define([
 
         if (typeof str !== 'string') {
             _error(TAG_HTML_SAFE, 'Expect a string. > Got "' + typeof str + '": ', str);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         str = str.replace(/\&/g, '&amp;')
@@ -115,12 +117,12 @@ define([
 
         if (typeof num !== 'number') {
             _error(TAG_FORMAT_NUMBER, 'Expect a number. > Got "' + typeof num + '": ', num);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (typeof format !== 'string') {
             _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
 
@@ -316,12 +318,12 @@ define([
             date.setTime(date_in.getTime());
         } else {
             _error(TAG_FORMAT_DATE, 'Expect a Date.getTime() number or Date object. > Got "' + typeof date + '": ', date);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (typeof format != 'string') {
             _error(TAG_FORMAT_NUMBER, 'Expect a format string. > Got "' + typeof format + '": ', format);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (format == 'iso') {
@@ -445,7 +447,7 @@ define([
 
         if (typeof template_str != 'string') {
             _error(TAG_FORMAT, 'Expect a template string. > Got "' + typeof template_str + '": ', template_str);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var template_container;
@@ -457,12 +459,12 @@ define([
             template_container = document.getElementById(id);
             if (!template_container) {
                 _error(TAG_FORMAT, 'Template container not found: #' + id);
-                throw new ReferenceError(G.SEE_ABOVE);
+                throw new ReferenceError(SEE_ABOVE);
             }
             template = template_container.innerHTML;
             if (template.includes('{#' + id + '}')) {
                 _error(TAG_FORMAT, 'Circular reference to self detected : #' + id);
-                throw new ReferenceError(G.SEE_ABOVE);
+                throw new ReferenceError(SEE_ABOVE);
             }
         }
 
@@ -562,7 +564,7 @@ define([
                     end_pos = template.indexOf(']}', start_pos); // try to find )} end
                     if (end_pos < 0) {
                         _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
-                        throw new SyntaxError(G.SEE_ABOVE);
+                        throw new SyntaxError(SEE_ABOVE);
                     }
                     end_pos = template.indexOf('\n', end_pos); // use new line after )}
                 }
@@ -781,7 +783,7 @@ define([
                 var end_pos = template.indexOf(']}', start_pos);
                 if (end_pos < 0) {
                     _error(TAG_FORMAT, 'Missing close "]}" from ' + start_pos + '.');
-                    throw new SyntaxError(G.SEE_ABOVE);
+                    throw new SyntaxError(SEE_ABOVE);
                 }
                 result += template.substring(start_pos, end_pos);
                 last_pos = end_pos + 2;
@@ -795,7 +797,7 @@ define([
             // close } not found
             if (pos < 0) {
                 _error(TAG_FORMAT, 'Missing close "}" from ' + last_pos + '.');
-                throw new SyntaxError(G.SEE_ABOVE);
+                throw new SyntaxError(SEE_ABOVE);
             }
 
             // get token
@@ -853,7 +855,7 @@ define([
 
         if (end < 0) {
             _error(TAG_FORMAT, 'Missing close token: ' + close_tag);
-            throw new SyntaxError(G.SEE_ABOVE);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         result.end = end + close_tag.length;
@@ -888,7 +890,7 @@ define([
 
         if (token.indexOf('\n') > -1) {
             _error(TAG_FORMAT, 'Unexpected "\\n" in token: "' + token + '"');
-            throw new SyntaxError(G.SEE_ABOVE);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         // check cache
@@ -911,7 +913,7 @@ define([
 
         if (key.indexOf('{') > -1) {
             _error(TAG_FORMAT, 'Missing close "}" : "' + token + '"');
-            throw new SyntaxError(G.SEE_ABOVE);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         // get value by key
@@ -983,7 +985,7 @@ define([
 
         if (typeof obj !== 'object') {
             _error(TAG_FORMAT, 'Expect a data Object. > Got "' + typeof obj + '": ', obj);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         // ==> single level key

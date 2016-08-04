@@ -1,6 +1,6 @@
 define([
     './global',
-    './base._polyfills'
+    './tiny._polyfills'
 ], function (G) {
 
     'use strict';
@@ -8,6 +8,9 @@ define([
     //////////////////////////////////////////////////////////
     // TINY BASE OBJECT
     //////////////////////////////////////////////////////////
+
+    var TAG_TINY =  'tiny ::';
+    var SEE_ABOVE =  G.SEE_ABOVE;
 
     var _tiny = {};
     var _prototype_extensions = [];
@@ -22,7 +25,7 @@ define([
     // lossy check for IE8 and below
     var _supported = (!window.createPopup && _type.name == '_type');
 
-    if(!_supported) console.error(G.TAG_TINY, 'This browser might not be supported.');
+    if(!_supported) console.error(TAG_TINY, '!!! This browser might be not supported.');
 
     // extend the tiny object
     add_to_tiny({
@@ -83,7 +86,7 @@ define([
         var win = window;
 
         if (!win) {
-            _con.error(G.TAG_TINY, 'window object is not available. global functions will not be registered.');
+            _con.error(TAG_TINY, 'window object is not available. global functions will not be registered.');
             return;
         }
 
@@ -93,8 +96,8 @@ define([
             if (SKIP_GLOBAL.includes(label)) return;
 
             if (win[_global_prefix + label] !== undefined) {
-                _con.error(G.TAG_TINY, 'global function name already taken : ', _global_prefix + label);
-                throw new Error(G.SEE_ABOVE);
+                _con.error(TAG_TINY, 'global function name already taken : ', _global_prefix + label);
+                throw new Error(SEE_ABOVE);
             }
 
             win[_global_prefix + label] = item;
@@ -105,15 +108,15 @@ define([
         _each(_prototype_extensions, function (item, index) {
 
             if (typeof item[0] !== 'function') {
-                _con.error(G.TAG_TINY, 'Prototype not found : ', item[0]);
-                throw new Error(G.SEE_ABOVE);
+                _con.error(TAG_TINY, 'Prototype not found : ', item[0]);
+                throw new Error(SEE_ABOVE);
             }
 
             _extend(item[0].prototype, item[1]);
 
         })
 
-        _con.info(G.TAG_TINY, 'global objects imported.');
+        _con.info(TAG_TINY, 'global objects imported.');
 
     }
 
@@ -220,7 +223,7 @@ define([
 
         if (typeof func !== 'function') {
             _con.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         this_arg = this_arg || obj;
@@ -274,7 +277,7 @@ define([
         } else {
 
             _con.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
 
         }
 
@@ -311,11 +314,11 @@ define([
         var type = typeof target;
         if (type !== 'object' && type !== 'function') {
             _con.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
         if (typeof extensions !== 'object') {
             _con.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         for (var name in extensions) {

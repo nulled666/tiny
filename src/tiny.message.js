@@ -1,7 +1,7 @@
 
 define([
     './global',
-    "./base",
+    "./tiny.base",
 ], function (G, tiny) {
     "use strict";
 
@@ -20,6 +20,8 @@ define([
     });
 
 
+    var TAG_SUFFIX = G.TAG_SUFFIX;
+    var SEE_ABOVE = G.SEE_ABOVE;
     var _error = tiny.error;
 
 
@@ -27,7 +29,7 @@ define([
     var _message_handlers = {};
     var _delayed_messages = {};
 
-    var TAG_MSG_LISTEN = '_message.listen()' + G.TAG_SUFFIX;
+    var TAG_MSG_LISTEN = '_message.listen()' + TAG_SUFFIX;
     /**
      * Add a custom message listener
      * ```
@@ -40,12 +42,12 @@ define([
 
         if (typeof msg !== 'string') {
             _error(TAG_MSG_LISTEN, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (typeof handler !== 'function') {
             _error(TAG_MSG_LISTEN, 'Expect a function. > Got "' + typeof handler + '": ', handler);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (!_message_handlers[msg])
@@ -59,7 +61,7 @@ define([
 
     }
 
-    var TAG_MSG_POST = '_message.post()' + G.TAG_SUFFIX;
+    var TAG_MSG_POST = '_message.post()' + TAG_SUFFIX;
     /**
      * Trigger a custom message with any number of arguments
      * ```
@@ -70,7 +72,7 @@ define([
 
         if (typeof msg !== 'string') {
             _error(TAG_MSG_POST, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var sliced_args = tiny.x.toArray(arguments, 1);
@@ -94,7 +96,7 @@ define([
 
     }
 
-    var TAG_MSG_POST_DELAYED = '_message.postDelayed()' + G.TAG_SUFFIX;
+    var TAG_MSG_POST_DELAYED = '_message.postDelayed()' + TAG_SUFFIX;
     /**
      * Post a delayed message
      * ```
@@ -105,12 +107,12 @@ define([
 
         if (typeof delay !== 'number') {
             _error(TAG_MSG_POST_DELAYED, 'Expect a delay time in milliseconds. > Got "' + typeof delay + '": ', delay);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         if (typeof msg !== 'string') {
             _error(TAG_MSG_POST_DELAYED, 'Expect a message string. > Got "' + typeof msg + '": ', msg);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var sliced_args = tiny.x.toArray(arguments, 1);
