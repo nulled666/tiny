@@ -664,7 +664,7 @@ define([
         doc.body.removeChild(elem);
 
         if (display == 'none') {
-            // somebody have 'tagname { display: none }' definition in css file
+            // if somebody have 'tagname { display: none }' set in css
             // use our short lists to determine default value
             var tag = ',' + tag + ',';
             if (INLINE_ELEMENTS.includes(tag)) {

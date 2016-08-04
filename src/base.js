@@ -177,10 +177,8 @@ define([
                 type = 'null';
             } else if (Array.isArray(obj)) {
                 type = 'Array';
-            } else if (obj.nodeType == 1 && obj.nodeType == 9) {
-                type = 'Element';
             } else {
-                // this is slow
+                // this is a detail but slow method
                 var tmp = Object.prototype.toString.call(obj);
                 type = TYPE_CACHE[tmp];
                 if (!type) {

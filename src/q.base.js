@@ -64,19 +64,28 @@ define([
         eachNode: each_node,
         toArray: function () { return to_array(this.nodes) },
 
-        // traverse
-        parent: get_parent,
-        offsetParent: get_offset_parent,
-        children: get_children,
-        closest: get_closest,
-        prev: get_prev,
-        next: get_next,
+        /**
+         * following methods are extended with extend_traverse_methods():
+         * 
+         *   parent()
+         *   closest()
+         *   offsetParent()
+         *   children()
+         *   prev()
+         *   next()
+         * 
+         */
 
-        // dom manipulate
-        append: append_child,
-        prepend: prepend_child,
-        after: insert_after_this,
-        before: insert_before_this,
+        /**
+         * following methods are extended with extend_append_methods():
+         * 
+         *   append()
+         *   prepend()
+         *   before()
+         *   after()
+         * 
+         */
+        
         remove: remove_node,
         empty: empty_node,
 
@@ -89,6 +98,7 @@ define([
 
 
     var OPID_MARK = 'tinyQ-OPID';
+    var TINYQ_PROTOTYPE = TinyQ.prototype;
 
     var _error = tiny.error;
 
@@ -329,7 +339,7 @@ define([
         } else if (/^\.([\w-.]+)\w$/.test(selector)) {
             selector = selector.replace(/\./g, ' ');
             action = do_get_by_class;
-        } else if (/^([\w]+)$/.test(selector)) {
+        } else if (/^([\w-]+)$/.test(selector)) {
             action = do_get_by_tag;
         }
 
@@ -423,7 +433,7 @@ define([
 
         if (!a_check) return b_check ? -1 : 0;
         if (!b_check) return 1;
-        
+
         var r = a.compareDocumentPosition(b);
 
         // DOCUMENT_POSITION_DISCONNECTED	1
@@ -602,56 +612,35 @@ define([
     //////////////////////////////////////////////////////////
     // TRAVERSAL FUNCTIONS
     //////////////////////////////////////////////////////////
-    /**
-     * .parent() - get parentElement
-     */
-    function get_parent(selector) {
-        return do_traversal_helper(this, selector, 0);
+
+    var TRAVERSE_METHOD_LIST = [
+        'parent',
+        'offsetParent',
+        'closest',
+        'children',
+        'prev',
+        'next'
+    ];
+
+    // append to definition
+    extend_traverse_methods(TINYQ_PROTOTYPE);
+
+    function extend_traverse_methods(def) {
+        var i = TRAVERSE_METHOD_LIST.length, method;
+        while (method = TRAVERSE_METHOD_LIST[--i]) {
+            def[method] = generate_traverse_method(i);
+        }
     }
-
-    /**
-     * .offsetParent() - get offsetParent
-     */
-    function get_offset_parent(selector) {
-        return do_traversal_helper(this, selector, 1);
+    function generate_traverse_method(type) {
+        return function (selector) {
+            return traverse_helper(this, selector, type);
+        }
     }
-
-    /**
-     * .closest() - get closest element matches selector
-     */
-    function get_closest(selector) {
-        return do_traversal_helper(this, selector, 2);
-    }
-
-    /**
-     * .get_children() - get children
-     */
-    function get_children(selector) {
-        return do_traversal_helper(this, selector, 3);
-    }
-
-    /**
-     * .prev() - get previousElementSibling
-     */
-    function get_prev(selector) {
-        return do_traversal_helper(this, selector, 4);
-    }
-
-    /**
-     * .next() - get nextElementSibling
-     */
-    function get_next(selector) {
-        return do_traversal_helper(this, selector, 5);
-    }
-
-
-    var TRAVERSE_FUNC = [func_get_parent, func_get_offset_parent, func_get_closest, func_get_children, func_get_prev, func_get_next];
-    var TRAVERSE_TAG = ['parent', 'offsetParent', 'closest', 'children', 'prev', 'next'];
 
     /**
      * Helper function for batch traversing
      */
-    function do_traversal_helper(tinyq, selector, type) {
+    function traverse_helper(tinyq, selector, type) {
 
         selector = selector || false;
 
@@ -689,7 +678,7 @@ define([
         // sort nodes to document order
         if (type < 3) arr = arr.sort(compare_node_position);
 
-        var tag = '.' + TRAVERSE_TAG[type] + '(' + (selector ? selector : '') + ')';
+        var tag = '.' + TRAVERSE_METHOD_LIST[type] + '(' + (selector ? selector : '') + ')';
 
         return create_tinyq(arr, tinyq.chain + tag);
 
@@ -701,7 +690,10 @@ define([
         return node.matches(this);
     }
 
+
     // action functions
+    var TRAVERSE_FUNC = [func_get_parent, func_get_offset_parent, func_get_closest, func_get_children, func_get_prev, func_get_next];
+    
     function func_get_parent(node, filter) {
         var r = node.parentElement;
         if (filter && !filter(r)) return false;
@@ -743,34 +735,28 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // DOM MANIPULATE FUNCTIONS
+    // APPEND CHILDREN
     //////////////////////////////////////////////////////////
-    /**
-     * .append() obj /////////////////////////////////
-     */
-    function append_child(obj, attrs) {
-        return append_children_helper.call(this, obj, attrs, 0);
-    }
+    var APPEND_METHOD_LIST = [
+        'append',
+        'prepend',
+        'after',
+        'before'
+    ];
 
-    /**
-     * .prepend() obj /////////////////////////////////
-     */
-    function prepend_child(obj, attrs) {
-        return append_children_helper.call(this, obj, attrs, 1);
-    }
+    // append to definition
+    extend_append_methods(TINYQ_PROTOTYPE);
 
-    /**
-     * .after() insert obj after this /////////////////////////////////
-     */
-    function insert_after_this(obj, attrs) {
-        return append_children_helper.call(this, obj, attrs, 2);
+    function extend_append_methods(def) {
+        var i = APPEND_METHOD_LIST.length, method;
+        while (method = APPEND_METHOD_LIST[--i]) {
+            def[method] = generate_append_method(i);
+        }
     }
-
-    /**
-     * .before() insert obj before this /////////////////////////////////
-     */
-    function insert_before_this(obj, attrs) {
-        return append_children_helper.call(this, obj, attrs, 3);
+    function generate_append_method(type) {
+        return function (obj, attrs) {
+            return append_helper(this, obj, attrs, type);
+        }
     }
 
 
@@ -781,9 +767,7 @@ define([
     /**
      * Append children to nodes
      */
-    function append_children_helper(obj, attrs, type) {
-
-        var tinyq = this;
+    function append_helper(tinyq, obj, attrs, type) {
 
         // check parameter
         if (obj && obj.tinyQ) {
@@ -841,6 +825,10 @@ define([
         if (parent) parent.insertBefore(node, this_node.nextSibling);
     }
 
+
+    //////////////////////////////////////////////////////////
+    // REMOVE NODE & CHILDREN
+    //////////////////////////////////////////////////////////
 
     /**
      * .remove() node /////////////////////////////////

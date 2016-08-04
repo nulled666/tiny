@@ -33,13 +33,12 @@ function test_code() {
 
     require([
         'tinyq.test',
-        //'tinyq.test.base',
-        'tinyq.test.prop',
+        'tinyq.test.base',
+        //'tinyq.test.prop',
     ], function (do_test) {
 
         _warn('---------')
 
-        
         _warn('---------')
 
     });
