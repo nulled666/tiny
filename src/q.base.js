@@ -17,14 +17,13 @@ define([
     /**
      * tinyQ constructor
      */
-    var TinyQ = function (nodes, chain) {
+    function TinyQ(nodes, chain) {
         this.chain = chain;
         this.nodes = nodes;
         this.count = nodes.length;
         return this;
     };
 
-    var TAG_Q = '_q()' + G.TAG_SUFFIX;
 
     // shared function store
     TinyQ.x = {
@@ -96,12 +95,13 @@ define([
     };
 
 
+    var TAG_Q = '_q()' + G.TAG_SUFFIX;
+    var SEE_ABOVE = G.SEE_ABOVE;
 
-    var OPID_MARK = 'tinyQ-OPID';
     var TINYQ_PROTOTYPE = TinyQ.prototype;
+    var OPID_MARK = 'tinyQ-OPID';
 
     var _error = tiny.error;
-
 
     //////////////////////////////////////////////////////////
     // INITIALIZATION FUNCTIONS
@@ -168,7 +168,7 @@ define([
         } else {
 
             _error(TAG_Q, 'Invalid parameter. > Got "' + typeof obj + '": ', obj);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
 
         }
 
@@ -297,7 +297,7 @@ define([
 
         if (type != 'string') {
             _error(TAG_Q, 'Expect a selector string. > Got "' + type + '": ', selector);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var tinyq = this;
@@ -539,7 +539,7 @@ define([
             }
         } else {
             _error(TAG_Q, 'Invalid filter String or Function. > Got "' + type + '": ', arg);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         return list;
@@ -570,7 +570,7 @@ define([
             param = item.substring(pos + 1);
             if (!param.endsWith(')')) {
                 _error(TAG_Q, 'Unexpected end of filter. ', item);
-                throw new SyntaxError(G.SEE_ABOVE);
+                throw new SyntaxError(SEE_ABOVE);
             }
             param = param.substring(0, param.length - 1).trim();
             if (param.search(/^\d$/) == 0) param = parseInt(param);
@@ -582,7 +582,7 @@ define([
             _CUSTOM_FILTER_CACHE[filter] = arr;
         } else {
             _error(TAG_Q, 'No such custom filter: ', name);
-            throw new SyntaxError(G.SEE_ABOVE);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         return arr;
@@ -646,7 +646,7 @@ define([
 
         if (type == 2 && !selector) {
             _error(TAG_Q, 'Expect a selector for closest()');
-            throw new SyntaxError(G.SEE_ABOVE);
+            throw new SyntaxError(SEE_ABOVE);
         }
 
         var get_func = TRAVERSE_FUNC[type];
@@ -780,7 +780,7 @@ define([
             // just ok
         } else {
             _error(TAG_Q, 'Expect a HTML string, TinyQ object, NodeList or Element. > Got: ', obj);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         // determine action type
@@ -880,7 +880,7 @@ define([
     function get_elem_by_index(index) {
         if (typeof index != 'number') {
             _error(TAG_Q, 'Expect an index number. > Got "' + typeof index + '": ', index);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
         var nodes = this.nodes;
         index = index < 0 ? nodes.length + index : index;

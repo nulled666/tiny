@@ -9,7 +9,13 @@ define([
     //////////////////////////////////////////////////////////
     // ATTRIBUTES MANIPULATION METHODS FOR TINYQ
     //////////////////////////////////////////////////////////
-    tiny.extend(TinyQ.prototype, {
+
+    var TAG_Q = TinyQ.x.TAG;
+    var SEE_ABOVE = G.SEE_ABOVE;
+
+    var TINYQ_PROTOTYPE = TinyQ.prototype;
+
+    tiny.extend(TINYQ_PROTOTYPE, {
 
         /**
          * following methods are extended in extend_basic_methods():
@@ -74,14 +80,12 @@ define([
     });
 
 
-    var _parseFloat = parseFloat;
+    var DISPLAY_MARK = 'tinyQ-DISPLAY';
 
     var _error = tiny.error;
-
-    var TAG_Q = TinyQ.x.TAG;
-    var DISPLAY_MARK = 'tinyQ-DISPLAY';
+    var _parseFloat = parseFloat;
     var _get_valid_element = TinyQ.x.getElement;
-
+    
 
     //////////////////////////////////////////////////////////
     // BASIC PROPERTY ACCESS METHODS
@@ -107,7 +111,7 @@ define([
     }
 
     // append to definition
-    extend_basic_methods(TinyQ.prototype);
+    extend_basic_methods(TINYQ_PROTOTYPE);
 
     function extend_basic_methods(def) {
         for (var method in BASIC_METHOD_LIST) {
@@ -453,7 +457,7 @@ define([
 
         if (typeof str != 'string') {
             _error(TAG_Q, 'Expect a class string. > Got "' + typeof str + '": ', str);
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var def_sign;
@@ -585,7 +589,7 @@ define([
     };
 
     // append to definition
-    extend_display_methods(TinyQ.prototype);
+    extend_display_methods(TINYQ_PROTOTYPE);
 
     function extend_display_methods(def) {
         for (var method in DISPLAY_METHOD_LIST) {
@@ -743,7 +747,7 @@ define([
     }
 
     // append to definition
-    extend_box_methods(TinyQ.prototype);
+    extend_box_methods(TINYQ_PROTOTYPE);
 
     function extend_box_methods(def) {
         for (var method in BOX_METHOD_LIST) {
@@ -979,7 +983,7 @@ define([
 
         if (BOX_TYPE[type] == 2) {
             _error(TAG_Q, 'The client & scroll boxes are read-only.');
-            throw new TypeError(G.SEE_ABOVE);
+            throw new TypeError(SEE_ABOVE);
         }
 
         var IS_SIZE_KEY = { width: 1, height: 1 };
@@ -1035,7 +1039,7 @@ define([
     var DIM_PREFIX = ['scroll', ''];
     var DIM_TYPE = ['Width', 'Height', 'Left', 'Top'];
 
-    extend_dimension_methods(TinyQ.prototype);
+    extend_dimension_methods(TINYQ_PROTOTYPE);
 
     // generate methods for width, height, left, top
     function extend_dimension_methods(def) {
