@@ -257,6 +257,14 @@ require([
             return y.addClass('passed failed test ok collapse');
         });
 
+    do_test('.class(?!)', 99,
+        function () {
+            return x.class('?run-code ?passed !fly !pig');
+        },
+        function () {
+            return y.hasClass('run-code') && y.hasClass('passed') && !y.hasClass('fly') && !y.hasClass('pig');
+        });
+
     do_test('.class(-)', 99,
         function () {
             return x.class('-:passed failed test ok collapse');

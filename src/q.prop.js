@@ -28,7 +28,7 @@ define([
          * 
          *   attr()       - get/set node.attributes[key]
          *   prop()       - get/set node's properties
-         *   style()      - get/set node.style[key], set key=true to get computed style
+         *   style()      - get/set node.style[key], set key = rue to get computed style
          * 
          */
 
@@ -85,7 +85,7 @@ define([
     var _error = tiny.error;
     var _parseFloat = parseFloat;
     var _get_valid_element = TinyQ.x.getElement;
-    
+
 
     //////////////////////////////////////////////////////////
     // BASIC PROPERTY ACCESS METHODS
@@ -426,27 +426,32 @@ define([
      */
     function access_class(action_str) {
 
+        var tinyq = this;
+
         // simple return the class attribute
         if (action_str === undefined)
-            return this.attr('class');
+            return tinyq.attr('class');
 
         // prepare actions (a little startup overhead for the flexible syntax)
         var actions = prepare_class_value(action_str);
-        var has_check = !!(actions.is);
+        var has_check = !!(actions.is || actions.not);
         var result = false;
 
-        for (var nodes = this.nodes, i = 0, len = nodes.length; i < len; ++i) {
+        for (var nodes = tinyq.nodes, i = 0, len = nodes.length; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
-            var r = do_class_actions(node, actions.do, actions.is);
+            var r = do_class_actions(node, actions.do, actions.is, actions.not);
             if (r == true) {
                 result = true;
-                if (!actions.do) break;      // check only - jump out
-                actions.is = false;  // suppress further check
+                // check only - jump out
+                if (!actions.do) break;
+                // suppress further check
+                actions.is = false;
+                actions.not = false;
             }
         }
 
-        return has_check ? result : this;
+        return has_check ? result : tinyq;
 
     }
 
@@ -478,7 +483,7 @@ define([
             for (var i = 0, len = str.length; i < len; ++i) {
                 var item = str[i], sign;
                 sign = item.charAt(0);
-                if (!'-^?'.includes(sign)) {
+                if (!'-^?!'.includes(sign)) {
                     sign = '+';
                 } else {
                     item = item.substring(1);
@@ -491,10 +496,13 @@ define([
 
         var actions = [];
 
-        // extract check last
+        // extract check lists
         var is_list = list['?'];
+        var not_list = list['!'];
         delete list['?'];
+        delete list['!'];
 
+        // generate action function
         for (var sign in list) {
             var item = list[sign];
             if (item) actions.push(CLASS_ACTIONS[sign].bind(item));
@@ -502,7 +510,8 @@ define([
 
         return {
             do: actions.length > 0 ? actions : false,
-            is: is_list
+            is: is_list,
+            not: not_list
         };
 
     }
@@ -510,7 +519,7 @@ define([
     /**
      * class actions executor
      */
-    function do_class_actions(node, actions, check_list) {
+    function do_class_actions(node, actions, is_list, not_list) {
 
         var cl = ' ' + node.className + ' ';
         var new_cl = cl;
@@ -522,8 +531,8 @@ define([
 
         // if we need to check class
         var result;
-        if (check_list)
-            result = func_has_class(new_cl, check_list);
+        if (is_list) result = func_check_class(new_cl, is_list, true);
+        if (not_list) result = func_check_class(new_cl, not_list, false);
 
         // update only on changed
         new_cl = new_cl.trim();
@@ -568,11 +577,12 @@ define([
         }
         return cl;
     }
-    function func_has_class(cl, check_list) {
+    function func_check_class(cl, check_list, expect) {
         var arr = check_list, i = -1, item;
         while (item = arr[++i]) {
-            if (!cl.includes(' ' + item + ' '))
-                return false; // must fullfill all classes
+            // must fullfill all items in list
+            if (cl.includes(' ' + item + ' ') != expect)
+                return false;
         }
         return true;
     }
