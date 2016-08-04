@@ -233,9 +233,105 @@ define([
         if (is_set) {
             // TODO
         } else {
-            // TODO
+            return get_value(node);
         }
     }
+
+    /**
+     * read value of input element
+     */
+    function get_value(node) {
+
+        var tag = node.tagName;
+
+        // get all values inside a form
+        if (tag == 'FORM') return get_form_values(node.children);
+
+        // element must be a form control who has "value" property
+        if (!("value" in node)) return;
+
+        var value = node.value;
+
+        // special <input> types
+        var type = node.type;
+        if (tag == 'INPUT' && type) {
+            switch (type) {
+                case 'radio':
+                    value = get_radio_value(node);
+                    break;
+                case 'checkbox':
+                    value = node.checked;
+                    break;
+                case 'file':
+                    value = node.files;
+                    break;
+                case 'number':
+                case 'range':
+                    value = node.valueAsNumber;
+                    break;
+                case 'date':
+                case 'month':
+                    value = node.valueAsDate;
+                    break;
+                case 'datetime-local':
+                    value = node.valueAsNumber;
+                    if (value) value = new Date(value);
+                    break;
+            }
+        }
+
+        // multiple <select> list
+        if (tag == 'SELECT' && node.multiple) {
+            value = [];
+            var opts = node.selectedOptions, i = opts.length, opt;
+            while (opt = opts[--i]) {
+                value.push(opt.value);
+            }
+        }
+
+        return value;
+
+    }
+
+    /** get value of radio group */
+    function get_radio_value(node) {
+        var name = node.name;
+        if (name == '') {
+            if (!node.checked) return;
+        } else {
+            var doc = node.ownerDocument;
+            var list = doc.getElementsByName(name);
+            var i = list.length, item;
+            while (item = list[--i]) {
+                if (item.checked) return item.value;
+            }
+        }
+    }
+
+    /**
+     * get all value inside a form
+     * <meter> <progress> will be ignored
+     */
+    function get_form_values(nodes) {
+        var obj = {};
+        var i = nodes.length, node;
+        while (node = nodes[--i]) {
+            var name = get_form_item_name(node);
+            if (!name) continue;
+            var value = get_value(node);
+            if (value != undefined) obj[name] = value;
+        }
+        return obj;
+    }
+
+    function get_form_item_name(node) {
+        var name = node.name;
+        if(name && name != '') return name;
+        name = node.id;
+        if(name && name != '') return name;
+        return;
+    }
+
 
     //////////////////////////////////////////////////////////
     /**

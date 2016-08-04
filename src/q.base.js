@@ -28,6 +28,7 @@ define([
     // shared function store
     TinyQ.x = {
         TAG: TAG_Q,
+        OPID_MARK: 'tinyQ-OPID',
         isArrayLike: is_array_like,
         isWindow: is_window,
         getElement: get_valid_element
@@ -84,7 +85,7 @@ define([
          *   after()
          * 
          */
-        
+
         remove: remove_node,
         empty: empty_node,
 
@@ -99,7 +100,7 @@ define([
     var SEE_ABOVE = G.SEE_ABOVE;
 
     var TINYQ_PROTOTYPE = TinyQ.prototype;
-    var OPID_MARK = 'tinyQ-OPID';
+    var OPID_MARK = TinyQ.x.OPID_MARK;
 
     var _error = tiny.error;
 
@@ -693,7 +694,7 @@ define([
 
     // action functions
     var TRAVERSE_FUNC = [func_get_parent, func_get_offset_parent, func_get_closest, func_get_children, func_get_prev, func_get_next];
-    
+
     function func_get_parent(node, filter) {
         var r = node.parentElement;
         if (filter && !filter(r)) return false;
@@ -878,13 +879,18 @@ define([
      * .get() element
      */
     function get_elem_by_index(index) {
+
+        if (index == undefined) index = 0;
+
         if (typeof index != 'number') {
             _error(TAG_Q, 'Expect an index number. > Got "' + typeof index + '": ', index);
             throw new TypeError(SEE_ABOVE);
         }
+        
         var nodes = this.nodes;
         index = index < 0 ? nodes.length + index : index;
         return nodes[index];
+
     }
 
     /**
