@@ -379,9 +379,8 @@ define([
             var doc = node.ownerDocument;
             var list = doc.getElementsByName(name);
             var i = list.length, item;
-            while (item = list[--i]) {
+            while (item = list[--i])
                 if (item.checked) return item.value;
-            }
         }
     }
 
@@ -394,9 +393,8 @@ define([
             var doc = node.ownerDocument;
             var list = doc.getElementsByName(name);
             var i = list.length, item;
-            while (item = list[--i]) {
+            while (item = list[--i])
                 item.checked = item.value == value;
-            }
         }
     }
 
