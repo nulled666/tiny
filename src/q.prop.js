@@ -245,7 +245,7 @@ define([
         var tag = node.tagName;
 
         // get all values inside a form
-        if (tag == 'FORM') return get_form_values(node.children);
+        if (tag == 'FORM') return get_form_values(node);
 
         // element must be a form control who has "value" property
         if (!("value" in node)) return;
@@ -268,14 +268,14 @@ define([
                 case 'number':
                 case 'range':
                     value = node.valueAsNumber;
+                    if (isNaN(value)) value = null;
                     break;
                 case 'date':
-                case 'month':
                     value = node.valueAsDate;
                     break;
                 case 'datetime-local':
                     value = node.valueAsNumber;
-                    if (value) value = new Date(value);
+                    value = isNaN(value) ? null : new Date(value);
                     break;
             }
         }
@@ -326,9 +326,9 @@ define([
 
     function get_form_item_name(node) {
         var name = node.name;
-        if(name && name != '') return name;
+        if (name && name != '') return name;
         name = node.id;
-        if(name && name != '') return name;
+        if (name && name != '') return name;
         return;
     }
 
