@@ -82,6 +82,215 @@ require([
 
     x.remove(), y.remove();
 
+    _warn('values ------------------')
+
+    var x = _q1('h1');
+
+    x.before('<div id="test-form"></div>');
+    x = x.q('#test-form');
+    x.html('\
+        <form id="f-form">\
+            <input id="f-file" type="file">\
+            <fieldset>\
+            <input id="f-text" type="text" value="Type here">\
+            <input id="f-pwd" type="password" value="password">\
+            <input id="f-num" type="number" value="99.99">\
+            <input id="f-range" type="range" min ="-2.5" max="3.0" step ="0.1" value="1.7"/>\
+            </fieldset>\
+            <br>\
+            <input id="f-date" type="date" value="2016-05-06">\
+            <input id="f-month" type="month" value="2010-05">\
+            <input id="f-datetime" type="datetime-local" value="2011-08-09T11:58">\
+            <input id="f-time" type="time" value="11:58">\
+            <br>\
+            <input id="f-chk" type="checkbox" value="check me" >\
+            	<input id="f-chk2" type="checkbox" value="check me" checked>\
+            <br>\
+            <input id="f-r1" type="radio" value="radio off">\
+            <input id="f-r2" type="radio" name="fffti" value="radio on">\
+            	<input type="radio" name="fffti" value="radio x" checked>\
+            <br>\
+            <meter id="f-m1" min="200" max="500" value="350"></meter>\
+            <progress id="f-p" value="70" max="100">70 %</progress>\
+            <br>\
+            <select id="f-s" name="select">\
+                <option value="select1">Value 1</option> \
+                <option value="value 3" selected>Value 2</option>\
+                <option>Value 3</option>\
+            </select>\
+            <select id="f-sm" name="toppings" multiple size=5>\
+                <option value="mushrooms">mushrooms\
+                <option selected>green peppers\
+                <option value="oni" selected>onions\
+                <option value="tomatoes">tomatoes\
+                <option value="olives">olives\
+            </select>\
+            <br>\
+            <textarea id="f-t" name="textarea" rows="10" cols="50">Write something here</textarea>\
+            <button id="f-btn" value="button value">Click me</button>\
+            <output id="f-o" name="result">60</output>\
+        </form>\
+        ');
+
+    var x = _q('#f-text');
+    var y = $('#f-text');
+
+    do_test('text.value(text)', 99,
+        function () {
+            return x.value('Test on input[type=text]');
+        },
+        function () {
+            return y.val('Test on input[type=text]');
+        });
+
+    do_test('text.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return y.val();
+        });
+
+    var x = _q('#f-num');
+    var y = $('#f-num');
+
+    do_test('num.value(num)', 99,
+        function () {
+            return x.value(19.99);
+        },
+        function () {
+            return y.val(19.99);
+        });
+
+    do_test('num.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return parseFloat(y.val());
+        });
+
+    var x = _q('#f-datetime');
+    var y = $('#f-datetime');
+
+    x.value(new Date());
+
+    do_test('datetime.value()', 99,
+        function () {
+            return x.value().getTime();
+        },
+        function () {
+            return (new Date(y.val())).getTime();
+        });
+
+    var x = _q('#f-chk');
+    var y = $('#f-chk');
+
+    x.value(true);
+
+    do_test('checkbox.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return y.prop('checked');
+        });
+
+    var x = _q('#f-r2');
+    var y = $('#f-r2');
+
+    x.value('radio on');
+
+    do_test('radiogroup.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return $('[name=fffti]:checked').val();
+        });
+
+    var x = _q('#f-s');
+    var y = $('#f-s');
+
+    x.value('Value 3');
+
+    do_test('select.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return y.val();
+        });
+
+    var x = _q('#f-sm');
+    var y = $('#f-sm');
+
+    x.value(['tomatoes', 'mushrooms']);
+
+    do_test('select[multiple].value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return y.val();
+        });
+
+    var x = _q('#f-t');
+    var y = $('#f-t');
+
+    x.value(['i', 'like', '\ntomatoes', 'and', 'mushrooms']);
+
+    do_test('textarea.value()', 99,
+        function () {
+            return x.value();
+        },
+        function () {
+            return y.val();
+        });
+
+    var x = _q('#f-form');
+    var y = $('#f-form');
+
+    var data = {
+        "result": "no result",
+        "f-btn": "click me",
+        "textarea": "i,like,\nnothing",
+        "toppings": [
+            "oni",
+            "olives"
+        ],
+        "select": "select1",
+        "fffti": "radio x",
+        "f-chk2": false,
+        "f-chk": false,
+        "f-time": "11:11",
+        "f-datetime": new Date("2011-01-01T01:01:00.000Z"),
+        "f-month": new Date("2011-01-01T01:01:00.000Z"),
+        "f-date": new Date("2011-01-01T01:01:00.000Z"),
+        "f-range": 0.7,
+        "f-num": 10.00,
+        "f-pwd": "xxx",
+        "f-text": "Test form.value()",
+        "f-file": 'test.avi'
+    };
+
+    x.value(data);
+
+    do_test('form.value()', 99,
+        function () {
+            return x.value().length = 1;
+        },
+        function () {
+            var obj = {};
+            y.children().each(function (i, node) {
+                var name = node.name;
+                if (!name) name = node.id;
+                obj[name] = $(node).val();
+            });
+            return obj.length = 1;
+        });
+
+    _q('#test-form').remove();
 
     _warn('attribute ------------------')
 

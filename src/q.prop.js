@@ -125,13 +125,13 @@ define([
         if (def.k != undefined) {
             // ==> .method(value)
             return function (value) {
-                return access_helper(this, def.f, def.k, value, def.p, def.a);
+                return access_helper(this, def.f, def.k, value, def.a, def.p);
             }
         } else {
             // ==> .method(key, value)
             return function (key, value) {
                 value = prepare_2_parameters(key, value);
-                return access_helper(this, def.f, key, value, def.p);
+                return access_helper(this, def.f, key, value, def.a, def.p);
             }
         }
 
@@ -141,7 +141,7 @@ define([
     /**
      * get/set method helper function
      */
-    function access_helper(tinyq, func_action, key, value, func_prepare_value, read_all) {
+    function access_helper(tinyq, func_action, key, value, read_all, func_prepare_value) {
 
         var nodes = tinyq.nodes;
         var is_set = true;
@@ -312,13 +312,15 @@ define([
         var type = node.type;
         if (tag == 'INPUT' && type) {
             // ==> special <input> types
-
             switch (type) {
                 case 'radio':
                     set_radio_value(node, value);
                     break;
                 case 'checkbox':
                     node.checked = value ? true : false;
+                    break;
+                case 'file':
+                    // do nothing - access denied
                     break;
                 case 'number':
                 case 'range':
@@ -350,10 +352,8 @@ define([
                 default:
                     node.value = value;
             }
-
         } else if (tag == 'SELECT') {
             // ==> <select> list
-
             if (Array.isArray(value)) {
                 value = '^' + value.join('^') + '^';
                 var opts = node.options, i = opts.length, opt;
@@ -362,7 +362,6 @@ define([
             } else {
                 node.value = value;
             }
-
         } else {
             // ==> other elements
             node.value = value;
@@ -424,7 +423,6 @@ define([
             if (!node) continue;
             set_value(node, value);
         }
-        return obj;
     }
 
     /**
@@ -1283,26 +1281,20 @@ define([
     function generate_dimension_method(prefix, type) {
         if (prefix == 2) prefix = 3; // outer == offset
         return function (val) {
-            return access_dimension(this, prefix, type, val);
+            return access_helper(this, access_dimension, [prefix, type], val);
         }
     }
 
     /**
      * access function for dimension methods
      */
-    function access_dimension(tinyq, prefix, type, value) {
-
-        prefix = DIM_PREFIX[prefix];
-        type = DIM_TYPE[type];
-
-        if (value == undefined) {
-            // => get 
-            return get_dimension(tinyq.nodes[0], prefix, type);
+    function access_dimension(node, key, value, is_set) {
+        var prefix = DIM_PREFIX[key[0]];
+        var type = DIM_TYPE[key[1]];
+        if (is_set) {
+            set_dimension(node, prefix, type, value);
         } else {
-            // ==> set
-            // TODO: need to set all
-            set_dimension(tinyq.nodes[0], prefix, type, value);
-            return tinyq;
+            return get_dimension(node, prefix, type);
         }
     }
 
