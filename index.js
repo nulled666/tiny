@@ -46,11 +46,12 @@ function test_code() {
         x.html('\
         <form id="f-form">\
             <input id="f-file" type="file">\
-            <br>\
+            <fieldset>\
             <input id="f-text" type="text" value="Type here">\
             <input id="f-pwd" type="password" value="password">\
             <input id="f-num" type="number" value="99.99">\
             <input id="f-range" type="range" min ="-2.5" max="3.0" step ="0.1" value="1.7"/>\
+            </fieldset>\
             <br>\
             <input id="f-date" type="date" value="2016-05-06">\
             <input id="f-month" type="month" value="2010-05">\
@@ -89,6 +90,8 @@ function test_code() {
         var x = _q('#f-text');
         var y = $('#f-text');
 
+        x.value('Test on input[type=text]');
+        
         do_test('text.value()', 99,
             function () {
                 return x.value();

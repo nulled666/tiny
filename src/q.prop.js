@@ -102,8 +102,8 @@ define([
         'innerText': { f: access_text, k: 1, a: true },
         'html': { f: access_html, k: 0 },
         'outerHTML': { f: access_html, k: 1 },
+        'value': { f: access_value, k: 1 },
 
-        'value': { f: access_value },
         'attr': { f: access_attribute },
         'prop': { f: access_property },
         'style': { f: access_style, p: prepare_style_value }
@@ -231,7 +231,8 @@ define([
      */
     function access_value(node, key, val, is_set) {
         if (is_set) {
-            // TODO
+            _log(node, val);
+            set_value(node, val);
         } else {
             return get_value(node);
         }
@@ -247,14 +248,14 @@ define([
         // get all values inside a form
         if (tag == 'FORM') return get_form_values(node);
 
-        // element must be a form control who has "value" property
+        // only support input elements
         if (!("value" in node)) return;
 
         var value = node.value;
 
-        // special <input> types
         var type = node.type;
         if (tag == 'INPUT' && type) {
+            // special <input> types
             switch (type) {
                 case 'radio':
                     value = get_radio_value(node);
@@ -278,10 +279,8 @@ define([
                     value = isNaN(value) ? null : new Date(value);
                     break;
             }
-        }
-
-        // multiple <select> list
-        if (tag == 'SELECT' && node.multiple) {
+        } else if (tag == 'SELECT' && node.multiple) {
+            // multiple <select> list
             value = [];
             var opts = node.selectedOptions, i = opts.length, opt;
             while (opt = opts[--i]) {
@@ -293,17 +292,94 @@ define([
 
     }
 
+
+    function set_value(node, value) {
+
+        var tag = node.tagName;
+        var value_type = typeof value;
+
+        // set all values inside a form
+        if (tag == 'FORM') {
+            if (value_type != 'object') {
+                _error(TAG_Q, 'Expect a data Object to set value for FORM element. Got:', node);
+                throw new TypeError(SEE_ABOVE);
+            }
+            set_form_values(node, value);
+            return;
+        }
+
+        // element must be a form control who has "value" property
+        if (!("value" in node)) return;
+
+        var type = node.type;
+        if (tag == 'INPUT' && type) {
+            // special <input> types
+            switch (type) {
+                case 'radio':
+                    set_radio_value(node, value);
+                    break;
+                case 'checkbox':
+                    node.checked = (node.value == value) ? true : false;
+                    break;
+                case 'number':
+                case 'range':
+                    if (value_type == 'number') {
+                        node.valueAsNumber = value;
+                    } else {
+                        node.value = value;
+                    }
+                    break;
+                case 'date':
+                case 'datetime-local':
+                    if (value.getTime) value = value.getTime();
+                    if (value_type == 'number') {
+                        node.valueAsNumber = value;
+                    } else {
+                        node.value = value;
+                    }
+                    break;
+                default:
+                    node.value = value;
+            }
+        } else if (tag == 'SELECT' && node.multiple) {
+            // multiple <select> list
+            value = [];
+            var opts = node.selectedOptions, i = opts.length, opt;
+            while (opt = opts[--i]) {
+                value.push(opt.value);
+            }
+        } else {
+            node.value = value;
+        }
+
+    }
+
     /** get value of radio group */
     function get_radio_value(node) {
         var name = node.name;
         if (name == '') {
-            if (!node.checked) return;
+            return node.checked ? node.value : undefined;
         } else {
             var doc = node.ownerDocument;
             var list = doc.getElementsByName(name);
             var i = list.length, item;
             while (item = list[--i]) {
                 if (item.checked) return item.value;
+            }
+        }
+    }
+
+    /** set value of radio group */
+    function set_radio_value(node, value) {
+        var name = node.name;
+        if (name == '') {
+            node.checked = node.value == value;
+        } else {
+            var doc = node.ownerDocument;
+            var list = doc.getElementsByName(name);
+            var i = list.length, item;
+            while (item = list[--i]) {
+                item.checked = item.value == value;
             }
         }
     }
@@ -324,12 +400,40 @@ define([
         return obj;
     }
 
+    /**
+     * set all value inside a form
+     */
+    function set_form_values(form, value_list) {
+        for (var name in value_list) {
+            var value = value_list[name];
+            var node = get_form_item(form, name);
+            if (!node) continue;
+            set_value(node, value);
+        }
+        return obj;
+    }
+
+    /**
+     * get input element name or id
+     */
     function get_form_item_name(node) {
         var name = node.name;
         if (name && name != '') return name;
         name = node.id;
         if (name && name != '') return name;
         return;
+    }
+
+    /**
+     * get input element inside form
+     */
+    function get_form_item(form, name) {
+        // try get by name
+        var node = form.elements[name];
+        if (node) return node;
+        // get by id
+        var doc = node.ownerDocument;
+        return doc.getElementById(name);
     }
 
 
