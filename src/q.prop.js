@@ -95,11 +95,10 @@ define([
 
         // f: access function handlers
         // k: pre-defined key for single parameter methods. If not set, generate a two parameter (key, value) method.
-        // a: loop throught all nodes in get action. defualt is get from first element only.
-        // p: value prepare function for set action
+        // p: value preparation function for set action
 
-        'text': { f: access_text, k: 0, a: true },
-        'innerText': { f: access_text, k: 1, a: true },
+        'text': { f: access_text, k: 0 },
+        'innerText': { f: access_text, k: 1 },
         'html': { f: access_html, k: 0 },
         'outerHTML': { f: access_html, k: 1 },
         'value': { f: access_value, k: 1 },
@@ -125,13 +124,13 @@ define([
         if (def.k != undefined) {
             // ==> .method(value)
             return function (value) {
-                return access_helper(this, def.f, def.k, value, def.a, def.p);
+                return access_helper(this, def.f, def.k, value, def.p);
             }
         } else {
             // ==> .method(key, value)
             return function (key, value) {
                 value = prepare_2_parameters(key, value);
-                return access_helper(this, def.f, key, value, def.a, def.p);
+                return access_helper(this, def.f, key, value, def.p);
             }
         }
 
@@ -141,18 +140,17 @@ define([
     /**
      * get/set method helper function
      */
-    function access_helper(tinyq, func_action, key, value, read_all, func_prepare_value) {
+    function access_helper(tinyq, func_action, key, value,func_prepare_value) {
 
         var nodes = tinyq.nodes;
-        var is_set = true;
-
-        if (value === undefined) is_set = false;
-
         var node_len = nodes.length;
 
-        // read first node only if read_all== false
-        if (!is_set && !read_all && nodes.length > 1)
-            node_len = 1;
+        // get or set?
+        var is_set = true;
+        if (value === undefined) is_set = false;
+
+        // read first node only
+        if (!is_set && node_len > 1) node_len = 1;
 
         // prepare value if func_prepare is given
         if (is_set && func_prepare_value)

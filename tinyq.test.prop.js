@@ -5,7 +5,7 @@ require([
     _warn('text & html ------------------')
 
     var x = _q('pre');
-    var y = $('pre');
+    var y = $('pre:first');
 
     do_test('.text()', 99,
         function () {
