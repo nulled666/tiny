@@ -252,7 +252,7 @@ define([
 
         var type = node.type;
         if (tag == 'INPUT' && type) {
-            // special <input> types
+            // <input> types
             switch (type) {
                 case 'radio':
                     value = get_radio_value(node);
@@ -269,15 +269,13 @@ define([
                     if (isNaN(value)) value = null;
                     break;
                 case 'date':
-                    value = node.valueAsDate;
-                    break;
                 case 'datetime-local':
                     value = node.valueAsNumber;
                     value = isNaN(value) ? null : new Date(value);
                     break;
             }
         } else if (tag == 'SELECT' && node.multiple) {
-            // multiple <select> list
+            // <select multiple>
             value = [];
             var opts = node.selectedOptions, i = opts.length, opt;
             while (opt = opts[--i])
@@ -309,7 +307,7 @@ define([
 
         var type = node.type;
         if (tag == 'INPUT' && type) {
-            // ==> special <input> types
+            // ==> <input> types
             switch (type) {
                 case 'radio':
                     set_radio_value(node, value);
@@ -351,7 +349,7 @@ define([
                     node.value = value;
             }
         } else if (tag == 'SELECT') {
-            // ==> <select> list
+            // ==> <select>
             if (Array.isArray(value)) {
                 value = '^' + value.join('^') + '^';
                 var opts = node.options, i = opts.length, opt;
