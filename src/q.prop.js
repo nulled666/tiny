@@ -231,7 +231,6 @@ define([
      */
     function access_value(node, key, val, is_set) {
         if (is_set) {
-            _log(node, val);
             set_value(node, val);
         } else {
             return get_value(node);
@@ -283,9 +282,8 @@ define([
             // multiple <select> list
             value = [];
             var opts = node.selectedOptions, i = opts.length, opt;
-            while (opt = opts[--i]) {
+            while (opt = opts[--i])
                 value.push(opt.value);
-            }
         }
 
         return value;
@@ -313,13 +311,14 @@ define([
 
         var type = node.type;
         if (tag == 'INPUT' && type) {
-            // special <input> types
+            // ==> special <input> types
+
             switch (type) {
                 case 'radio':
                     set_radio_value(node, value);
                     break;
                 case 'checkbox':
-                    node.checked = (node.value == value) ? true : false;
+                    node.checked = value ? true : false;
                     break;
                 case 'number':
                 case 'range':
@@ -330,25 +329,42 @@ define([
                     }
                     break;
                 case 'date':
+                case 'month':
                 case 'datetime-local':
-                    if (value.getTime) value = value.getTime();
-                    if (value_type == 'number') {
-                        node.valueAsNumber = value;
-                    } else {
-                        node.value = value;
+                    if (value.toISOString) {
+                        // value is a Date object
+                        value = value.toISOString();
+                        value = value.substring(0, value.lastIndexOf('Z'));;
+                        if (type == 'datetime-local') {
+                            // slice to minute
+                            value = value.substring(0, value.lastIndexOf(':'));
+                        } else {
+                            // date only
+                            value = value.substring(0, value.lastIndexOf('T'));
+                            if (type == 'month')
+                                value = value.substring(0, value.lastIndexOf('-'));
+                        }
                     }
+                    node.value = value;
                     break;
                 default:
                     node.value = value;
             }
-        } else if (tag == 'SELECT' && node.multiple) {
-            // multiple <select> list
-            value = [];
-            var opts = node.selectedOptions, i = opts.length, opt;
-            while (opt = opts[--i]) {
-                value.push(opt.value);
+
+        } else if (tag == 'SELECT') {
+            // ==> <select> list
+
+            if (Array.isArray(value)) {
+                value = '^' + value.join('^') + '^';
+                var opts = node.options, i = opts.length, opt;
+                while (opt = opts[--i])
+                    opt.selected = value.includes('^' + opt.value + '^');
+            } else {
+                node.value = value;
             }
+
         } else {
+            // ==> other elements
             node.value = value;
         }
 

@@ -61,7 +61,7 @@ function test_code() {
             <input id="f-chk" type="checkbox" value="check me" >\
             	<input id="f-chk2" type="checkbox" value="check me" checked>\
             <br>\
-            <input id="f-r1" type="radio" value="radio off" checked>\
+            <input id="f-r1" type="radio" value="radio off">\
             <input id="f-r2" type="radio" name="fffti" value="radio on">\
             	<input type="radio" name="fffti" value="radio x" checked>\
             <br>\
@@ -70,8 +70,8 @@ function test_code() {
             <br>\
             <select id="f-s" name="select">\
                 <option value="select1">Value 1</option> \
-                <option selected>Value 2</option>\
-                <option value="select3">Value 3</option>\
+                <option value="value 3" selected>Value 2</option>\
+                <option>Value 3</option>\
             </select>\
             <select id="f-sm" name="toppings" multiple size=5>\
                 <option value="mushrooms">mushrooms\
@@ -91,7 +91,7 @@ function test_code() {
         var y = $('#f-text');
 
         x.value('Test on input[type=text]');
-        
+
         do_test('text.value()', 99,
             function () {
                 return x.value();
@@ -102,6 +102,8 @@ function test_code() {
 
         var x = _q('#f-num');
         var y = $('#f-num');
+
+        x.value(19.99);
 
         do_test('num.value()', 99,
             function () {
@@ -114,6 +116,8 @@ function test_code() {
         var x = _q('#f-datetime');
         var y = $('#f-datetime');
 
+        x.value(new Date());
+
         do_test('datetime.value()', 99,
             function () {
                 return x.value().getTime();
@@ -125,6 +129,8 @@ function test_code() {
         var x = _q('#f-chk');
         var y = $('#f-chk');
 
+        x.value(true);
+
         do_test('checkbox.value()', 99,
             function () {
                 return x.value();
@@ -133,8 +139,23 @@ function test_code() {
                 return y.prop('checked');
             });
 
+        var x = _q('#f-r2');
+        var y = $('#f-r2');
+
+        x.value('radio on');
+
+        do_test('radiogroup.value()', 99,
+            function () {
+                return x.value();
+            },
+            function () {
+                return $('[name=fffti]:checked').val();
+            });
+
         var x = _q('#f-s');
         var y = $('#f-s');
+
+        x.value('Value 3');
 
         do_test('select.value()', 99,
             function () {
@@ -147,6 +168,8 @@ function test_code() {
         var x = _q('#f-sm');
         var y = $('#f-sm');
 
+        x.value(['tomatoes', 'mushrooms']);
+
         do_test('select[multiple].value()', 99,
             function () {
                 return x.value();
@@ -158,23 +181,14 @@ function test_code() {
         var x = _q('#f-t');
         var y = $('#f-t');
 
+        x.value(['i', 'like', '\ntomatoes', 'and', 'mushrooms']);
+
         do_test('textarea.value()', 99,
             function () {
                 return x.value();
             },
             function () {
                 return y.val();
-            });
-
-        var x = _q('#f-r2');
-        var y = $('#f-r2');
-
-        do_test('radiogroup.value()', 99,
-            function () {
-                return x.value();
-            },
-            function () {
-                return $('[name=fffti]:checked').val();
             });
 
         var x = _q('#f-form');
