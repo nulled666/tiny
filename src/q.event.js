@@ -33,7 +33,7 @@ define([
         var tinyq = this;
         var args = tiny.x.toArray(arguments);
 
-        // extract required parameters
+        // -> event, func
         var event = args.shift();
         var func = args.pop();
 
@@ -46,36 +46,41 @@ define([
             throw new TypeError(SEE_ABOVE);
         }
 
-        // check for extra parameters
         var arg_len = args.length;
 
-        // -> filter
-        var filter;
+        // -> filter, capture
+        var filter, capture = false;
         if (arg_len > 0) {
 
             filter = args[0];
-
             var type_filter = typeof filter;
-            if (type_filter == 'string') {
-                // create filter function with selector
+
+            if (filter === true) {
+                // ==> (event, capture, [data,] handler)
+                capture = true;
+                filter = false;
+            } else if (type_filter == 'string') {
+                // ==> (event, selector, [data,] handler)
                 filter = matches_helper.bind(filter);
-            } else if (type_filter != 'function') {
-                _error(TAG_Q, 'Expect a filter string or function for delegation. > Got "' + type_filter + '": ', filter);
-                throw new TypeError(SEE_ABOVE);
+            } else if (type_filter == 'function') {
+                // ==> (event, filter_func, [data,] handler)
+            } else {
+                // ==> treat as (event, [data,] handler)
+                data = filter;
+                filter = false;
             }
 
         }
 
         // -> data
-        var data;
-        if (arg_len > 1) data = args[1];
+        var data = arg_len > 1 ? args[1] : undefined;
 
         var handler = create_event_handler(func, filter, data);
 
         for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
             if (!node) continue;
-            node.addEventListener(event, handler, filter ? true : false);
+            node.addEventListener(event, handler, capture);
         }
 
         return tinyq;
