@@ -17,15 +17,15 @@ define([
 
     var TAG_Q = TinyQ.x.TAG;
     var SEE_ABOVE = G.SEE_ABOVE;
+    var EVENT_HANDLER_MARK = 'tinyQ-EVENT';
 
     var _error = tiny.error;
-
 
 
     /**
      * TinyQ.on() method
      * .on(event, handle)
-     * .on(event, filter, data, handle)
+     * .on(event, selector, data, handle)
      */
     function listen_to_event() {
 
@@ -53,22 +53,13 @@ define([
 
             filter = args[0];
 
-            // type check
-            var type_array = Array.isArray(filter);
             var type_filter = typeof filter;
-            if (!type_array && type_filter != 'function' && type_filter != 'string') {
-                _error(TAG_Q, 'Expect a filter Array or filter string or function for delegation. > Got "' + type_filter + '": ', filter);
+            if (type_filter == 'string') {
+                // create filter function with selector
+                filter = matches_helper.bind(filter);
+            } else if (type_filter != 'function') {
+                _error(TAG_Q, 'Expect a filter string or function for delegation. > Got "' + type_filter + '": ', filter);
                 throw new TypeError(SEE_ABOVE);
-            }
-
-            // parse and generate filter function
-            if(!type_array) filter = [filter];
-            filter = TinyQ.x.parseFilterList(filter);
-
-            if (!filter) {
-                tiny.warn(TAG_Q, 'No valid filter found. ', args);
-            } else {
-                filter = TinyQ.x.createFilterFunction(filter);
             }
 
         }
@@ -77,21 +68,53 @@ define([
         var data;
         if (arg_len > 1) data = args[1];
 
-        _log(event, func, filter, data);
-
         var handler = create_event_handler(func, filter, data);
+        _log(event, func, filter, data, handler);
 
     }
 
+    // helper function for delegate selector match
+    function matches_helper(node) {
+        return node && node.nodeType == 1 && node.matches(this);
+    }
+
+    var _event_handlers = {};
 
     function create_event_handler(func, filter, data) {
 
-        return function (event) {
-            var elem = this;
+        // assign a guid for func
+        var guid;
+        if (func[EVENT_HANDLER_MARK]) {
+            guid = func[EVENT_HANDLER_MARK];
+        } else {
+            guid = tiny.guid();
+            func[EVENT_HANDLER_MARK] = guid;
         }
 
-    }
+        // create a wrapper
+        var handler = function (event) {
 
+            var node = this;
+
+            // filter check
+            if (filter & !filter(node)) return;
+
+            //event = normalize_event(event);
+
+            // attach user data
+            event.data = data;
+
+            // call with this element
+            return func.call(this, event);
+
+        }
+
+        // store a reference
+        _event_handlers[guid] = handler;
+
+        return handler;
+
+    }
 
 
 
