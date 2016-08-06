@@ -182,7 +182,7 @@ require([
         function () {
             return (new Date(y.val())).getTime();
         });
-return;
+
     var x = _q('#f-chk');
     var y = $('#f-chk');
 
