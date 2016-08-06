@@ -53,13 +53,16 @@ define([
 
             filter = args[0];
 
+            // type check
+            var type_array = Array.isArray(filter);
             var type_filter = typeof filter;
-            if (!Array.isArray(filter) && type_filter != 'function' && type_filter != 'string') {
+            if (!type_array && type_filter != 'function' && type_filter != 'string') {
                 _error(TAG_Q, 'Expect a filter Array or filter string or function for delegation. > Got "' + type_filter + '": ', filter);
                 throw new TypeError(SEE_ABOVE);
             }
 
             // parse and generate filter function
+            if(!type_array) filter = [filter];
             filter = TinyQ.x.parseFilterList(filter);
 
             if (!filter) {
