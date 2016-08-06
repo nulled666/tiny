@@ -15,11 +15,11 @@ function start() {
 
 
     // the smooth scroll effect
-    $(".content-table a").click(function () {
-        var hash = $.attr(this, 'href').substr(1);
-        smooth_scroll_to(hash);
-        return false;
-    });
+    // $(".content-table a").click(function () {
+    //     var hash = $.attr(this, 'href').substr(1);
+    //     smooth_scroll_to(hash);
+    //     return false;
+    // });
 
     $('#test-info').on('click', jump_to_error);
 
@@ -39,9 +39,12 @@ function test_code() {
 
         _warn('---------')
 
+        _q('.content-table').on('click', 'a', ['test'], function () {
+            var hash = $.attr(this, 'href').substr(1);
+            smooth_scroll_to(hash);
+            return false;
+        });
 
-        var x = _q('.run-code');
-        var y = $('.run-code');
 
         _warn('---------')
 
