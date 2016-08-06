@@ -11,7 +11,7 @@ define([
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
         on: event_add_listener,
-        off: false
+        off: event_remove_listener
     });
 
 
@@ -24,8 +24,6 @@ define([
 
 
     /**
-     * TinyQ.on() method
-     * .on(event, handle)
      * .on(event, selector, data, handle)
      */
     function event_add_listener() {
@@ -145,5 +143,27 @@ define([
     }
 
 
+    /**
+     * .off()
+     */
+    function event_remove_listener(event, func) {
+
+        var tinyq = this;
+
+        // get handler wrapper function
+        var guid = func[EVENT_HANDLER_MARK];
+        if (guid) {
+            var handler = _event_handlers[guid];
+            if (handler) func = handler;
+        }
+
+        // remove handler
+        for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+            var node = _get_valid_element(nodes[i]);
+            if (!node) continue;
+            node.removeEventListener(event, func);
+        }
+
+    }
 
 });
