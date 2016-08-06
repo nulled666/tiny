@@ -91,52 +91,51 @@ define([
         return node && node.nodeType == 1 && node.matches(this);
     }
 
-    // reference dict
+
+    // event handler reference list
     var _event_handlers = {};
 
+    /**
+     * create a handler function which wraps original function
+     * TODO: support different data in reference dict
+     */
     function create_event_handler(func, filter, data) {
 
         // assign a guid for func
         var guid;
+        var handler;
         if (func[EVENT_HANDLER_MARK]) {
             guid = func[EVENT_HANDLER_MARK];
+            handler = _event_handlers[guid];
         } else {
             guid = tiny.guid();
-            func[EVENT_HANDLER_MARK] = guid;
-        }
-
-        // create a wrapper
-        var handler = function (event) {
-
-            var node;
-
-            if (!filter) {
-                // ==> direct listen
-                node = this;
-            } else {
-                // ==> delegate
-                var target = event.target;
-                // get real target we want
-                while (target != node) {
-                    if (filter(target)) {
-                        node = target;
-                        break;
+            handler = function (event) {
+                var node;
+                if (!filter) {
+                    // ==> direct listen
+                    node = this;
+                } else {
+                    // ==> delegate
+                    var target = event.target;
+                    // get real target we want
+                    while (target != node) {
+                        if (filter(target)) {
+                            node = target;
+                            break;
+                        }
+                        target = target.parentNode;
                     }
-                    target = target.parentNode;
+                    // no matching found
+                    if (!node) return;
                 }
-                // no matching found
-                if (!node) return;
+                return func.call(node, event, data);
             }
-
-            //event = normalize_event(event);
-
-            // call with the right element
-            return func.call(node, event, data);
-
+            // save a mark
+            func[EVENT_HANDLER_MARK] = guid;
+            _event_handlers[guid] = handler;
         }
 
         // store a reference
-        _event_handlers[guid] = handler;
 
         return handler;
 
