@@ -112,8 +112,8 @@ define([
                 node = this;
             } else {
                 // ==> delegate
-                // get real node
                 var target = event.target;
+                // get real target we want
                 while (target != node) {
                     if (filter(target)) {
                         node = target;
