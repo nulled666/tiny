@@ -15,6 +15,9 @@ define([
     });
 
 
+    var TAG_Q = TinyQ.x.TAG;
+    var SEE_ABOVE = G.SEE_ABOVE;
+
     var _error = tiny.error;
 
 
@@ -22,15 +25,21 @@ define([
     /**
      * TinyQ.on() method
      * .on(event, handle)
-     * .on(event, class, handle)
-     * .on(event, filter, handle)
+     * .on(event, class, handle, extra)
+     * .on(event, filter, handle, extra)
      */
-    function listen_to_event(event, param, extra) {
+    function listen_to_event(event, watch, func) {
 
         if (typeof event != 'string') {
-            _error(TinyQ.x.TAG, 'Expect an event string. > Got "' + typeof event + '": ', event);
-            throw new TypeError(G.SEE_ABOVE);
+            _error(TAG_Q, 'Expect an event string. > Got "' + typeof event + '": ', event);
+            throw new TypeError(SEE_ABOVE);
         }
+
+        var type = typeof watch;
+        if(type == 'function'){
+            // ==> (event, func)
+            func = watch, watch = null;
+        }else
 
     }
 
