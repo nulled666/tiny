@@ -39,9 +39,13 @@ function test_code() {
 
         _warn('---------')
 
+        _q('.content-table').on('click', 'a[href]', ['test'], jump_to_hash);
         _q('.content-table').on('click', 'a[href]', ['test'], do_it);
 
-        //_q('.content-table').off('click', do_it);
+        function do_it() {
+            _info('nothing');
+        }
+        _q('.content-table').off('click', jump_to_hash);
 
         _warn('---------')
 
@@ -51,7 +55,9 @@ function test_code() {
 
 }
 
-function do_it(event, data) {
+
+// ====== ui functions
+function jump_to_hash(event, data) {
     _log(this, event, data);
     var elem = _q1(this);
     var hash = elem.attr('href').substr(1);
@@ -59,7 +65,36 @@ function do_it(event, data) {
     return false;
 }
 
-// ====== ui functions
+function smooth_scroll_to(obj, offset) {
+
+    var is_hash = false;
+    var hash = '';
+    if (typeof obj == 'string') {
+        is_hash = true;
+        hash = obj;
+        obj = $('a[name="' + hash + '"]');
+        if (obj.length < 1) return;
+    }
+
+    if (typeof offset !== 'number') {
+        offset = 0;
+    }
+
+    obj = $(obj);
+
+    $(document.body).animate(
+        { scrollTop: obj.offset().top + offset },
+        500,
+        "swing",
+        function () {
+            if (is_hash)
+                window.location.hash = hash;
+        }
+    );
+
+}
+
+
 function jump_to_error() {
 
     var objs = $('.failed');
@@ -105,35 +140,6 @@ function jump_to_error() {
 function expand_pre(elem) {
     var elem = $(elem);
     elem.removeClass('collapse');
-}
-
-function smooth_scroll_to(obj, offset) {
-
-    var is_hash = false;
-    var hash = '';
-    if (typeof obj == 'string') {
-        is_hash = true;
-        hash = obj;
-        obj = $('a[name="' + hash + '"]');
-        if (obj.length < 1) return;
-    }
-
-    if (typeof offset !== 'number') {
-        offset = 0;
-    }
-
-    obj = $(obj);
-
-    $(document.body).animate(
-        { scrollTop: obj.offset().top + offset },
-        500,
-        "swing",
-        function () {
-            if (is_hash)
-                window.location.hash = hash;
-        }
-    );
-
 }
 
 // ====== content table builder
