@@ -39,8 +39,10 @@ function test_code() {
 
         _warn('---------')
 
-        _q('.content-table').on('click', 'a[href]', ['test'], function () {
-            var hash = $.attr(this, 'href').substr(1);
+        _q('.content-table').on('click', 'a[href]', ['test'], function (event, data) {
+            _log(this, event, data);
+            var elem = _q1(this);
+            var hash = elem.attr('href').substr(1);
             smooth_scroll_to(hash);
             return false;
         });

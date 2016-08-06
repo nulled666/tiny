@@ -10,7 +10,7 @@ define([
     // EVENT METHOD FOR TINYQ
     //////////////////////////////////////////////////////////
     tiny.extend(TinyQ.prototype, {
-        on: listen_to_event,
+        on: event_add_listener,
         off: false
     });
 
@@ -20,6 +20,7 @@ define([
     var EVENT_HANDLER_MARK = 'tinyQ-EVENT';
 
     var _error = tiny.error;
+    var _get_valid_element = TinyQ.x.getElement;
 
 
     /**
@@ -27,8 +28,9 @@ define([
      * .on(event, handle)
      * .on(event, selector, data, handle)
      */
-    function listen_to_event() {
+    function event_add_listener() {
 
+        var tinyq = this;
         var args = tiny.x.toArray(arguments);
 
         // extract required parameters
@@ -69,15 +71,24 @@ define([
         if (arg_len > 1) data = args[1];
 
         var handler = create_event_handler(func, filter, data);
-        _log(event, func, filter, data, handler);
+
+        for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+            var node = _get_valid_element(nodes[i]);
+            if (!node) continue;
+            node.addEventListener(event, handler, filter ? true : false);
+        }
+
+        return tinyq;
 
     }
+
 
     // helper function for delegate selector match
     function matches_helper(node) {
         return node && node.nodeType == 1 && node.matches(this);
     }
 
+    // reference dict
     var _event_handlers = {};
 
     function create_event_handler(func, filter, data) {
@@ -94,18 +105,30 @@ define([
         // create a wrapper
         var handler = function (event) {
 
-            var node = this;
+            var node;
 
-            // filter check
-            if (filter & !filter(node)) return;
+            if (!filter) {
+                // ==> direct listen
+                node = this;
+            } else {
+                // ==> delegate
+                // get real node
+                var target = event.target;
+                while (target != node) {
+                    if (filter(target)) {
+                        node = target;
+                        break;
+                    }
+                    target = target.parentNode;
+                }
+                // no matching found
+                if (!node) return;
+            }
 
             //event = normalize_event(event);
 
-            // attach user data
-            event.data = data;
-
-            // call with this element
-            return func.call(this, event);
+            // call with the right element
+            return func.call(node, event, data);
 
         }
 
