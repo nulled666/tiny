@@ -39,13 +39,14 @@ function test_code() {
 
         _warn('---------')
 
+        _q('.content-table').on('click', 'a[href]', jump_to_hash);
         _q('.content-table').on('click', 'a[href]', ['test'], jump_to_hash);
-        _q('.content-table').on('click', 'a[href]', ['test'], do_it);
+        _q('.content-table').on('click', 'a[href]', ['me'], jump_to_hash);
 
         function do_it() {
             _info('nothing');
         }
-        _q('.content-table').off('click', jump_to_hash);
+        _q('.content-table').off('click', do_it);
 
         _warn('---------')
 
@@ -58,7 +59,7 @@ function test_code() {
 
 // ====== ui functions
 function jump_to_hash(event, data) {
-    _log(this, event, data);
+    _log(data, event, this);
     var elem = _q1(this);
     var hash = elem.attr('href').substr(1);
     smooth_scroll_to(hash);

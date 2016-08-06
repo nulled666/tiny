@@ -23,6 +23,10 @@ define([
     var _get_valid_element = TinyQ.x.getElement;
 
 
+    // event handler reference list
+    var _event_handlers = {};
+
+
     /**
      * .on(event, selector, data, handle)
      */
@@ -73,7 +77,7 @@ define([
         // -> data
         var data = arg_len > 1 ? args[1] : undefined;
 
-        var handler = create_event_handler(func, filter, data);
+        var handler = get_event_handler(func, filter, data);
 
         for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
             var node = _get_valid_element(nodes[i]);
@@ -92,52 +96,78 @@ define([
     }
 
 
-    // event handler reference list
-    var _event_handlers = {};
-
     /**
-     * create a handler function which wraps original function
-     * TODO: support different data in reference dict
+     * get a wrapper function for event handler
      */
-    function create_event_handler(func, filter, data) {
+    function get_event_handler(func, filter, data) {
 
-        // assign a guid for func
-        var guid;
+        // get the wrapper function
+        var guid = func[EVENT_HANDLER_MARK];
         var handler;
-        if (func[EVENT_HANDLER_MARK]) {
-            guid = func[EVENT_HANDLER_MARK];
-            handler = _event_handlers[guid];
-        } else {
-            guid = tiny.guid();
-            handler = function (event) {
-                var node;
-                if (!filter) {
-                    // ==> direct listen
-                    node = this;
-                } else {
-                    // ==> delegate
-                    var target = event.target;
-                    // get real target we want
-                    while (target != node) {
-                        if (filter(target)) {
-                            node = target;
-                            break;
-                        }
-                        target = target.parentNode;
+        if (guid) {
+            // ==> already bundled
+            var handler_list = _event_handlers[guid];
+            // find the unique handler without data
+            if (!data) {
+                var i = handler_list.length, item;
+                while (item = handler_list[--i]) {
+                    if (!handler.hasData) {
+                        handler = item;
+                        break;
                     }
-                    // no matching found
-                    if (!node) return;
                 }
-                return func.call(node, event, data);
             }
-            // save a mark
+        } else {
+            // ==> save a mark on original function
+            guid = tiny.guid();
             func[EVENT_HANDLER_MARK] = guid;
-            _event_handlers[guid] = handler;
+            _event_handlers[guid] = [];
         }
 
-        // store a reference
+        if (!handler) {
+            // create the wrapper function for new handler or handler with new data value
+            handler = create_event_handler_wrapper(func, filter);
+            if (data) {
+                handler.hasData = true;
+                handler = handler.bind(data);
+            }
+            // store a reference = handler;
+            _event_handlers[guid].push(handler);
+        }
 
         return handler;
+
+    }
+
+    // create event handler wrapper
+    function create_event_handler_wrapper(func, filter) {
+
+        return function (event) {
+
+            // get event target
+            var node;
+            var target = event.target;
+
+            if (!filter) {
+                // ==> direct listen
+                node = target;
+            } else {
+                // ==> delegate mode, find real target
+                while (target != node) {
+                    if (filter(target)) {
+                        node = target;
+                        break;
+                    }
+                    target = target.parentNode;
+                }
+                // no match found - jump out
+                if (!node) return;
+            }
+
+            // call the real handler - this = data
+            return func.call(node, event, this);
+
+        }
 
     }
 
@@ -150,19 +180,30 @@ define([
 
         var tinyq = this;
 
-        // get handler wrapper function
+        // get handler list
+        var handler_list;
         var guid = func[EVENT_HANDLER_MARK];
         if (guid) {
-            var handler = _event_handlers[guid];
-            if (handler) func = handler;
+            handler_list = _event_handlers[guid];
+        } else {
+            handler_list = [func];
         }
 
-        // remove handler
-        for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
-            var node = _get_valid_element(nodes[i]);
-            if (!node) continue;
-            node.removeEventListener(event, func);
+        // remove handlers
+        if (handler_list) {
+            var len_handlers = handler_list.length;
+            for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+                var node = _get_valid_element(nodes[i]);
+                if (!node) continue;
+                for (var j = 0; j < len_handlers; ++j)
+                    node.removeEventListener(event, handler_list[j]);
+            }
         }
+
+        // clean list
+        if (guid) _event_handlers[guid] = [];
+
+        return tinyq;
 
     }
 
