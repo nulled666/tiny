@@ -31,7 +31,9 @@ define([
         OPID_MARK: 'tinyQ-OPID',
         isArrayLike: is_array_like,
         isWindow: is_window,
-        getElement: get_valid_element
+        getElement: get_valid_element,
+        parseFilterList: parse_filter_list,
+        createFilterFunction: create_filter_function
     };
 
     TinyQ.prototype = {
@@ -48,7 +50,7 @@ define([
         q: sub_query_all,
         q1: sub_query_one,
         add: add_nodes,
-        filter: filter_nodes,
+        filter: filter_method,
 
         // collection access
         get: get_elem_by_index,
@@ -459,15 +461,21 @@ define([
     /**
      * .filter() - filter items in result set
      */
-    function filter_nodes() {
-        return do_filter(this, arguments, 'filter');
+    function filter_method() {
+        return filter_nodes(this, arguments, 'filter');
     }
 
-    function do_filter(tinyq, args, method_tag) {
+    function filter_nodes(tinyq, args, method_tag) {
 
         var tag = { filter: '' };
-        var filters = create_filter_list.call(tag, args);
-        var filter_func = create_filter_executor(filters);
+        var filters = parse_filter_list.call(tag, args);
+
+        if(!filters){
+            tiny.warn(TAG_Q, 'No valid filter found. ', args);
+            return tinyq;
+        }
+
+        var filter_func = create_filter_function(filters);
 
         var arr = to_array(tinyq.nodes, [], false, filter_func);
 
@@ -480,7 +488,7 @@ define([
     /**
      * create a function wrapper for all filters
      */
-    function create_filter_executor(filters) {
+    function create_filter_function(filters) {
         if (!filters) return false;
         return filter_list_executor.bind(filters);
     }
@@ -500,21 +508,21 @@ define([
     /**
      * build a wrapper function for all filters
      */
-    function create_filter_list(args) {
-        var tag = this;
+    function parse_filter_list(args) {
+        var tag = this || {};
         var arr = [];
         for (var i = 0, len = args.length; i < len; ++i) {
             var item = args[i];
             if (!item) return;
-            arr = parse_arg_to_filter.call(tag, item, arr);
+            arr = parse_filter_def.call(tag, item, arr);
         }
-        return arr;
+        return arr.length > 0 ? arr : false;
     }
 
     /**
      * Returns a filter function of given filter type
      */
-    function parse_arg_to_filter(arg, list) {
+    function parse_filter_def(arg, list) {
 
         if (!arg) return false; // no filter is set
 
@@ -886,7 +894,7 @@ define([
             _error(TAG_Q, 'Expect an index number. > Got "' + typeof index + '": ', index);
             throw new TypeError(SEE_ABOVE);
         }
-        
+
         var nodes = this.nodes;
         index = index < 0 ? nodes.length + index : index;
         return nodes[index];
