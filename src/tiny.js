@@ -6,7 +6,7 @@ define([
     './tiny.storage',
     './tiny.lang',
     './tiny.format',
-    './q',
+    './tinyq',
 ], function (tiny) {
 
     'use strict';

@@ -1,7 +1,7 @@
 define([
     './global',
     './tiny.base',
-    './q.base'
+    './tinyq.base'
 ], function (G, tiny, TinyQ) {
 
     'use strict';
