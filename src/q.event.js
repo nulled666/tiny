@@ -21,7 +21,6 @@ define([
     var EVENT_MARK = 'tinyQ-EVENT-';
 
     var _error = tiny.error;
-    var _get_valid_element = TinyQ.x.getElement;
 
 
     // event handler reference list
@@ -84,7 +83,7 @@ define([
         var event_mark = EVENT_MARK + event;
 
         for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
-            var node = _get_valid_element(nodes[i]);
+            var node = get_valid_event_target(nodes[i]);
             if (!node) continue;
             if (!node[event_mark]) node[event_mark] = '';
             node[event_mark] += ',' + handler.dataList;
@@ -96,6 +95,13 @@ define([
 
     }
 
+    // get valid event target
+    function get_valid_event_target(obj) {
+        if (!obj) return false;
+        var type = obj.nodeType;
+        if (obj != obj.window && type != 1 && type != 9) return false;
+        return obj;
+    }
 
     // helper function for delegate selector match
     function matches_helper(node) {
@@ -200,8 +206,7 @@ define([
 
             for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
 
-                // get element
-                var node = _get_valid_element(nodes[i]);
+                var node = get_valid_event_target(nodes[i]);
                 if (!node) continue;
 
                 // get data_id list

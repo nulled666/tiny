@@ -39,6 +39,8 @@ function test_code() {
 
         _warn('---------')
 
+        _q(document).on('click', do_it);
+
         _q('.content-table').on('click', 'a[href]', jump_to_hash);
         _q('.content-table').on('click', 'a[href]', ['test'], jump_to_hash);
         _q('.content-table').on('mouseup', 'a[href]', ['me'], jump_to_hash);
