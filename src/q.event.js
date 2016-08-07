@@ -79,16 +79,26 @@ define([
         // -> data
         var data = arg_len > 1 ? args[1] : undefined;
 
+        // get handler wrapper function
         var handler = get_event_handler(func, filter, data);
-        var event_mark = EVENT_MARK + event;
 
-        for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
-            var node = get_valid_event_target(nodes[i]);
-            if (!node) continue;
-            if (!node[event_mark]) node[event_mark] = '';
-            node[event_mark] += ',' + handler.dataList;
-            node.addEventListener(event, handler, capture);
-            handler.referCount++;
+        // multiple event support
+        var event_list = event.split(' ');
+
+        for (var e = 0, e_len = event_list.length; e < e_len; ++e) {
+
+            var event = event_list[e];
+            var event_mark = EVENT_MARK + event;
+
+            for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+                var node = get_valid_event_target(nodes[i]);
+                if (!node) continue;
+                if (!node[event_mark]) node[event_mark] = '';
+                node[event_mark] += ',' + handler.dataList;
+                node.addEventListener(event, handler, capture);
+                handler.referCount++;
+            }
+
         }
 
         return tinyq;
@@ -187,6 +197,15 @@ define([
      */
     function event_remove_listener(event, func) {
 
+        if (typeof event != 'string') {
+            _error(TAG_Q, 'Expect an event string. > Got "' + typeof event + '": ', event);
+            throw new TypeError(SEE_ABOVE);
+        }
+        if (typeof func != 'function') {
+            _error(TAG_Q, 'Expect an function for event handle. > Got "' + typeof func + '": ', func);
+            throw new TypeError(SEE_ABOVE);
+        }
+
         var tinyq = this;
 
         // get handler list
@@ -198,35 +217,49 @@ define([
             handler_list = { 0: func };
         }
 
+
         // remove handlers
         if (handler_list) {
 
-            var event_mark = EVENT_MARK + event;
             var len_handlers = handler_list.length;
 
-            for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+            // multiple event support
+            var event_list = event.split(' ');
 
-                var node = get_valid_event_target(nodes[i]);
-                if (!node) continue;
+            for (var e = 0, e_len = event_list.length; e < e_len; ++e) {
 
-                // get data_id list
-                var data_id_list = node[event_mark];
-                if (!data_id_list) continue;
-                data_id_list = data_id_list.split(',');
+                var event = event_list[e];
+                var event_mark = EVENT_MARK + event;
 
-                // remove handlers which have matching data_id
-                for (var j = 1, j_len = data_id_list.length; j < j_len; ++j) {
-                    var data_id = data_id_list[j];
-                    var handler = handler_list[data_id];
-                    if (handler) {
-                        node.removeEventListener(event, handler);
-                        handler.referCount--;
-                        if (handler.referCount == 0)
-                            delete handler_list[data_id];
+                for (var i = 0, nodes = tinyq.nodes, len = nodes.length; i < len; ++i) {
+
+                    var node = get_valid_event_target(nodes[i]);
+                    if (!node) continue;
+
+                    // get data_id list
+                    var data_id_list = node[event_mark];
+                    if (!data_id_list) continue;
+                    data_id_list = data_id_list.split(',');
+
+                    // remove handlers which have matching data_id
+                    for (var j = 1, j_len = data_id_list.length; j < j_len; ++j) {
+                        var data_id = data_id_list[j];
+                        var handler = handler_list[data_id];
+                        if (handler) {
+                            node.removeEventListener(event, handler);
+                            handler.referCount--;
+                            if (handler.referCount == 0)
+                                delete handler_list[data_id];
+                        }
                     }
-                }
-            }
 
+                // end for(i)
+                }
+
+            // end for(e)
+            }
+            
+        // end if(handler_list)
         }
 
         return tinyq;

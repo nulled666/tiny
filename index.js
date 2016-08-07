@@ -43,7 +43,7 @@ function test_code() {
 
         _q('.content-table').on('click', 'a[href]', jump_to_hash);
         _q('.content-table').on('click', 'a[href]', ['test'], jump_to_hash);
-        _q('.content-table').on('mouseup', 'a[href]', ['me'], jump_to_hash);
+        _q('.content-table').on('click mouseup', 'a[href]', ['me'], jump_to_hash);
 
         function do_it() {
             _info('nothing');
