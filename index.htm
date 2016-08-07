@@ -41,7 +41,7 @@
         <p>A typical initialization code with Tiny sequence looks like this:</p>
         <pre><code class="language-javascript">
            tiny.import();                        // import functions & methods
-           tiny.verbose('error');                // output errors only in production environment
+           tiny.output('error');                // output errors only in production environment
            _storage.keyPrefix = 'my_app';        // set storage key prefix
 
            var lang = _storage('lang');          // get user language setting
@@ -278,17 +278,17 @@
             <code>_warn()</code> and <code>_error()</code>.</p>
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
-        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with verbose
+        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with those
             logs.
         </p>
-        <p>You can easily turn the console log on or off by calling <code>tiny.verbose(true)</code> in develop or production
+        <p>You can easily turn the console log on or off by calling <code>tiny.output('all')</code> in develop or production
             environments.
         </p>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             // enable _log() output when you need them
-            tiny.verbose('all');
+            tiny.output('all');
 
             // use them as you would like the console.xxx equivalents
             _log('Test for _log()', '----------------------------');

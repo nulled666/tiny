@@ -14,14 +14,14 @@ define([
     tiny.x.add({
         inspect: _inspect,
         time: perf_time,
-        verbose: verbose_level
+        output: output_level
     });
 
-    // default output verbose level
-    var DEFAULT_VERBOSE = 'warn|error';
+    // default output level
+    var DEFAULT_OUTPUT_LEVEL = 'warn error';
 
     // enable console shorthands now
-    verbose_level();
+    output_level();
 
     /**
      * Expand object to an JSON string
@@ -95,17 +95,17 @@ define([
     /**
      * Enable/disable console method output
      * ```
-     *   tiny.verbose('none');      // disable all
-     *   tiny.verbose('all');       // enable all = 'log|info|warn|error', 'log' flag includes dir()
-     *   tiny.verbose('log|error'); // console.log() & console.error() only
-     *   tiny.verbose();            // default = 'warn|error' only
+     *   tiny.output('none');      // disable all
+     *   tiny.output('all');       // enable all = 'log|info|warn|error', 'log' flag includes dir()
+     *   tiny.output('log|error'); // console.log() & console.error() only
+     *   tiny.output();            // default = 'warn|error' only
      * ```
      */
-    function verbose_level(on) {
+    function output_level(on) {
 
-        on = on == undefined || typeof on != 'string' ? DEFAULT_VERBOSE :
+        on = on == undefined || typeof on != 'string' ? DEFAULT_OUTPUT_LEVEL :
             on == 'none' ? '' :
-                on == 'all' ? 'log|info|warn|error' :
+                on == 'all' ? 'log info warn error' :
                     on;
 
         _log = on.includes('log') ? _con.log.bind(_con) : noop;

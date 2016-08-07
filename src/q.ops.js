@@ -34,15 +34,6 @@ define([
 
         class: access_class,
 
-        /**
-         * following methods are extended with extend_display_methods():
-         * 
-         *   show()       - show node by setting node.style.display
-         *   hide()       - hide node by setting node.style.display
-         *   toggle()     - toggle node node.style.display state
-         * 
-         */
-
         boundWidth: get_bound_width, // get style border/padding/margin width
 
         /**
@@ -72,6 +63,20 @@ define([
          *   scrollWidth()   - get node.scrollWidth
          * 
          */
+
+
+        /**
+         * following methods are extended with extend_display_methods():
+         * 
+         *   show()       - show node by setting node.style.display
+         *   hide()       - hide node by setting node.style.display
+         *   toggle()     - toggle node node.style.display state
+         * 
+         */
+
+        focus: false,
+        blur: false,
+        select: false
 
     });
 
@@ -140,7 +145,7 @@ define([
     /**
      * get/set method helper function
      */
-    function access_helper(tinyq, func_action, key, value,func_prepare_value) {
+    function access_helper(tinyq, func_action, key, value, func_prepare_value) {
 
         var nodes = tinyq.nodes;
         var node_len = nodes.length;
@@ -797,116 +802,6 @@ define([
 
 
     //////////////////////////////////////////////////////////
-    // SHOW/HIDE/TOGGLE
-    //////////////////////////////////////////////////////////
-
-    var DISPLAY_METHOD_LIST = {
-        'show': 1,
-        'hide': 0,
-        'toggle': -1
-    };
-
-    // append to definition
-    extend_display_methods(TINYQ_PROTOTYPE);
-
-    function extend_display_methods(def) {
-        for (var method in DISPLAY_METHOD_LIST) {
-            def[method] = generate_display_method(DISPLAY_METHOD_LIST[method]);
-        }
-    }
-    function generate_display_method(type) {
-        return function () {
-            return set_nodes_display(this, type);
-        }
-    }
-
-    /**
-     * .show() .hide() .toggle()
-     */
-    function set_nodes_display(tinyq, type) {
-        var nodes = tinyq.nodes;
-        for (var i = 0, len = nodes.length; i < len; ++i) {
-            var node = _get_valid_element(nodes[i]);
-            if (!node) continue;
-            set_display(node, type);
-        }
-        return tinyq;
-    }
-
-    /**
-     * set node visibility by style.display
-     * TODO: use 'box-supress: hide' when all essential browsers supports it
-     */
-    function set_display(node, type) {
-
-        var key = 'display';
-        var computed_display = get_computed_style(node)[key];
-        var style_display = node.style[key];
-
-        // translate toggle to actual show/hide
-        if (type == -1) type = computed_display == 'none' ? 1 : 0;
-
-        // skip no-action situations
-        if (type == 1 && computed_display != 'none') return;
-        if (type == 0 && computed_display == 'none') return;
-
-        if (type == 1) {
-            //==> show
-            var mark = node[DISPLAY_MARK]; // read original display style value
-            type = mark != undefined ? mark : get_default_display_style(node, key);
-        } else if (type == 0) {
-            //==> hide
-            node[DISPLAY_MARK] = style_display; // save display style value
-            type = 'none';
-        }
-
-        node.style[key] = type;
-
-    }
-
-    var INLINE_ELEMENTS = ',SPAN,B,I,CODE,EM,STRONG,A,BR,IMG,LABEL,OBJECT,SUB,SUP,';
-    var INLINE_BLOCK_ELEMENTS = ',BUTTON,INPUT,SELECT,TEXTAREA,';
-    var _default_display_style = {};
-
-    /**
-     * get default style of given type of element
-     */
-    function get_default_display_style(node, key) {
-
-        var key = 'display';
-        var tag = node.tagName;
-        var val = _default_display_style[tag];
-
-        if (val) return val;
-
-        // use a temporary element t oget default style
-        var doc = node.ownerDocument;
-        var elem = doc.body.appendChild(doc.createElement(tag));
-        var display = get_computed_style(elem)[key];
-        doc.body.removeChild(elem);
-
-        if (display == 'none') {
-            // if somebody have 'tagname { display: none }' set in css
-            // use our short lists to determine default value
-            var tag = ',' + tag + ',';
-            if (INLINE_ELEMENTS.includes(tag)) {
-                display = 'inline';
-            } else if (INLINE_BLOCK_ELEMENTS.includes(tag)) {
-                display = 'inline-block';
-            } else {
-                display = 'block';
-            }
-        }
-
-        // save to cache
-        _default_display_style[tag] = display;
-
-        return display;
-
-    }
-
-
-    //////////////////////////////////////////////////////////
     //  BOUND BOX SIZES
     //////////////////////////////////////////////////////////
 
@@ -926,22 +821,25 @@ define([
 
     function DEFAULT_BOUND() { return { top: 0, left: 0, right: 0, bottom: 0 } }
 
+    var IS_BOUND_NAME = { padding: 1, border: 1, margin: 1 }
+
     /**
      * get bound box of given style prefix
      */
     function get_bound_area_size(node, type) {
 
-        if (type == 'all') type = 'padding,border,margin';
+        if (type == 'all') type = 'padding border margin';
 
         var delta = DEFAULT_BOUND();
         var side_list = ['Top', 'Right', 'Bottom', 'Left'];
         var style = get_computed_style(node);
 
-        var types = type.split(',');
+        var types = type.split(' ');
         var len = types.length;
 
         while (type = types[--len]) {
             type = type.trim();
+            if (!IS_BOUND_NAME[type]) continue;
             var suffix = type == 'border' ? 'Width' : '';
             var i = 0, side;
             while (side = side_list[i++]) {
@@ -1207,7 +1105,7 @@ define([
         var IS_SIZE_KEY = { width: 1, height: 1 };
         // calculate bound size for different box type
         var BORDER_BOX_BOUND_DELTA = { padding: 'border', margin: 'margin' };
-        var CONTENT_BOX_BOUND_DELTA = { padding: 'padding', border: 'border,padding', margin: 'all' };
+        var CONTENT_BOX_BOUND_DELTA = { padding: 'padding', border: 'border padding', margin: 'all' };
 
         var style = get_computed_style(node);
         var is_border_box = style['boxSizing'] == 'border-box';
@@ -1344,5 +1242,123 @@ define([
             set_property(node, prefix + type, val);
         }
     }
+
+
+    //////////////////////////////////////////////////////////
+    // SHOW/HIDE/TOGGLE
+    //////////////////////////////////////////////////////////
+
+    var DISPLAY_METHOD_LIST = {
+        'show': 1,
+        'hide': 0,
+        'toggle': -1
+    };
+
+    // append to definition
+    extend_display_methods(TINYQ_PROTOTYPE);
+
+    function extend_display_methods(def) {
+        for (var method in DISPLAY_METHOD_LIST) {
+            def[method] = generate_display_method(DISPLAY_METHOD_LIST[method]);
+        }
+    }
+    function generate_display_method(type) {
+        return function () {
+            return set_nodes_display(this, type);
+        }
+    }
+
+    /**
+     * .show() .hide() .toggle()
+     */
+    function set_nodes_display(tinyq, type) {
+        var nodes = tinyq.nodes;
+        for (var i = 0, len = nodes.length; i < len; ++i) {
+            var node = _get_valid_element(nodes[i]);
+            if (!node) continue;
+            set_display(node, type);
+        }
+        return tinyq;
+    }
+
+    /**
+     * set node visibility by style.display
+     * TODO: use 'box-supress: hide' when all essential browsers supports it
+     */
+    function set_display(node, type) {
+
+        var key = 'display';
+        var computed_display = get_computed_style(node)[key];
+        var style_display = node.style[key];
+
+        // translate toggle to actual show/hide
+        if (type == -1) type = computed_display == 'none' ? 1 : 0;
+
+        // skip no-action situations
+        if (type == 1 && computed_display != 'none') return;
+        if (type == 0 && computed_display == 'none') return;
+
+        if (type == 1) {
+            //==> show
+            var mark = node[DISPLAY_MARK]; // read original display style value
+            type = mark != undefined ? mark : get_default_display_style(node, key);
+        } else if (type == 0) {
+            //==> hide
+            node[DISPLAY_MARK] = style_display; // save display style value
+            type = 'none';
+        }
+
+        node.style[key] = type;
+
+    }
+
+    var INLINE_ELEMENTS = ',SPAN,B,I,CODE,EM,STRONG,A,BR,IMG,LABEL,OBJECT,SUB,SUP,';
+    var INLINE_BLOCK_ELEMENTS = ',BUTTON,INPUT,SELECT,TEXTAREA,';
+    var _default_display_style = {};
+
+    /**
+     * get default style of given type of element
+     */
+    function get_default_display_style(node, key) {
+
+        var key = 'display';
+        var tag = node.tagName;
+        var val = _default_display_style[tag];
+
+        if (val) return val;
+
+        // use a temporary element t oget default style
+        var doc = node.ownerDocument;
+        var elem = doc.body.appendChild(doc.createElement(tag));
+        var display = get_computed_style(elem)[key];
+        doc.body.removeChild(elem);
+
+        if (display == 'none') {
+            // if somebody have 'tagname { display: none }' set in css
+            // use our short lists to determine default value
+            var tag = ',' + tag + ',';
+            if (INLINE_ELEMENTS.includes(tag)) {
+                display = 'inline';
+            } else if (INLINE_BLOCK_ELEMENTS.includes(tag)) {
+                display = 'inline-block';
+            } else {
+                display = 'block';
+            }
+        }
+
+        // save to cache
+        _default_display_style[tag] = display;
+
+        return display;
+
+    }
+
+    
+    //////////////////////////////////////////////////////////
+    // FOCUS & SELECTION
+    //////////////////////////////////////////////////////////
+    /**
+     * .focus()/.blur()/.select()
+     */
 
 });

@@ -103,6 +103,7 @@ define([
 
     var TINYQ_PROTOTYPE = TinyQ.prototype;
     var OPID_MARK = TinyQ.x.OPID_MARK;
+    var _opid = 1;
 
     var _error = tiny.error;
 
@@ -126,7 +127,7 @@ define([
             // ==> add() operation
             is_add = true;
             // plant an opid on original array for duplicate check
-            opid = tiny.guid();
+            opid = ++_opid;
             for (var nodes = base_nodes, i = 0, len = nodes.length; i < len; ++i) {
                 var node = nodes[i];
                 if (!is_valid_node(node)) continue;
@@ -328,7 +329,7 @@ define([
     function do_query(nodes, selector, query_mode, opid, base) {
 
         // check unique for multi-parent query
-        if (!opid && nodes.length > 1) opid = tiny.guid();
+        if (!opid && nodes.length > 1) opid = ++_opid;
 
         var result = base || [];
         var action = do_query_all;
@@ -660,7 +661,7 @@ define([
 
         var get_func = TRAVERSE_FUNC[type];
         var filter = selector ? traversal_match_filter.bind(selector) : false;
-        var opid = tiny.guid();  // generate a unique operation id for duplicate-check
+        var opid = ++_opid;  // generate a unique operation id for duplicate-check
 
         // do the work
         var arr = [];

@@ -584,17 +584,17 @@ require([
             return parseFloat(y.css('border-right-width')) + parseFloat(y.css('padding-right')) + parseFloat(y.css('margin-right'));
         });
 
-    do_test('.boundWidth("margin,border").top', 100,
+    do_test('.boundWidth("margin border").top', 100,
         function () {
-            return x.boundWidth("margin,border").top;
+            return x.boundWidth("margin border").top;
         },
         function () {
             return parseFloat(y.css('border-top-width')) + parseFloat(y.css('margin-top'));
         });
 
-    do_test('.boundWidth("margin,border").right', 100,
+    do_test('.boundWidth("margin border").right', 100,
         function () {
-            return x.boundWidth("margin,border").right;
+            return x.boundWidth("margin border").right;
         },
         function () {
             return parseFloat(y.css('border-right-width')) + parseFloat(y.css('margin-right'));

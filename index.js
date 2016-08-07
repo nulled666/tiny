@@ -6,7 +6,7 @@ requirejs([
 function start() {
 
     tiny.import();
-    tiny.verbose('all');
+    tiny.output('all');
 
     build_content_table();
 
@@ -34,7 +34,7 @@ function test_code() {
     require([
         'tinyq.test',
         //'tinyq.test.base',
-        //'tinyq.test.prop',
+        //'tinyq.test.ops',
     ], function (do_test) {
 
         _warn('---------')
@@ -46,7 +46,6 @@ function test_code() {
         function do_it() {
             _info('nothing');
         }
-        _q('.content-table').off('click', do_it);
 
         _warn('---------')
 
@@ -242,7 +241,7 @@ function run_code(elem) {
         var FAIL = function(txt){ ASSERT(txt, false); };\
         ' + code;
 
-    tiny.verbose('info');
+    tiny.output('info');
 
     try {
         var func = new Function(code);
@@ -255,7 +254,7 @@ function run_code(elem) {
         elem.class('failed');
     }
 
-    tiny.verbose('all');
+    tiny.output('all');
 }
 
 function show_run_code_result() {

@@ -17,7 +17,7 @@ define([
     var _global_prefix = '_';
 
     // skip this method when export to global namespace
-    var SKIP_GLOBAL = ',x,import,me,verbose,';
+    var SKIP_GLOBAL = ',x,import,me,output,';
 
     // a quick reference to console object
     var _con = console;
