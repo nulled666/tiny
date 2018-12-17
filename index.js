@@ -10,16 +10,11 @@ function start() {
 
     build_content_table();
 
-    if (test_code() != true)
-        setTimeout(run_all_code, 100);
+    // run code block in page
+    setTimeout(run_all_code, 100);
 
-
-    // the smooth scroll effect
-    // $(".content-table a").click(function () {
-    //     var hash = $.attr(this, 'href').substr(1);
-    //     smooth_scroll_to(hash);
-    //     return false;
-    // });
+    // full query tests
+    // test_all();
 
     $('#test-info').on('click', jump_to_error);
 
@@ -29,32 +24,17 @@ function start() {
 
 }
 
-function test_code() {
+function test_all() {
 
+    // full unit tests
     require([
         'tinyq.test',
         'tinyq.test.base',
         'tinyq.test.ops',
-    ], function (do_test) {
-
-        _warn('---------')
-
-        _q(document).on('click', do_it);
-
-        _q('.content-table').on('click', 'a[href]', jump_to_hash);
-        _q('.content-table').on('click', 'a[href]', ['test'], jump_to_hash);
-        _q('.content-table').on('click mouseup', 'a[href]', ['me'], jump_to_hash);
-
-        function do_it() {
-            _info('nothing');
-        }
-        _q('.content-table').off('click', jump_to_hash);
-
-        _warn('---------')
+    ], function () {
 
     });
 
-    return true;
 
 }
 

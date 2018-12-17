@@ -2,6 +2,7 @@ define([
     'tinyq.test'
 ], function (do_test) {
 
+    _warn('Start Tests', 'tinyq vs jquery')
     _warn('query', '--------------------------------')
 
     do_test('q(window)', 1000,

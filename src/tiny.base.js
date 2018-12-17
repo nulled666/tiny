@@ -22,17 +22,11 @@ define([
     // a quick reference to console object
     var _con = console;
 
-    // lossy check for IE8 and below
-    var _supported = (!window.createPopup && _type.name == '_type');
-
-    if(!_supported) console.error(TAG_TINY, '!!! This browser might be not supported.');
-
     // extend the tiny object
     add_to_tiny({
 
         import: import_globals,
         me: show_tiny_definition,
-        isSupported: _supported,
 
         type: _type,
         each: _each,
