@@ -1,5 +1,5 @@
 requirejs([
-    "src/tiny",
+    "tiny",
     "lib/prism"
 ], start);
 
@@ -33,8 +33,8 @@ function test_code() {
 
     require([
         'tinyq.test',
-        //'tinyq.test.base',
-        //'tinyq.test.ops',
+        'tinyq.test.base',
+        'tinyq.test.ops',
     ], function (do_test) {
 
         _warn('---------')
