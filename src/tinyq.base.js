@@ -1,7 +1,7 @@
 define([
-    'global',
-    'tiny.base',
-    'tinyq._polyfills'
+    './global',
+    './tiny.base',
+    './tinyq._polyfills'
 ], function (G, tiny) {
     'use strict';
 
