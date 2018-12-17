@@ -6,4 +6,4 @@ And it doesn't want to be another armed-to-teeth full featured framework (might 
 
 Its goal is providing a minimalist building foundation for modern web pages.
 
-<a href="http://nulled666.github.io/tiny/index.htm" target="_blank">Check this page for details</a>
+<a href="https://nulled666.github.io/tiny/" target="_blank">Check this page for details</a>
