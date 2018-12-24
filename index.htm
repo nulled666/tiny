@@ -47,7 +47,6 @@
            var lang = _storage('lang');          // get user language setting
            _lang.strings = LANG_STRINGS;         // bind translation data
            _lang.set(lang);                      // load correspond language strings
-           _lang.translate(document.body);       // translate {$label} tags in document.body
 
            app.start();                          // start your app script
         </code></pre>
@@ -847,6 +846,7 @@
                 "zh-cn" : {
 
                     '_name' : '简体中文',
+                    'language' : '=> _name',   // refer to '_name', must starts with '=> '
 
                     // these options will be set to format functions on _lang.set() call if exist
                     '_decimalDelimiter' : '.',

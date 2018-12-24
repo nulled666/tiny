@@ -17,23 +17,28 @@ define([
         lang: _lang
     });
 
-    var _lang_code = 'en';
-    var _lang_strings = {
+    _lang.strings = {
         'en': {
             '_name': 'English'
         }
     };
+    var _lang_code = 'en';
 
     /**
      * Get string of current language
      */
-    function get_lang_string(str) {
+    function get_lang_string(label) {
 
-        var lang_str = _lang.strings[str];
+        var lang_str = _lang.strings[_lang_code][label];
 
         if (typeof lang_str != 'string') {
             tiny.warn('Language string not found: ', lang_str);
-            lang_str = str;
+            lang_str = label;
+        }
+
+        if (lang_str.startsWith('=> ')) {
+            label = lang_str.substring(3);
+            return get_lang_string(label);
         }
 
         return lang_str;
@@ -52,9 +57,9 @@ define([
      */
     function set_language(lang) {
 
-        if (_lang_code in _lang_strings)
+        if (_lang_code in _lang.strings)
             _lang_code = lang;
-            
+
     }
 
 });

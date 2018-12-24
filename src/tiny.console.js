@@ -107,6 +107,8 @@ define([
             on == 'none' ? '' :
                 on == 'all' ? 'log info warn error' :
                     on;
+        
+        _con.info('tiny :: output => "' + on + '"');
 
         _log = on.includes('log') ? _con.log.bind(_con) : noop;
         _dir = on.includes('log') ? _con.dir.bind(_con) : noop;

@@ -434,7 +434,7 @@ define([
      * 
      *   // expand a template inside <script> tag in a HTML file
      *   _format('#my-template-id', data_object);
-     *   // in html file - shorthand template starts with >>
+     *   // in html file - shorthand template starts with "..."
      *   <script type="x-template" id="my-template-id">
      *   ...
      *   ul #my-list .active
@@ -479,13 +479,8 @@ define([
                 template_container.innerHTML = template;
         }
 
-        // return template string if no data object is given
-        if (obj === undefined) {
-            return template;
-        }
-
         // fill template with data content and return
-        return render_template(template, obj);
+        return render_template_with_data(template, obj);
 
     }
 
@@ -751,7 +746,7 @@ define([
     /**
      * Parse & render {} tokens in HTML template string
      */
-    function render_template(template, data_obj, parsed_token) {
+    function render_template_with_data(template, data_obj, parsed_token) {
 
         var parsed_token = parsed_token || {}; // Processed token cache
 
@@ -870,11 +865,11 @@ define([
             // ==> {?token}
             if (!(child_data instanceof Array)) child_data = [child_data];
             for (var i = 0, len = child_data.length; i < len; ++i) {
-                result.output += render_template(child_template, child_data[i]);
+                result.output += render_template_with_data(child_template, child_data[i]);
             }
         } else if (mark == '!' && !child_data) {
             // ==> {!token}
-            result.output = render_template(child_template, data_obj);
+            result.output = render_template_with_data(child_template, data_obj);
         }
 
         result.ok = true;
@@ -922,7 +917,7 @@ define([
             value = obj;
         } else if (key.startsWith('$')) {
             // language string
-            value = _lang(key.replace('$'), '');
+            value = _lang(key.replace('$', ''));
         } else {
             // multi-level key
             value = fetch_value_by_key(obj, key);
