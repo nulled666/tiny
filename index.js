@@ -1,5 +1,5 @@
 requirejs([
-    "tiny",
+    "src/tiny",
     "lib/prism"
 ], start);
 
@@ -128,14 +128,14 @@ function expand_pre(elem) {
 // ====== content table builder
 function build_content_table() {
 
-    _time('tinyq');
+    _timer('tinyq');
     var sidebar = _q('#content-table');
 
     var a_list = _q('.mark');
     a_list.each(function (elem) {
         check_and_append_link(sidebar, elem);
     });
-    _time('tinyq');
+    _timer('tinyq');
 }
 
 function check_and_append_link(sidebar, elem) {
@@ -171,7 +171,8 @@ var _error_count = 0;
 
 function run_all_code() {
 
-    _time('run code');
+    _timer('run code');
+    _error(false) // turn off error popups
 
     _q('#test-info')
         .text('RUNNING CODE TEST...')
@@ -186,7 +187,8 @@ function run_all_code() {
 
     setTimeout(show_run_code_result, 500);
 
-    _time('run code');
+    _error(true)
+    _timer('run code');
 
 }
 

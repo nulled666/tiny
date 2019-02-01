@@ -9,8 +9,7 @@ define([
     // TINY BASE OBJECT
     //////////////////////////////////////////////////////////
 
-    var TAG_TINY =  'tiny ::';
-    var SEE_ABOVE =  G.SEE_ABOVE;
+    var TAG_TINY = 'tiny ::';
 
     var _tiny = {};
     var _prototype_extensions = [];
@@ -38,7 +37,7 @@ define([
         x: {
             add: add_to_tiny,
             toArray: to_array,
-            isArrayLike : is_array_like
+            isArrayLike: is_array_like
         }
 
     });
@@ -87,24 +86,20 @@ define([
         // inject G functions
         _each(_tiny, function (item, label) {
 
-            if (SKIP_GLOBAL.includes(label)) return;
+            if (SKIP_GLOBAL.includes(label)) return
 
-            if (win[_global_prefix + label] !== undefined) {
-                _con.error(TAG_TINY, 'global function name already taken : ', _global_prefix + label);
-                throw new Error(SEE_ABOVE);
-            }
+            if (win[_global_prefix + label] !== undefined)
+                throw new Error(TAG_TINY + 'global function name already taken : ' +  _global_prefix + label)
 
             win[_global_prefix + label] = item;
 
-        });
+        })
 
         // inject object prototype extensions
         _each(_prototype_extensions, function (item, index) {
 
-            if (typeof item[0] !== 'function') {
-                _con.error(TAG_TINY, 'Prototype not found : ', item[0]);
-                throw new Error(SEE_ABOVE);
-            }
+            if (typeof item[0] !== 'function')
+                throw new Error(TAG_TINY + 'No `prototype` to extend : ' + item[0])
 
             _extend(item[0].prototype, item[1]);
 
@@ -216,8 +211,7 @@ define([
         }
 
         if (typeof func !== 'function') {
-            _con.error(TAG_EACH, 'Iteration callback function required. > Got "' + typeof func + '": ', func);
-            throw new TypeError(SEE_ABOVE);
+            throw new TypeError(TAG_EACH + 'Iteration callback function required. > Got "' + typeof func + '"');
         }
 
         this_arg = this_arg || obj;
@@ -270,8 +264,7 @@ define([
 
         } else {
 
-            _con.error(TAG_EACH, 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '": ', obj);
-            throw new TypeError(SEE_ABOVE);
+            throw new TypeError(TAG_EACH + 'Only Array, Object, Number and String types are supported. > Got "' + typeof obj + '"');
 
         }
 
@@ -306,14 +299,11 @@ define([
 
         // Don't extend non-objects
         var type = typeof target;
-        if (type !== 'object' && type !== 'function') {
-            _con.error(TAG_EXTEND, 'Only Object & Function can be extended. > Got "' + type + '": ', target);
-            throw new TypeError(SEE_ABOVE);
-        }
-        if (typeof extensions !== 'object') {
-            _con.error(TAG_EXTEND, 'Extension should be an Object. > Got "' + typeof extensions + '": ', extensions);
-            throw new TypeError(SEE_ABOVE);
-        }
+        if (type !== 'object' && type !== 'function')
+            throw new TypeError(TAG_EXTEND + 'Only Object & Function can be extended. > Got "' + type + '"')
+
+        if (typeof extensions !== 'object')
+            throw new TypeError(TAG_EXTEND + 'Extension should be an Object. > Got "' + typeof extensions + '"')
 
         for (var name in extensions) {
             var item = extensions[name];

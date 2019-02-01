@@ -14,14 +14,14 @@ define([
 
     tiny.x.add({
         output: output_level,
-        inspect: _inspect
+        inspect: _inspect,
+        timer: timer
     })
     /*
         Might also add following methods to tiny.*()
         (depends on output level)
             con = window.console
             group()
-            timer()
             log()
             info()
             warn()
@@ -75,16 +75,6 @@ define([
                 _expand_group = true
         }
 
-    }
-
-
-    // console.time() wrapper function
-    var _current_timer;
-
-    function console_timer(name) {
-        name
-            ? (_con.time(name), _current_timer = name)
-            : _con.timeEnd(_current_timer)
     }
 
 
@@ -154,7 +144,6 @@ define([
         _con.info('tiny :: output => "' + on + '"');
 
         _group = on.includes('info') ? console_group : noop;
-        _timer = on.includes('log') ? console_timer : noop;
         _log = on.includes('log') ? _con.log.bind(_con) : noop;
         _info = on.includes('info') ? _con.info.bind(_con) : noop;
         _warn = on.includes('warn') ? _con.warn.bind(_con) : noop;
@@ -163,7 +152,6 @@ define([
         tiny.x.add({
             con: _con,
             group: _group,
-            timer: _timer,
             log: _log,
             info: _info,
             warn: _warn,
@@ -173,7 +161,6 @@ define([
         if (G.GLOBAL_INJECTED) {
             _win._con = _con;
             _win._group = _group;
-            _win._timer = _timer;
             _win._log = _log;
             _win._info = _info;
             _win._warn = _warn;
@@ -224,6 +211,36 @@ define([
         if (log == false) return result;
 
         _info('%c' + result, 'padding: 0 8px;color:#000;background:#f9f9ff;border-radius: 1em;');
+
+    }
+
+
+    var _timers = {}
+    var _current_timer;
+
+    /**
+     * the timer function
+     * @param {string} name 
+     */
+    function timer(name) {
+
+        name = name || _current_timer
+        if (!name) return
+
+        let t = window.performance.now()
+
+        if (_timers[name] == undefined) {
+            // => start timer
+            _current_timer = name
+            _timers[name] = t
+        } else {
+            // => end timer
+            t = t - _timers[name]
+            _timers[name] = undefined
+            _current_timer = undefined
+            _log(name + ':', t)
+            return t
+        }
 
     }
 

@@ -204,6 +204,7 @@
                 FAIL('_each() paramter 2 error');
             }catch(err){
                 ASSERT('_each() paramter 2 error', err instanceof TypeError );
+                _info(err.message)
             }
             </code></pre>
 
@@ -248,6 +249,7 @@
                 FAIL('_extend() parameter 2 error');
             }catch(err){
                 ASSERT('_extend() parameter 2 error', err instanceof TypeError );
+                _info(err.message)
             }
             </code></pre>
 
@@ -273,7 +275,7 @@
 
         <h3><a class="mark" name="console-log">_log() ... _error()</a></h3>
 
-        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_dir()</code>, <code>_info()</code>,
+        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_group()</code>, <code>_timer()</code>, <code>_info()</code>,
             <code>_warn()</code> and <code>_error()</code>.</p>
         <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
@@ -291,7 +293,6 @@
 
             // use them as you would like the console.xxx equivalents
             _log('Test for _log()', '----------------------------');
-            _dir('Test for _dir()', {title: 'Untitled', id: 1, author: 'me'});
             _info('Test for _info()', null );
             _warn('Test for _warn()', 'Nothing will happen');
             _error('Test for _error()', '----------------------------');
@@ -328,23 +329,41 @@
             ASSERT('_inspect()', result == expected_result);
         </code></pre>
 
-        <h3><a class="mark" name="time">_time()</a></h3>
+        <h3><a class="mark" name="group">_group()</a></h3>
 
-        <p>A timing function for evaluating performance.</p>
-        <p>It uses <code>Date()</code> if the <code>window.performance.now()</code> method is not avaiblable.</p>
+        <p>Wrapper for console.group()/groupCollapsed()/groupEnd().</p>
+
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
+            // call with a name to start a group
+            _group('test group');
+            // log something
+            _info('test', 123)
+            // call again to end a group
+            _group();
+
+            // collapsed group - first parameter is false
+            _group(false, 'test collapsed group');
+            _info('test', 456)
+            _group();
+        </code></pre>
+
+        <h3><a class="mark" name="time">_timer()</a></h3>
+
+        <p>Timing function using window.performance.now(). It returns a value on end</p>
 
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             // call with an id to record start time
-            _time('test');
-            // call again to output to console
-            _time('test');
+            _timer('test');
+            // call again to output to console - last timer name can be ommitted
+            _timer();
 
             // start another
-            _time('test');
+            _timer('test delayed');
             setTimeout(function(){
                 // call with false as second parameter to get the value
-                ASSERT('time', _time('test', false) > 199);
+                ASSERT('time', _timer('test delayed') > 199);
             }, 200);
         </code></pre>
 
