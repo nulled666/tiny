@@ -53,7 +53,7 @@ define([
         if (!_message_handlers[msg])
             _message_handlers[msg] = [];
 
-        tiny.log(TAG_MSG_LISTEN, 'Listen to message: "' + msg + '" + ', handler.name + '()');
+        tiny.log(TAG_MSG_LISTEN + '"' + msg + '" => ', handler.name + '()');
 
         _message_handlers[msg].push(handler);
 
@@ -75,24 +75,25 @@ define([
             throw new TypeError(SEE_ABOVE);
         }
 
-        var sliced_args = tiny.x.toArray(arguments, 1);
-        tiny.info(TAG_MSG_POST, 'Post message "' + msg + '" + ', sliced_args);
+        var sliced_args = tiny.x.toArray(arguments, 1)
 
-        var handles = _message_handlers[msg];
+        tiny.group(TAG_MSG_POST + '"' + msg + '"')
+
+        var handles = _message_handlers[msg]
 
         if (!handles || handles.length < 1) {
-            tiny.warn(TAG_MSG_POST, 'Nobody is listen to this message');
-            return _message;
+            tiny.warn(TAG_MSG_POST, 'Nobody is listen to this message')
+            return _message
         }
 
         // call handles
         tiny.each(handles, function (callback) {
-            callback.apply(this, sliced_args);
+            callback.apply(this, sliced_args)
         });
 
-        tiny.log(TAG_MSG_POST, handles.length + ' message handlers triggered');
+        tiny.group()
 
-        return _message;
+        return _message
 
     }
 
