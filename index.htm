@@ -23,14 +23,16 @@
 
         <h2><a class="mark" name="">Introduction</a></h2>
 
-        <p>This small library is meant to provide some handy functions which are missing in DOM manipulating frameworks like
+        <p>This small library is meant to provide some handy functions which are missing in DOM manipulating frameworks
+            like
             jQuery or others.</p>
         <p>And it doesn't want to be another armed-to-teeth full featured framework (might also be hard-to-learn).</p>
         <p>Its goal is providing a minimalist building foundation for modern web pages.</p>
 
         <h3><a class="mark" name="import">import()</a></h3>
 
-        <p>By default, Tiny will not inject global functions and object methods used in below examples into global namespace
+        <p>By default, Tiny will not inject global functions and object methods used in below examples into global
+            namespace
             (the <code>window</code> object).</p>
         <p>To use those short function names, pleas call <code>tiny.import()</code> ahead of all calls.</p>
         <pre><code class="language-javascript">
@@ -53,14 +55,15 @@
 
         <h3><a class="mark" name="show-me">me()</a></h3>
 
-        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected global
+        <p>Show a structural overview of <code>tiny</code> namespace. This function will also show a list of injected
+            global
             functions and prototype methods.</p>
         <pre><code class="language-javascript">
            // show tiny definitions in console
            tiny.me();
         </code></pre>
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="basic-functions">Core Functions</a></h2>
 
@@ -96,7 +99,8 @@
             <li><code>jQuery</code> - result of <code>$()</code> function</li>
         </ul>
         <p>And you can continue or break with a return value.</p>
-        <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you add
+        <p>The number of steps was determined by the array length before the loop starts. It won't change no matter you
+            add
             items to or remove items from the array.</p>
         <pre><code class="language-javascript">
             _each(object, [start,] callback [,this_arg]) : any
@@ -126,8 +130,10 @@
         for...in            9032.005ms
         </code></pre>
 
-        <p>For looping through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your project,
-            the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code>            to control code flow.</p>
+        <p>For looping through Object, Map or Set, if you can use <code>for..of</code> feature of ECMAScript 6 in your
+            project,
+            the performance can be 50 times faster. And this feature allows you using <code>continue</code> and <code>break</code>
+            to control code flow.</p>
         <p>Below is a test result on an Object:</p>
         <pre><code class="language-javascript">
         Object.keys() + for()       1064.989ms    // not sure why this is slow
@@ -255,7 +261,8 @@
 
         <h3><a class="mark" name="hash">hash()</a></h3>
         <p>A fast hash function for generating 32-bit hash number from a string.</p>
-        <p>Currently it's using the Murmur2 algorithm. This algorithm is designed for uniqueness not security. Don't use it for password hashing.</p>
+        <p>Currently it's using the Murmur2 algorithm. This algorithm is designed for uniqueness not security. Don't
+            use it for password hashing.</p>
         <h4>EXAMPLES</h4>
         <pre class="run-code"><code class="language-javascript">
             
@@ -269,20 +276,24 @@
 
         </code></pre>
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="console">Console Functions</a></h2>
 
         <h3><a class="mark" name="console-log">_log() ... _error()</a></h3>
 
-        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_group()</code>, <code>_timer()</code>, <code>_info()</code>,
+        <p>Tiny provides several shorthands to console methods: <code>_log()</code>, <code>_group()</code>, <code>_timer()</code>,
+            <code>_info()</code>,
             <code>_warn()</code> and <code>_error()</code>.</p>
-        <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper functions,
+        <p>You might use these functions just like the original methods of <code>console</code>. These are not wrapper
+            functions,
             and will not show the wrapper function name &amp; location in the console output.</p>
-        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users with those
+        <p>By default, output of <code>_log()</code> &amp; <code>_dir()</code> is turned off. Don't bother end users
+            with those
             logs.
         </p>
-        <p>You can easily turn the console log on or off by calling <code>tiny.output('all')</code> in develop or production
+        <p>You can easily turn the console log on or off by calling <code>tiny.output('all')</code> in develop or
+            production
             environments.
         </p>
 
@@ -368,18 +379,28 @@
         </code></pre>
 
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="message">Message System</a></h2>
 
         <p>This tiny library includes a basic pseudo message system. Messages are more like remote function calls.</p>
         <p>In order to distinguish from the DOM Event system, it is named _message.</p>
-        <p>Though it's not real asynchronize message delivery, it should be enough for most use cases on browser client.</p>
+        <p>Though it's not real asynchronize message delivery, it should be enough for most use cases on browser
+            client.</p>
+
+        <h3><a class="mark" name="message-listen">_message.register()</a></h3>
+
+        <p>Register messages.</p>
+        <p>All messages must be registered before using. Duplicate registration will result an error.</p>
+        <pre><code class="language-javascript">
+            _message.register([namespace,] array_of_message_name_strings) : _message
+        </code></pre>
 
         <h3><a class="mark" name="message-listen">_message.listen()</a></h3>
 
-        <p>Register a message listener.</p>
-        <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking internal flag
+        <p>listen to a message.</p>
+        <p>There is no unlisten() method, since you can easily drop a message in your message handler by checking
+            internal flag
             (and you definitely will have an internal flag in such case).</p>
         <pre><code class="language-javascript">
             _message.listen(message_name, handler) : _message
@@ -397,7 +418,8 @@
         <h3><a class="mark" name="message-post-delayed">_message.postDelayed()</a></h3>
 
         <p>Post a message to listeners after a specified delay in milliseconds.</p>
-        <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement Type-n-Search
+        <p>If the same message is triggered again, the delay time will be reset. This behavior is suit for implement
+            Type-n-Search
             like features.</p>
         <pre><code class="language-javascript">
             _message.postDelayed(delay_time, msg_name, param_1, param_2 ...) : _message
@@ -414,6 +436,15 @@
                 var args = Array.prototype.slice.call(arguments);
                 list = list.concat(args);
             }
+
+            // register messages
+            _message.register('global-msg')
+            _message.register('list::add')
+            _message.register(
+                'list', [
+                    'remove',
+                    'error' ]
+            )
 
             // listen to the message
             _message
@@ -438,16 +469,33 @@
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
+                _message.register(1, []);
+                FAIL('_message.register() parameter 1 error');
+            }catch(err){
+                ASSERT('_message.register() parameter 1 error', err instanceof TypeError );
+                _info(err.message)
+            }
+            try{
+                _message.register('ns', 2);
+                FAIL('_message.register() parameter 2 error');
+            }catch(err){
+                ASSERT('_message.register() parameter 2 error', err instanceof TypeError );
+                _info(err.message)
+            }
+
+            try{
                 _message.listen(['error test', 1]);
                 FAIL('_message.listen() parameter 1 error');
             }catch(err){
                 ASSERT('_message.listen() parameter 1 error', err instanceof TypeError );
+                _info(err.message)
             }
             try{
                 _message.listen('my_msg', 'error test');
                 FAIL('_message.listen() parameter 2 error');
             }catch(err){
                 ASSERT('_message.listen() parameter 2 error', err instanceof TypeError );
+                _info(err.message)
             }
 
             try{
@@ -455,6 +503,7 @@
                 FAIL('_message.post() parameter 1 error');
             }catch(err){
                 ASSERT('_message.post() parameter 1 error', err instanceof TypeError );
+                _info(err.message)
             }
 
             try{
@@ -462,31 +511,36 @@
                 FAIL('_message.postDelayed() parameter 1 error');
             }catch(err){
                 ASSERT('_message.postDelayed() parameter 1 error', err instanceof TypeError );
+                _info(err.message)
             }
             try{
                 _message.postDelayed(100, ['error test'], null );
                 FAIL('_message.postDelayed() parameter 2 error');
             }catch(err){
                 ASSERT('_message.postDelayed() parameter 2 error', err instanceof TypeError );
+                _info(err.message)
             }
         </code></pre>
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="route">Router System</a></h2>
 
         <p>Routes are used to indicate a stateful view by a persistent URL.</p>
-        <p>With them you can access or share content directly with an URL, go back &amp; forth with the browser buttons.</p>
+        <p>With them you can access or share content directly with an URL, go back &amp; forth with the browser
+            buttons.</p>
         <p>They should not be used for temporary view like a popup dialog or represent an action to execute.</p>
         <p>This is why the router system of Tiny is this simple.</p>
-        <p>And for simplicity and compatibility, this router system uses <code>window.location.hash</code> (#string) for routing,
+        <p>And for simplicity and compatibility, this router system uses <code>window.location.hash</code> (#string)
+            for routing,
             instead of the fancy History API introduced in HTML5.</p>
         <p>And Tiny provides a predefined View Manager for fast implement of views.</p>
 
         <h3><a class="mark" name="route-watch">_route.watch()</a></h3>
 
         <p>Watch a certain route.</p>
-        <p>There is no unwatch() method, since you can easily drop a call in your route handler by checking internal flag (and
+        <p>There is no unwatch() method, since you can easily drop a call in your route handler by checking internal
+            flag (and
             you definitely will have an internal flag in such case).</p>
         <p>The <code>route</code> parameter can be a string or a RegExp object.</p>
 
@@ -498,14 +552,18 @@
         <p>This method will return <code>_route</code> object, you can chain methods if needed.</p>
         <p>The <code>route</code> parameter can be:</p>
         <ul>
-            <li><code>'/'</code> - match <code>''</code> or <code>'/'</code> route only. This is used to implement index view.</li>
+            <li><code>'/'</code> - match <code>''</code> or <code>'/'</code> route only. This is used to implement
+                index view.</li>
             <li><code>'/module'</code> - match any route which starts with a '/module' section.</li>
-            <li><code>'module'</code> - match any route which contains a 'module' section. A section must start with '/' or start
+            <li><code>'module'</code> - match any route which contains a 'module' section. A section must start with
+                '/' or start
                 of line, and end with '/' or end of line.</li>
-            <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword: 'me', page:
+            <li><code>'/search/{keyword}/p{page}'</code> - will match '/search/me/p3' and call handler with {keyword:
+                'me', page:
                 '3'}
             </li>
-            <li><code>/item=(.*?),(.*?)/i</code> - use RegExp to match, matched parameters will be returned in an Array.</li>
+            <li><code>/item=(.*?),(.*?)/i</code> - use RegExp to match, matched parameters will be returned in an
+                Array.</li>
         </ul>
         <p>The <code>handler</code> function will be called when:</p>
         <ul>
@@ -513,8 +571,10 @@
             <li>The route was matched last time, but no match this time.</li>
         </ul>
         <p>This behavior can make view switching easier.</p>
-        <p>The <code>current_route</code> parameter of the callback function will be current hash string without starting '#'.</p>
-        <p>And the <code>param_object</code> will be <code>true</code> or an <code>Object</code> contains paramters mateched
+        <p>The <code>current_route</code> parameter of the callback function will be current hash string without
+            starting '#'.</p>
+        <p>And the <code>param_object</code> will be <code>true</code> or an <code>Object</code> contains paramters
+            mateched
             in URL. Like:</p>
         <pre><code class="language-javascript">
             // route match
@@ -723,15 +783,17 @@
             }
             </code></pre>
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="dom">DOM Manipulation</a></h2>
 
         <h3><a class="mark" name="q">_q() and _q1()</a></h3>
-        <p>A tiny jQuery like function solely relies on <code>document.querySelector()</code>. It just provide some basic functions in order to keep lean. And we shouldn't reinvent the wheel when there are plenty good ones.</p>
-        <p>Note: It might have problems under IE8 since many CSS3 selectors are not supported and IE8 has some namespace problems on selectors.</p>
+        <p>A tiny jQuery like function solely relies on <code>document.querySelector()</code>. It just provide some
+            basic functions in order to keep lean. And we shouldn't reinvent the wheel when there are plenty good ones.</p>
+        <p>Note: It might have problems under IE8 since many CSS3 selectors are not supported and IE8 has some
+            namespace problems on selectors.</p>
 
-        <hr/>
+        <hr />
 
         <h2><a class="mark" name="storage-func">Local Storage</a></h2>
 
@@ -739,7 +801,8 @@
 
         <p>A handy function for accessing <code>window.localStorage</code>.</p>
         <p>Integer, Boolean, Array, Date & Object types will be automatically converted on access.</p>
-        <p>Note: All local pages might share a same localStorage store in some browsers. You can use <code>keyPrefix</code>            to avoid collisions.</p>
+        <p>Note: All local pages might share a same localStorage store in some browsers. You can use <code>keyPrefix</code>
+            to avoid collisions.</p>
         <pre><code class="language-javascript">
             // filter keys by prefix, default is ''
             tiny.storage.keyPrefix = 'your_prefix';
@@ -835,19 +898,20 @@
 
         <h3><a class="mark" name="lang">_lang()</a></h3>
         <p>Get a string from language string set.</p>
-        <p>Undefined strings will be collected in a list <code>_lang.missing</code> in runtime, this will make finding missing
+        <p>Undefined strings will be collected in a list <code>_lang.missing</code> in runtime, this will make finding
+            missing
             language strings easier.</p>
         <pre><code class="language-javascript">
             _lang(str [,lang_code])
             // str       : the string to lookup in current language string set
             // lang_code : the language code
         </pre></code>
-            <pre><code class="language-javascript">
+        <pre><code class="language-javascript">
         </pre></code>
 
-                <p>The language strings should be assign to <code>_lang.strings</code>. You can modify it whatever you want.
-                    But the default section set in <code>_lang.code</code> must exist.</p>
-                <pre class="run-code"><code class="language-javascript">
+        <p>The language strings should be assign to <code>_lang.strings</code>. You can modify it whatever you want.
+            But the default section set in <code>_lang.code</code> must exist.</p>
+        <pre class="run-code"><code class="language-javascript">
             // current languague code - default is 'en'
             // please use 
             _lang.code = 'en';
@@ -889,25 +953,25 @@
 
         </pre></code>
 
-                    <h3><a class="mark" name="lang-set">_lang.set()</a></h3>
-                    <p>Get a string from language string set.</p>
-                    <pre><code class="language-javascript">
+        <h3><a class="mark" name="lang-set">_lang.set()</a></h3>
+        <p>Get a string from language string set.</p>
+        <pre><code class="language-javascript">
             _lang.set([lang_code])
             // lang_code : the language code
         </pre></code>
 
 
-                        <hr/>
+        <hr />
 
-                        <h2><a class="mark" name="format-func">Format Template</a></h2>
+        <h2><a class="mark" name="format-func">Format Template</a></h2>
 
-                        <h3><a class="mark" name="format-format">_format()</a></h3>
+        <h3><a class="mark" name="format-format">_format()</a></h3>
 
-                        <p>Simply yet powerful enough format function with template support.</p>
-                        <p>This function support both normal html templates and the shorthand templates.</p>
-                        <p>Templates are parsed in a one-time loop over the string. In favor of performance, no RegExp is used.</p>
-                        <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
-                        <pre><code class="language-javascript">
+        <p>Simply yet powerful enough format function with template support.</p>
+        <p>This function support both normal html templates and the shorthand templates.</p>
+        <p>Templates are parsed in a one-time loop over the string. In favor of performance, no RegExp is used.</p>
+        <p>Expanded shorthand templates will be cached in memory or their original &lt;script> tags for performance.</p>
+        <pre><code class="language-javascript">
             _format(template, data_object);
             // template    : the template string
             // data_object : an object contains data you want to fill into the template
@@ -965,8 +1029,8 @@
             */
         </code></pre>
 
-                        <h4>EXAMPLES - SIMPLE FORMAT</h4>
-                        <pre class="run-code"><code class="language-javascript">
+        <h4>EXAMPLES - SIMPLE FORMAT</h4>
+        <pre class="run-code"><code class="language-javascript">
             // use whole data object and format with 'DD'
             var result = _format('Today is {|DD}.', new Date(1118102950753));
             ASSERT('date', result === 'Today is Tuesday.');
@@ -1003,8 +1067,8 @@
             ASSERT('keep html', result === 'Click &lt;a href="#">HERE&lt;/a>');
         </code></pre>
 
-                        <h4>EXAMPLES - SHORTHAND TEMPLATE</h4>
-                        <pre class="run-code"><code class="language-javascript">
+        <h4>EXAMPLES - SHORTHAND TEMPLATE</h4>
+        <pre class="run-code"><code class="language-javascript">
             var data = {
                 id: 123456,
                 title: 'Plan A & B',
@@ -1063,8 +1127,8 @@
                 '&lt;/li>\n');
         </code></pre>
 
-                        <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
-                        <pre class="run-code html"><code class="language-html">
+        <h4>EXAMPLES - TEMPLATES INSIDE HTML FILE</h4>
+        <pre class="run-code html"><code class="language-html">
             &lt;!--
             ****** TEMPLATES IN HTML FILE ******
             Templates must be placed inside &lt;script> tags to keep indents, tags and invisible.
@@ -1117,7 +1181,7 @@
                 .tags :{tasks} TASKS &lt;i>/&lt;/i> {people} PEOPLE
             &lt;/script>
         </code></pre>
-                        <pre class="run-code"><code class="language-javascript">
+        <pre class="run-code"><code class="language-javascript">
         /****** Javascript File ******/
 
         // returns expanded HTML template string if no data object is given
@@ -1182,8 +1246,8 @@
             '&lt;/div>\n');
         </code></pre>
 
-                        <h4>ERROR TESTS</h4>
-                        <pre class="collapse run-code html"><code class="error-test language-html">
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code html"><code class="error-test language-html">
             &lt;!-- HTML CONTENT FOR ERROR TESTS -->
 
             &lt;!-- Missing close '}' => SyntaxError -->
@@ -1206,7 +1270,7 @@
                 {/?has_token}  &lt;!-- wrong close token -->
             &lt;/script>
         </code></pre>
-                        <pre class="collapse run-code stop"><code class="error-test language-javascript">
+        <pre class="collapse run-code stop"><code class="error-test language-javascript">
             // Detailed error information can be found in console
 
             // TypeError : invalid parameter types
@@ -1273,16 +1337,16 @@
             }
         </code></pre>
 
-                        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
-                        <p>Make a string HTML-safe.</p>
-                        <pre><code class="language-javascript">
+        <h3><a class="mark" name="html-safe">_htmlSafe()</a></h3>
+        <p>Make a string HTML-safe.</p>
+        <pre><code class="language-javascript">
             _htmlSafe(str [, keep_spaces]);
 
             String._htmlSafe([keep_spaces]);
         </code></pre>
 
-                        <h4>EXAMPLES</h4>
-                        <pre class="run-code"><code class="language-javascript">
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
             var txt = 'task:\n  >> done';
 
             ASSERT('1', _htmlSafe(txt) === 'task:&lt;br/&gt;  &amp;gt;&amp;gt; done');
@@ -1293,8 +1357,8 @@
             ASSERT('4', txt._htmlSafe(true) === 'task:&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;gt;&amp;gt;&amp;nbsp;done');
         </code></pre>
 
-                        <h4>ERROR TESTS</h4>
-                        <pre class="collapse run-code"><code class="error-test language-javascript">
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -1305,10 +1369,10 @@
             }
         </code></pre>
 
-                        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
+        <h3><a class="mark" name="format-number">_formatNumber()</a></h3>
 
-                        <p>Number format function.</p>
-                        <pre><code class="language-javascript">
+        <p>Number format function.</p>
+        <pre><code class="language-javascript">
             _formatNumber(num[, format]);
             
             Number._format([format]);
@@ -1331,8 +1395,8 @@
             // 'X'    = uppercase HEX
         </code></pre>
 
-                        <h4>EXAMPLES</h4>
-                        <pre class="run-code"><code class="language-javascript">
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
             var num = 123456.789;
 
             ASSERT('1', num._format() == '123456.789');
@@ -1365,8 +1429,8 @@
             
         </code></pre>
 
-                        <h4>ERROR TESTS</h4>
-                        <pre class="collapse run-code"><code class="error-test language-javascript">
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
@@ -1383,10 +1447,10 @@
             }
         </code></pre>
 
-                        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
+        <h3><a class="mark" name="format-date">_formatDate()</a></h3>
 
-                        <p>Date format function.</p>
-                        <pre><code class="language-javascript">
+        <p>Date format function.</p>
+        <pre><code class="language-javascript">
             // you can use localized date names by replacing this data object
             _format.dateNames = {
                 day: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -1425,8 +1489,8 @@
             // 't'    = AM,    // AM / PM
         </code></pre>
 
-                        <h4>EXAMPLES</h4>
-                        <pre class="run-code"><code class="language-javascript">
+        <h4>EXAMPLES</h4>
+        <pre class="run-code"><code class="language-javascript">
             var d = new Date(1118102950753);
             ASSERT('0', d._format() === '2005-06-07 08:09:10');
             ASSERT('1', d._format('datetime') === '2005-06-07 08:09:10');
@@ -1443,8 +1507,8 @@
             ASSERT('mix', d._format('[D, d MMM yyyy H:m:s] GMT[zz]') == 'Tue, 7 Jun 2005 8:9:10 GMT+0800');
         </code></pre>
 
-                        <h4>ERROR TESTS</h4>
-                        <pre class="collapse run-code"><code class="error-test language-javascript">
+        <h4>ERROR TESTS</h4>
+        <pre class="collapse run-code"><code class="error-test language-javascript">
             // A TypeError will be thrown on invalid parameter types
             // Detailed information can be found in console
             try{
