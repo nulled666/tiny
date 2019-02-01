@@ -25,7 +25,7 @@ define([
     add_to_tiny({
 
         import: import_globals,
-        me: show_tiny_definition,
+        help: show_tiny_definition,
 
         type: _type,
         each: _each,
